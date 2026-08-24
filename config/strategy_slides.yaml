@@ -1,0 +1,722 @@
+schema_version: 1
+slides:
+  - id: core-01
+    title: "MISSION FIRST"
+    message: |
+      Abschluss → Einkommen → stabile Basis → Reputation → Optionen.
+      Nichts darf dauerhaft diese Reihenfolge verdrängen.
+    category: CORE
+    weight: 10
+    contexts: [general, career, ihk]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-02
+    title: "SELECTION > SEDUCTION"
+    message: |
+      Nicht jeden überzeugen.
+      Auswählen, wo Interesse, Respekt und Reziprozität vorhanden sind.
+    category: CORE
+    weight: 10
+    contexts: [general, social]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-03
+    title: "VERHALTEN > POTENZIAL"
+    message: |
+      Bewerte wiederholtes Verhalten.
+      Nicht Hoffnung, Fantasie oder theoretisches Potenzial.
+    category: CORE
+    weight: 10
+    contexts: [general, social, career]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-04
+    title: "OBSERVE → CLASSIFY → ACT"
+    message: |
+      Erst beobachten.
+      Dann Muster einordnen. Erst danach handeln.
+    category: CORE
+    weight: 10
+    contexts: [general, social, technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-05
+    title: "RECIPROCITY GATE"
+    message: |
+      Investiere einmal klar.
+      Dann Raum lassen und Gegeninvestition beobachten.
+    category: CORE
+    weight: 10
+    contexts: [social]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-06
+    title: "SAY LESS"
+    message: |
+      Eine klare Aussage reicht.
+      Keine Rechtfertigungsschleife und kein Übererklären.
+    category: CORE
+    weight: 10
+    contexts: [general, social, career]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-07
+    title: "EMOTION ≠ COMMAND"
+    message: |
+      Ein Gefühl ist Information.
+      Es ist kein automatischer Handlungsbefehl.
+    category: CORE
+    weight: 10
+    contexts: [general, social, recovery]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-08
+    title: "EVENT → EMOTION → FACTS → DECISION"
+    message: |
+      Trenne Ereignis, Gefühl und Fakten.
+      Entscheide erst danach.
+    category: CORE
+    weight: 10
+    contexts: [general, social, recovery]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-09
+    title: "ARTEFAKT > BEHAUPTUNG"
+    message: |
+      Nicht nur erklären, was du kannst.
+      Produziere etwas, das überprüfbar funktioniert.
+    category: CORE
+    weight: 10
+    contexts: [career, ihk, technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-10
+    title: "FINISH BEFORE EXPAND"
+    message: |
+      Keine neue Breite, solange der aktuelle Nachweis offen ist.
+      Erst schließen. Dann erweitern.
+    category: CORE
+    weight: 10
+    contexts: [general, ihk, technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-11
+    title: "FEEDBACK = DATA"
+    message: |
+      Antwort, Absage, Kritik oder Interesse liefern Daten.
+      Sie bestimmen nicht deinen Selbstwert.
+    category: CORE
+    weight: 10
+    contexts: [general, career, social]
+    cooldown_minutes: 30
+    priority: P0
+  - id: core-12
+    title: "I CAN WANT WITHOUT NEEDING"
+    message: |
+      Ich kann etwas oder jemanden wollen.
+      Ohne meine Autonomie davon abhängig zu machen.
+    category: CORE
+    weight: 10
+    contexts: [general, social]
+    cooldown_minutes: 30
+    priority: P0
+  - id: self-01
+    title: "ONE ACTIVE TARGET"
+    message: |
+      Ein Hauptproblem gleichzeitig schließen.
+      Nicht fünf Baustellen parallel eröffnen.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, career, ihk, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-02
+    title: "URGENCY ≠ IMPORTANCE"
+    message: |
+      Dringlichkeitsgefühl ist kein Prioritätsbeweis.
+      Prüfe Wirkung und Konsequenz.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, recovery]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-03
+    title: "10-MINUTE RULE"
+    message: |
+      Leichte emotionale Aktivierung:
+      zehn Minuten warten, dann neu bewerten.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, social, recovery]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-04
+    title: "60-MINUTE RULE"
+    message: |
+      Emotionale Nachricht?
+      Mindestens 60 Minuten zwischen Entwurf und Senden.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [social, recovery]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-05
+    title: "OVERNIGHT RULE"
+    message: |
+      Konflikt ohne echte Frist darf über Nacht warten.
+      Morgen erneut mit Fakten prüfen.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [social, recovery]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-06
+    title: "DRAFT ≠ SEND"
+    message: |
+      Schreiben darf spontan sein.
+      Senden ist eine separate Entscheidung.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, social, career]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-07
+    title: "STOP SCOPE CREEP"
+    message: |
+      Ein grüner Stand wird eingefroren.
+      Keine unnötige Erweiterung vor dem nächsten definierten Schritt.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [ihk, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-08
+    title: "ONE BLOCK → ONE OUTPUT"
+    message: |
+      Jeder Fokusblock endet mit einem sichtbaren Ergebnis.
+      Datei, Entscheidung, Test, Commit oder Dokument.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, career, ihk, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-09
+    title: "ERROR → LESSON → TEST"
+    message: |
+      Fehler nicht nur reparieren.
+      Eine Regel oder einen Regressionstest daraus machen.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [technical, ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-10
+    title: "NO PERFECT PREPARATION"
+    message: |
+      Sobald ausreichend vorbereitet:
+      ausführen und reale Rückmeldung sammeln.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, career, ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-11
+    title: "CLOSE THE LOOP"
+    message: |
+      Begonnen → geprüft → dokumentiert → abgeschlossen.
+      Offene Schleifen kosten mentale Kapazität.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, career, ihk, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-12
+    title: "SYSTEM USE > SYSTEM BUILD"
+    message: |
+      Ein funktionierendes System zuerst benutzen.
+      Nicht sofort das nächste System bauen.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-13
+    title: "ENERGY IS A BUDGET"
+    message: |
+      Nicht jede interessante Sache verdient heute Energie.
+      Investiere nach Hebelwirkung.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, recovery]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-14
+    title: "OPTIONS REDUCE PRESSURE"
+    message: |
+      Mehr gute Optionen reduzieren Fixierung.
+      Optionen entstehen durch abgeschlossene Arbeit.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, career, social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-15
+    title: "CALM > SPEED"
+    message: |
+      Unter Druck nicht automatisch schneller werden.
+      Gute Entscheidungen brauchen Klarheit.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, recovery]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-16
+    title: "FACT / INTERPRETATION"
+    message: |
+      Was weiß ich tatsächlich?
+      Was habe ich nur interpretiert?
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, social, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-17
+    title: "DO THE BORING EVIDENCE"
+    message: |
+      Stunden, Kosten, Tests, Abnahme und Nachweise schließen.
+      Beweise sind Teil der Arbeit.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [ihk, technical, career]
+    cooldown_minutes: 60
+    priority: P1
+  - id: self-18
+    title: "END WITH ARTIFACT"
+    message: |
+      Jede wichtige Session produziert ein Artefakt.
+      Kein reines Denken ohne Ergebnis.
+    category: SELF_CONTROL
+    weight: 6
+    contexts: [general, career, ihk, technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-01
+    title: "PRESENCE > PERFORMANCE"
+    message: |
+      Nicht versuchen, Wirkung zu erzwingen.
+      Ruhige Präsenz schlägt künstliche Inszenierung.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social, general]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-02
+    title: "CURIOSITY > CONTROL"
+    message: |
+      Menschen verstehen wollen.
+      Nicht versuchen, sie zu steuern.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-03
+    title: "SPACE ≠ GAME"
+    message: |
+      Raum geben ist gesund.
+      Künstliche Distanz als Taktik ist etwas anderes.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-04
+    title: "CONSISTENCY > INTENSITY"
+    message: |
+      Wiederholtes stabiles Verhalten zählt.
+      Einzelne intensive Momente reichen nicht.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-05
+    title: "ATTRACTION ≠ COMMITMENT"
+    message: |
+      Aufmerksamkeit oder Anziehung sind Signale.
+      Noch keine Bindung und keine Verpflichtung.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-06
+    title: "NOTICE WITHOUT IDEALIZING"
+    message: |
+      Ein Signal wahrnehmen.
+      Keine komplette Geschichte daraus bauen.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-07
+    title: "DO NOT PROJECT"
+    message: |
+      Eigene Wünsche nicht als Verhalten anderer lesen.
+      Beobachtung und Interpretation getrennt halten.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-08
+    title: "LET THEM INVEST"
+    message: |
+      Eine soziale Dynamik nicht allein tragen.
+      Raum für freiwillige Gegeninvestition lassen.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-09
+    title: "CLEAR NO = STOP"
+    message: |
+      Ein klares Nein wird respektiert.
+      Keine weitere Überzeugungsarbeit.
+    category: SOCIAL_STRATEGY
+    weight: 10
+    contexts: [social]
+    cooldown_minutes: 30
+    priority: P0
+  - id: social-10
+    title: "RESPECT BEFORE ATTRACTION"
+    message: |
+      Anziehung ohne Respekt ist kein gutes Fundament.
+      Charakter und Umgang zuerst prüfen.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-11
+    title: "STANDARDS ARE FILTERS"
+    message: |
+      Standards entscheiden, woran du teilnimmst.
+      Nicht wen du kontrollierst.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social, general]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-12
+    title: "BOUNDARIES CONTROL ME"
+    message: |
+      Eine Grenze beschreibt meine Konsequenz.
+      Nicht die Kontrolle über fremdes Verhalten.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-13
+    title: "NO CHASING"
+    message: |
+      Wiederholtes Desinteresse ist Information.
+      Nicht mit immer mehr Einsatz beantworten.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-14
+    title: "NO ARTIFICIAL SCARCITY"
+    message: |
+      Kein absichtliches Ignorieren für Wirkung.
+      Echtes eigenes Leben statt Spielchen.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-15
+    title: "SAY WHAT YOU MEAN"
+    message: |
+      Klare Kommunikation.
+      Keine unnötigen taktischen Rätsel.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social, career]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-16
+    title: "LEAVE CLEANLY"
+    message: |
+      Wenn etwas nicht funktioniert:
+      sauber beenden, keine verbrannte Erde.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social, general]
+    cooldown_minutes: 60
+    priority: P1
+  - id: social-17
+    title: "SOCIAL INTERACTION = PRACTICE"
+    message: |
+      Begegnungen sind Training sozialer Kompetenz.
+      Keine Prüfung des eigenen Werts.
+    category: SOCIAL_STRATEGY
+    weight: 3
+    contexts: [social]
+    cooldown_minutes: 120
+    priority: P2
+  - id: social-18
+    title: "REALITY UPDATES THE MODEL"
+    message: |
+      Neue Fakten dürfen alte Annahmen verändern.
+      Nicht an einer Geschichte festhalten.
+    category: SOCIAL_STRATEGY
+    weight: 6
+    contexts: [social, general]
+    cooldown_minutes: 60
+    priority: P1
+  - id: career-01
+    title: "VALUE = PROBLEM → ACTION → RESULT"
+    message: |
+      Kompetenz anhand eines konkreten Problems erklären.
+      Handlung und Ergebnis sichtbar machen.
+    category: CAREER_IHK
+    weight: 10
+    contexts: [career, ihk]
+    cooldown_minutes: 30
+    priority: P0
+  - id: career-02
+    title: "REPUTATION = REPEATED PROOF"
+    message: |
+      Ein Erfolg ist ein Ereignis.
+      Wiederholte belastbare Ergebnisse werden Reputation.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [career, general]
+    cooldown_minutes: 60
+    priority: P1
+  - id: career-03
+    title: "CONVERSION > VOLUME"
+    message: |
+      Bewerbungen sind nur der Anfang.
+      SENT → Antwort → Interview → Angebot optimieren.
+    category: CAREER_IHK
+    weight: 10
+    contexts: [career]
+    cooldown_minutes: 30
+    priority: P0
+  - id: career-04
+    title: "RESPONSIBILITY CREATES OPTIONS"
+    message: |
+      Mehr Verantwortung entsteht durch Zuverlässigkeit.
+      Optionen folgen nachgewiesener Leistung.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [career]
+    cooldown_minutes: 60
+    priority: P1
+  - id: career-05
+    title: "TECH + PEOPLE + BUSINESS"
+    message: |
+      Stärke entsteht an der Schnittstelle:
+      Technik, Menschen, Prozesse und Verantwortung.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [career, ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-01
+    title: "IHK — SITUATION"
+    message: |
+      Was ist konkret passiert?
+      Ausgangslage präzise und ohne unnötige Wertung beschreiben.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-02
+    title: "IHK — SMART GOAL"
+    message: |
+      Was soll konkret erreicht werden?
+      Spezifisch, messbar, realistisch und terminiert.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-03
+    title: "IHK — STAKEHOLDERS"
+    message: |
+      Wer ist betroffen?
+      Interessen, Einfluss und Erwartungen sichtbar machen.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-04
+    title: "IHK — CAUSES"
+    message: |
+      Ursachen trennen:
+      Mensch → Organisation → Prozess.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-05
+    title: "IHK — ALTERNATIVES"
+    message: |
+      Nicht sofort auf die erste Lösung springen.
+      Mindestens A, B und C vergleichen.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-06
+    title: "IHK — EVALUATION"
+    message: |
+      Alternativen wirtschaftlich, menschlich
+      und organisatorisch bewerten.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-07
+    title: "IHK — DECISION"
+    message: |
+      Entscheidung klar nennen.
+      Kriterien und Begründung nachvollziehbar machen.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-08
+    title: "IHK — IMPLEMENTATION"
+    message: |
+      Wer macht was bis wann?
+      Verantwortlichkeiten und Reihenfolge konkretisieren.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-09
+    title: "IHK — CONTROL"
+    message: |
+      Woran wird Erfolg erkannt?
+      Messpunkte und Soll-Ist-Vergleich festlegen.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-10
+    title: "IHK — SUSTAINABILITY"
+    message: |
+      Wie bleibt die Verbesserung bestehen?
+      Kommunikation, Verantwortlichkeit und Nachsteuerung planen.
+    category: CAREER_IHK
+    weight: 6
+    contexts: [ihk]
+    cooldown_minutes: 60
+    priority: P1
+  - id: ihk-11
+    title: "EVIDENCE WINS"
+    message: |
+      Test → Abnahme → Stunden → Kosten → Ergebnis.
+      Behauptungen in Nachweise verwandeln.
+    category: CAREER_IHK
+    weight: 10
+    contexts: [ihk, technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: tech-01
+    title: "NO FAKE DATA"
+    message: |
+      Nicht verbunden = NOT_CONNECTED.
+      Fehlende Realität niemals mit Demo-Daten ersetzen.
+    category: TECHNICAL
+    weight: 10
+    contexts: [technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: tech-02
+    title: "FAIL CLOSED"
+    message: |
+      Unsicherheit darf nicht automatisch Freigabe bedeuten.
+      Sicherheitsgrenzen explizit behandeln.
+    category: TECHNICAL
+    weight: 10
+    contexts: [technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: tech-03
+    title: "REPRODUCE BEFORE FIX"
+    message: |
+      Kein kritischer Bugfix nur aufgrund einer Vermutung.
+      Erst reproduzieren, dann Ursache, Test und Fix.
+    category: TECHNICAL
+    weight: 10
+    contexts: [technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: tech-04
+    title: "CI > LOCAL CONFIDENCE"
+    message: |
+      Lokal grün ist nicht genug.
+      Saubere Umgebung prüft Portabilität.
+    category: TECHNICAL
+    weight: 6
+    contexts: [technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: tech-05
+    title: "REVIEW ≠ TRUTH"
+    message: |
+      Reviewer liefern Verdachtsmomente.
+      Reproduktion und Evidenz bestimmen die Priorität.
+    category: TECHNICAL
+    weight: 6
+    contexts: [technical]
+    cooldown_minutes: 60
+    priority: P1
+  - id: tech-06
+    title: "FREEZE GREEN STATES"
+    message: |
+      Grün → Commit → CI → Merge → Deployment.
+      Stabilität nicht durch unnötige Änderungen zerstören.
+    category: TECHNICAL
+    weight: 10
+    contexts: [technical]
+    cooldown_minutes: 30
+    priority: P0
+  - id: review-01
+    title: "WEEKLY QUESTION"
+    message: |
+      Was habe ich tatsächlich abgeschlossen?
+      Nicht: Womit habe ich mich beschäftigt?
+    category: REVIEW
+    weight: 3
+    contexts: [general, recovery]
+    cooldown_minutes: 240
+    priority: P2
+  - id: review-02
+    title: "STOP → START → CONTINUE"
+    message: |
+      STOP: Was kostet Wirkung?
+      START: Was fehlt? CONTINUE: Was funktioniert?
+    category: REVIEW
+    weight: 3
+    contexts: [general, recovery]
+    cooldown_minutes: 240
+    priority: P2

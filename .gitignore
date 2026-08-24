@@ -1,0 +1,49 @@
+# Elixir/Phoenix
+/_build/
+/deps/
+/.elixir_ls/
+/cover/
+erl_crash.dump
+
+# JS
+/node_modules/
+
+# Runtime / local state
+/var/
+/tmp/
+/state/
+/runtime/
+/data/
+/logs/
+
+# Secrets / env
+.env
+.env.*
+*.env
+*.secret
+*.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Local ShadowOps state
+/.local/
+/priv/private/
+/priv/legal/
+/priv/runtime/
+
+# Local import evidence / private manifests
+/imports/
+/manifests/private/
+/career_sync_state.json
+/application_pipeline_status*
+/finance*.json
+/legal*.json
+/investigation*.json
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

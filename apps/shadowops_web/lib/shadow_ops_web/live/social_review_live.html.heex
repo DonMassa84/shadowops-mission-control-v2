@@ -1,0 +1,54 @@
+<.app_shell
+  title="Social Review"
+  subtitle="Privacy-safe Facebook aggregate evidence"
+  active="/social/review"
+  availability={@review.source_status.status}
+  updated_at={@review.source_status.generated_at}
+>
+  <.source_meta
+    source="Facebook aggregate metadata"
+    updated_at={@review.source_status.generated_at}
+    availability={@review.source_status.status}
+  />
+
+  <div class="mc-grid mc-grid-3">
+    <.metric_card label="Source" value={@review.source_status.status} status={@review.source_status.status} />
+    <.metric_card label="Privacy" value={@review.source_status.privacy_status} status={@review.source_status.privacy_status} />
+    <.metric_card label="Data quality" value={@review.source_status.data_quality} status={@review.source_status.data_quality} />
+  </div>
+
+  <.panel title="Evidence quality" description="Counts from the current aggregate source; no private evidence text is rendered.">
+    <div class="mc-grid mc-grid-3">
+      <.metric_card label="Evidence records" value={display(@review.evidence_quality.evidence_count)} status={@review.source_status.status} />
+      <.metric_card label="Buckets" value={display(@review.evidence_quality.bucket_count)} status={@review.source_status.status} />
+      <.metric_card label="Verified dimensions" value={display(@review.evidence_quality.dimension_verified_count)} status={@review.source_status.status} />
+      <.metric_card label="Partial dimensions" value={display(@review.evidence_quality.dimension_partial_count)} status="PARTIAL" />
+      <.metric_card label="Missing dimensions" value={display(@review.evidence_quality.dimension_missing_count)} status="UNAVAILABLE" />
+      <.metric_card label="Contact distribution" value={if @review.evidence_quality.contact_distribution_available, do: "AVAILABLE", else: "UNAVAILABLE"} status={if @review.evidence_quality.contact_distribution_available, do: "AVAILABLE", else: "UNAVAILABLE"} />
+    </div>
+  </.panel>
+
+  <.panel title="Behavioral dimensions" description="A missing source field is UNAVAILABLE, never zero or estimated.">
+    <div class="mc-grid mc-grid-3">
+      <.metric_card label="Reciprocity" value={@review.reciprocity.status} status={@review.reciprocity.status} />
+      <.metric_card label="Initiation" value={@review.initiation.status} status={@review.initiation.status} />
+      <.metric_card label="Response" value={@review.response.status} status={@review.response.status} />
+      <.metric_card label="Response latency" value={@review.latency.status} status={@review.latency.status} />
+      <.metric_card label="Follow-up" value={@review.follow_up.status} status={@review.follow_up.status} />
+      <.metric_card label="Consistency" value={@review.consistency.status} status={@review.consistency.status} />
+      <.metric_card label="Balance" value={@review.balance.status} status={@review.balance.status} />
+      <.metric_card label="Historical trend" value={@review.trend.status} status={@review.trend.status} />
+    </div>
+  </.panel>
+
+  <.panel title="Capability boundary" description="Only present aggregate evidence is supported in this release.">
+    <h3>SUPPORTED NOW</h3>
+    <ul><li :for={capability <- @review.capabilities.supported_now}>{capability}</li></ul>
+    <h3>UNSUPPORTED NOW</h3>
+    <ul><li :for={capability <- @review.capabilities.unsupported_now}>{capability}</li></ul>
+  </.panel>
+
+  <.panel title="Privacy boundary">
+    <p>Only aggregate status and counts cross this boundary. Private fields and source evidence content are rejected before rendering.</p>
+  </.panel>
+</.app_shell>

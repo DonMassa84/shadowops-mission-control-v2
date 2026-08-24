@@ -1,0 +1,99 @@
+<main style="min-height:100vh;background:#0b0d10;color:#e7e9ec;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:32px;">
+  <section style="max-width:1280px;margin:0 auto;">
+    <header style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border-bottom:1px solid #252932;padding-bottom:20px;margin-bottom:26px;">
+      <div>
+        <div style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#89919d;">
+          ShadowOps Control Plane
+        </div>
+        <h1 style="font-size:30px;margin:8px 0 0;font-weight:650;">Production Integrations</h1>
+        <p style="margin:9px 0 0;color:#8c95a3;font-size:13px;max-width:760px;line-height:1.6;">
+          Evidence-backed capability catalog. Missing or unverified dependencies remain explicit instead of being promoted to healthy runtime state.
+        </p>
+      </div>
+      <div style="font-size:12px;border:1px solid #303641;border-radius:999px;padding:7px 11px;color:#9ba3af;white-space:nowrap;">
+        No fake state
+      </div>
+    </header>
+
+    <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:18px;">
+      <article style="border:1px solid #252932;background:#111419;border-radius:12px;padding:16px;">
+        <div style="font-size:11px;color:#818a97;text-transform:uppercase;letter-spacing:.08em;">Control-plane modules</div>
+        <div style="font-size:26px;margin-top:7px;font-weight:650;"><%= @module_count %></div>
+      </article>
+      <article style="border:1px solid #252932;background:#111419;border-radius:12px;padding:16px;">
+        <div style="font-size:11px;color:#818a97;text-transform:uppercase;letter-spacing:.08em;">External connectors</div>
+        <div style="font-size:26px;margin-top:7px;font-weight:650;"><%= @connector_count %></div>
+      </article>
+      <article style="border:1px solid #252932;background:#111419;border-radius:12px;padding:16px;">
+        <div style="font-size:11px;color:#818a97;text-transform:uppercase;letter-spacing:.08em;">Positive evidence states</div>
+        <div style="font-size:26px;margin-top:7px;font-weight:650;"><%= @ready_count %></div>
+      </article>
+      <article style="border:1px solid #252932;background:#111419;border-radius:12px;padding:16px;">
+        <div style="font-size:11px;color:#818a97;text-transform:uppercase;letter-spacing:.08em;">Governance path</div>
+        <div style="font-size:13px;margin-top:8px;line-height:1.5;">Identity → Policy → Privacy → Approval → Execution → Audit</div>
+      </article>
+    </section>
+
+    <section style="border:1px solid #252932;background:#111419;border-radius:14px;padding:20px;margin-bottom:18px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#818a97;margin-bottom:10px;">Production rules</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;font-size:13px;line-height:1.55;color:#c9ced6;">
+        <div>• Mutations pass through the governed execution boundary.</div>
+        <div>• Positive status requires real, reachable source evidence.</div>
+        <div>• Secrets and private raw datasets stay outside UI projections.</div>
+        <div>• Missing integrations remain UNAVAILABLE / NOT_CONNECTED / BLOCKED_CONFIGURATION.</div>
+      </div>
+    </section>
+
+    <section style="margin-bottom:24px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#818a97;margin:0 0 10px;">Core modules</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;">
+        <%= for item <- @modules do %>
+          <article style="border:1px solid #252932;background:#0f1216;border-radius:12px;padding:17px;min-width:0;">
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+              <div style="font-size:16px;font-weight:600;overflow-wrap:anywhere;"><%= item.name %></div>
+              <div style="font-size:10px;border:1px solid #343a45;border-radius:999px;padding:5px 8px;color:#b6bdc8;white-space:nowrap;"><%= item.status %></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px;font-size:11px;color:#818a97;">
+              <div>Health<br><span style="color:#c9ced6;"><%= item.health %></span></div>
+              <div>Source type<br><span style="color:#c9ced6;"><%= item.source_type %></span></div>
+              <div>Real data<br><span style="color:#c9ced6;"><%= item.real_data %></span></div>
+              <div>Reachable<br><span style="color:#c9ced6;"><%= item.reachable %></span></div>
+            </div>
+            <div style="margin-top:12px;font-size:11px;color:#737c89;overflow-wrap:anywhere;">Source: <%= item.source %></div>
+            <%= if item.record_count != nil do %>
+              <div style="margin-top:5px;font-size:11px;color:#737c89;">Records: <%= item.record_count %></div>
+            <% end %>
+            <%= if item.error_code do %>
+              <div style="margin-top:9px;font-size:11px;color:#b4a0a0;overflow-wrap:anywhere;"><%= item.error_code %><%= if item.error_message, do: ": #{item.error_message}" %></div>
+            <% end %>
+          </article>
+        <% end %>
+      </div>
+    </section>
+
+    <section>
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#818a97;margin:0 0 10px;">Detected external integrations</div>
+      <%= if @external_integrations == [] do %>
+        <article style="border:1px solid #252932;background:#0f1216;border-radius:12px;padding:18px;color:#8c95a3;font-size:13px;">
+          No external connector has source-backed evidence at this time.
+        </article>
+      <% else %>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;">
+          <%= for item <- @external_integrations do %>
+            <article style="border:1px solid #252932;background:#0f1216;border-radius:12px;padding:17px;min-width:0;">
+              <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+                <div style="font-size:16px;font-weight:600;overflow-wrap:anywhere;"><%= item.name %></div>
+                <div style="font-size:10px;border:1px solid #343a45;border-radius:999px;padding:5px 8px;color:#b6bdc8;white-space:nowrap;"><%= item.status %></div>
+              </div>
+              <div style="margin-top:11px;font-size:11px;color:#818a97;">Health: <span style="color:#c9ced6;"><%= item.health %></span></div>
+              <div style="margin-top:5px;font-size:11px;color:#737c89;overflow-wrap:anywhere;">Source: <%= item.source %></div>
+              <%= if item.error_code do %>
+                <div style="margin-top:9px;font-size:11px;color:#b4a0a0;overflow-wrap:anywhere;"><%= item.error_code %><%= if item.error_message, do: ": #{item.error_message}" %></div>
+              <% end %>
+            </article>
+          <% end %>
+        </div>
+      <% end %>
+    </section>
+  </section>
+</main>

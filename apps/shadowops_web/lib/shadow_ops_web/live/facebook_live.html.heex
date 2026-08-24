@@ -1,0 +1,102 @@
+<.app_shell title="Facebook Analytics" subtitle="Privacy-safe local Messenger analytics" active="/social/facebook" availability={availability(@runtime, @analytics)} updated_at={@runtime.generated_at || @analytics.generated_at}>
+<main>
+  <section style="max-width:1280px;margin:auto">
+    <header style="border-bottom:1px solid #252932;padding-bottom:20px;margin-bottom:22px">
+      <div style="color:#89919d;font-size:12px;letter-spacing:.14em">SHADOWOPS MISSION CONTROL</div>
+      <h1 style="margin:8px 0 18px">FACEBOOK ANALYTICS</h1>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+        <.status label="MISSION CONTROL" value={availability(@runtime, @analytics)} />
+        <.status label="REAL DATA" value={if @runtime.ready?, do: "AVAILABLE", else: "NOT AVAILABLE"} />
+        <.status label="PIPELINE STATUS" value={if @runtime.ready?, do: @runtime.pipeline_status, else: @analytics.pipeline_status} />
+        <.status label="RANKING STATUS" value={if @runtime.ready?, do: @runtime.ranking_status, else: @analytics.ranking_engine_status} />
+        <.status label="PRIVACY STATUS" value={@runtime.privacy_status} />
+        <.status label="LAST RUNTIME" value={@runtime.generated_at || "N/A"} />
+        <.status label="BALANCE CLASSIFIER" value={@balance.status} />
+      </div>
+    </header>
+
+    <div :if={!@runtime.ready? && @analytics.available?} style="border:1px solid #7a5b24;background:#211a0f;padding:18px;margin-bottom:18px">REAL FACEBOOK RUNTIME SNAPSHOT NOT AVAILABLE — FALLING BACK TO RECONSTRUCTION EVIDENCE</div>
+    <div :if={!@runtime.ready? && !@analytics.available?} style="border:1px solid #7a5b24;background:#211a0f;padding:18px;margin-bottom:18px">FACEBOOK DATA NOT AVAILABLE</div>
+
+    <section class="card"><h2>KPI GRID</h2><div class="grid">
+      <article :for={{name, value} <- effective_metrics(@runtime, @analytics)} class="metric"><small>{name}</small><strong>{display(value)}</strong></article>
+    </div></section>
+
+    <section :if={@runtime.ready?} class="card">
+      <h2>CONTACT DISTRIBUTION — AGGREGATE ONLY</h2>
+      <div class="grid">
+        <article :for={{category, count} <- @runtime.categories} class="metric"><small>{category}</small><strong>{display(count)}</strong></article>
+      </div>
+      <p>Total 1:1 chats: {display(@runtime.total_one_to_one_chats)}</p>
+    </section>
+
+    <section class="card" id="communication-balance">
+      <h2>COMMUNICATION BALANCE</h2>
+      <p>Observable communication distribution only. No NLP or interpretation of human intent, attraction, interest, rejection, manipulation, attachment, personality, or motivation.</p>
+      <p>Confidence reflects data volume only: LOW at 5–9 sessions, MEDIUM at 10–19, and HIGH from 20 sessions.</p>
+      <div :if={!@balance.ready?} class="balance-unavailable">BALANCE CLASSIFIER NOT AVAILABLE</div>
+      <div :if={@balance.ready?}>
+        <div class="grid">
+          <article :for={status <- ~w(BALANCED WATCH OVERINVESTING INSUFFICIENT_DATA)} class="metric">
+            <small>{status}</small><strong>{display(Map.get(@balance.counts, status))}</strong>
+          </article>
+        </div>
+        <div class="grid balance-summary">
+          <article class="metric"><small>BALANCED / SUFFICIENT</small><strong>{percent(@balance.proportions["balanced_share_sufficient"])}</strong></article>
+          <article class="metric"><small>WATCH / SUFFICIENT</small><strong>{percent(@balance.proportions["watch_share_sufficient"])}</strong></article>
+          <article class="metric"><small>OVERINVESTING / SUFFICIENT</small><strong>{percent(@balance.proportions["overinvesting_share_sufficient"])}</strong></article>
+          <article class="metric"><small>SUFFICIENT DATA</small><strong>{display(@balance.sufficient_data_count)}</strong></article>
+        </div>
+        <p>Last analysis: {@balance.generated_at}</p>
+        <p>Source SHA256: {@balance.source_sha256}</p>
+        <p>Source commit: {@balance.source_commit || "N/A"}</p>
+        <p>Privacy Status: {@balance.privacy["classification"]}</p>
+        <table id="communication-balance-chats">
+          <thead><tr><th>CHAT</th><th>STATUS</th><th>CONFIDENCE</th><th>DIRECTION</th><th>OUTBOUND</th><th>INITIATION</th><th>FOLLOWUPS ME/OTHER</th><th>EARLY SIGNAL</th></tr></thead>
+          <tbody>
+            <tr :for={chat <- balance_chats(@balance.chats)}>
+              <td>{chat["chat"]}</td>
+              <td>{chat["status"]}</td>
+              <td>{chat["confidence"]}</td>
+              <td>{chat["direction"]}</td>
+              <td>{percent(chat["outbound_share_me"])}</td>
+              <td>{percent(chat["initiation_share_me"])}</td>
+              <td>{chat["followups_me"]}/{chat["followups_other"]}</td>
+              <td>{chat["early_signal"]}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p :if={length(@balance.chats) > 100}>Showing the first 100 pseudonymized chats in deterministic C_-ID order.</p>
+      </div>
+    </section>
+
+    <section class="card"><h2>RANKING ENGINE EVIDENCE</h2><p :if={@analytics.formulas == []}>NO VERIFIED RECONSTRUCTION FORMULAS</p><table :if={@analytics.formulas != []}><thead><tr><th>STATUS</th><th>FORMULA</th><th>SOURCE</th><th>LINE</th><th>SHA256</th></tr></thead><tbody><tr :for={formula <- @analytics.formulas}><td>{formula.status}</td><td>{formula.name} = {formula.expression}</td><td>{formula.file}</td><td>{formula.line}</td><td>{formula.sha256}</td></tr></tbody></table></section>
+
+    <section class="card"><h2>SIGNAL MATRIX</h2><table><thead><tr><th>SIGNAL</th><th>STATUS</th></tr></thead><tbody><tr :for={{label, signal} <- @analytics.signals}><td>{label}</td><td>{signal.status}</td></tr></tbody></table></section>
+
+    <section class="card"><h2>THRESHOLDS</h2><p :if={@analytics.thresholds == []}>NO VERIFIED THRESHOLDS</p><table :if={@analytics.thresholds != []}><thead><tr><th>CONDITION</th><th>CLASS</th><th>FILE</th><th>LINE</th><th>SHA256</th></tr></thead><tbody><tr :for={threshold <- @analytics.thresholds}><td>{threshold.condition}</td><td>{threshold.classification}</td><td>{threshold.file}</td><td>{threshold.line}</td><td>{threshold.sha256}</td></tr></tbody></table></section>
+
+    <section class="card"><h2>SCORE CALCULATOR</h2><form id="facebook-calculator" phx-submit="calculate"><label>interaction_count <input name="interaction_count" value={@calculator_input} inputmode="numeric" /></label><button>CALCULATE</button></form><div :for={{name, value} <- @calculator} class="result">{name}: {display(value)}</div><p :if={@analytics.formulas == []}>No verified reconstruction formula is available.</p></section>
+
+    <section class="card"><h2>MULTIDIMENSIONAL RANKING</h2><h3>MULTIDIMENSIONAL RANKING FORMULA</h3><code>score = w1 * reciprocity + w2 * initiation + w3 * response + w4 * latency + w5 * followups + w6 * balance</code><p>{@analytics.multidimensional_status}</p></section>
+
+    <section class="card"><h2>EVIDENCE</h2><table><thead><tr><th>FINDING</th><th>STATUS</th><th>FILE</th><th>LINE</th><th>SHA256</th></tr></thead><tbody><tr :for={item <- @analytics.evidence}><td>{item.finding}</td><td>{item.status}</td><td>{item.file}</td><td>{item.line}</td><td>{item.sha256}</td></tr></tbody></table></section>
+
+    <section class="card"><h2>PRIVACY GATE</h2><strong>LOCAL PRIVATE DATA · PROTECTED</strong><p>Allowed: Aggregates · Metrics · Category counts · Formulas · Thresholds · Hashes · Pseudonymized per-chat balance classifications</p><p>Blocked: Raw messages · Names · Phones · Email · Media · Cookies · Identity Maps · Identity resolution</p></section>
+
+    <section :if={@runtime.ready?} class="card"><h2>RUNTIME FRESHNESS</h2><p>Source: {safe_source(@runtime.source.path)}</p><p>Generated At: {@runtime.generated_at || "N/A"}</p><p>Modified At: {mtime(@runtime.source.mtime)}</p><p>Age: {age(@runtime.source.mtime)}</p><p>SHA256: {@runtime.source.sha256 || "N/A"}</p><p>Source commit: {@runtime.source_commit || "N/A"}</p></section>
+    <section :if={!@runtime.ready?} class="card"><h2>RECONSTRUCTION FRESHNESS</h2><p>Source: {safe_source(@analytics.source.path)}</p><p>Generated At: {@analytics.generated_at || "N/A"}</p><p>Modified At: {mtime(@analytics.source.mtime)}</p><p>Age: {age(@analytics.source.mtime)}</p><p>SHA256: {@analytics.source.sha256 || "N/A"}</p></section>
+
+    <button disabled={!@capability_available?}>{if @capability_available?, do: "RUN FACEBOOK ANALYSIS", else: "CAPABILITY NOT AVAILABLE"}</button>
+  </section>
+</main>
+</.app_shell>
+
+<style>
+  .card { border:1px solid #252932; background:#111419; border-radius:12px; padding:18px; margin-bottom:16px; overflow:auto; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .metric { border:1px solid #303641; border-radius:8px; padding:12px; background:#0f1216; }
+  .metric small { display:block; color:#89919d; font-size:11px; } .metric strong { display:block; margin-top:7px; font-size:17px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; } th, td { border-bottom:1px solid #252932; padding:8px; text-align:left; vertical-align:top; word-break:break-word; }
+  th { color:#89919d; } input, button { background:#0f1216; color:#e7e9ec; border:1px solid #4b5563; border-radius:6px; padding:8px; margin:6px; } button:disabled { opacity:.55; }
+</style>

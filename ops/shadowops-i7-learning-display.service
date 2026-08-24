@@ -1,0 +1,19 @@
+[Unit]
+Description=ShadowOps i7 Learning Kiosk
+After=network-online.target systemd-user-sessions.service
+Wants=network-online.target
+Conflicts=getty@tty1.service interview-kiosk.service
+
+[Service]
+Type=simple
+StandardInput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+ExecStart=/usr/bin/xinit /usr/local/bin/shadowops-i7-xsession -- :0 vt1 -keeptty -nolisten tcp
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

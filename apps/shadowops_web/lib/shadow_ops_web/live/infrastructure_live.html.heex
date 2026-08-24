@@ -1,0 +1,24 @@
+<ShadowOpsWeb.MissionControlComponents.app_shell title="Infrastructure" subtitle="Live host and node evidence" active="/infrastructure" availability={@overview.system.status} updated_at={@overview.system.last_success_at}>
+  <ShadowOpsWeb.MissionControlComponents.source_meta source={@overview.system.source} updated_at={@overview.system.last_success_at} availability={@overview.system.status} />
+  <ShadowOpsWeb.MissionControlComponents.panel title="Local system" description="Values are read from /proc, /sys and the local operating system.">
+    <dl class="mc-dl">
+      <dt>Hostname</dt><dd>{@overview.system.hostname}</dd>
+      <dt>OS</dt><dd>{@overview.system.os["pretty_name"]}</dd>
+      <dt>Kernel</dt><dd>{@overview.system.kernel}</dd>
+      <dt>CPU</dt><dd>{inspect(@overview.system.cpu)}</dd>
+      <dt>Load</dt><dd>{inspect(@overview.system.load)}</dd>
+      <dt>RAM</dt><dd>{inspect(@overview.system.ram)}</dd>
+      <dt>Swap</dt><dd>{inspect(@overview.system.swap)}</dd>
+      <dt>Disk</dt><dd>{inspect(@overview.system.disk)}</dd>
+      <dt>Uptime seconds</dt><dd>{@overview.system.uptime_seconds}</dd>
+      <dt>Temperatures</dt><dd>{inspect(@overview.system.temperatures_c)}</dd>
+      <dt>Network</dt><dd>{inspect(@overview.system.network)}</dd>
+      <dt>Processes</dt><dd>{@overview.system.process_count}</dd>
+    </dl>
+  </ShadowOpsWeb.MissionControlComponents.panel>
+  <ShadowOpsWeb.MissionControlComponents.panel title="Nodes" description="Reachability comes from real local probes.">
+    <div class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Node</th><th>Status</th><th>Reachable</th><th>Error</th></tr></thead><tbody>
+      <tr :for={node <- @nodes}><td>{node.name}</td><td><ShadowOpsWeb.MissionControlComponents.status_badge status={node.status} /></td><td>{node.reachable}</td><td>{node.error_message || "None"}</td></tr>
+    </tbody></table></div>
+  </ShadowOpsWeb.MissionControlComponents.panel>
+</ShadowOpsWeb.MissionControlComponents.app_shell>

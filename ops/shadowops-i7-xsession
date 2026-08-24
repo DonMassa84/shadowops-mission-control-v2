@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+export DISPLAY=:0
+export XAUTHORITY=/home/schattenmacher/.Xauthority
+
+xset s off
+xset s noblank
+xset -dpms
+
+sudo -u schattenmacher env \
+  HOME=/home/schattenmacher \
+  DISPLAY=:0 \
+  XAUTHORITY=/home/schattenmacher/.Xauthority \
+  openbox-session &
+
+ENV_FILE=/home/schattenmacher/.config/shadowops/i7-learning-display.env
+test -r "$ENV_FILE"
+source "$ENV_FILE"
+: "${SHADOWOPS_LEARNING_URL:?SHADOWOPS_LEARNING_URL is required}"
+
+case "$SHADOWOPS_LEARNING_URL" in
+  http://127.0.0.1:4013/display/i7) ;;
+  *) echo "Refusing unapproved kiosk URL: $SHADOWOPS_LEARNING_URL" >&2; exit 2 ;;
+esac
+
+PROFILE=/home/schattenmacher/.cache/shadowops-kiosk-profile
+install -d -o schattenmacher -g schattenmacher -m 0700 "$PROFILE"
+CACHE_BUSTED_URL="${SHADOWOPS_LEARNING_URL}?v=$(date +%s)"
+
+exec sudo -u schattenmacher env \
+  HOME=/home/schattenmacher \
+  DISPLAY=:0 \
+  XAUTHORITY=/home/schattenmacher/.Xauthority \
+  MOZ_ENABLE_WAYLAND=0 \
+  /opt/firefox/firefox \
+  --kiosk \
+  --new-instance \
+  --profile "$PROFILE" \
+  "$CACHE_BUSTED_URL"

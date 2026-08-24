@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<header class="page-header">
+  <h1>Workflow Registry</h1>
+  <span class="collected">Data collected: <%= format_timestamp(@collected_at) %></span>
+</header>
+
+<main class="page">
+  <section class="summary">
+    <h2>Summary</h2>
+    <div class="stats">
+      <div class="stat">Total: <%= length(@workflows) %></div>
+      <div class="stat verified"><%= Enum.count(@workflows, fn w -> w.status == "active" end) %> active</div>
+    </div>
+  </section>
+
+  <section class="workflows-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Display Name</th>
+          <th>Canonical ID</th>
+          <th>Domain</th>
+          <th>Runtime</th>
+          <th>Status</th>
+          <th>Risk</th>
+          <th>Provenance</th>
+          <th>Last Run</th>
+          <th>Activity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for workflow <- @workflows do %>
+          <tr class={workflow.status}>
+            <td><%= workflow.display_name || workflow.id %></td>
+            <td class="canonical-id"><%= workflow.id %></td>
+            <td><%= workflow.domain || "—" %></td>
+            <td><%= workflow.runtime || "—" %></td>
+            <td><span class="status-badge" data-status={workflow.status}><%= workflow.status %></span></td>
+            <td><%= workflow.risk || "—" %></td>
+            <td><%= workflow.provenance || "—" %></td>
+            <td><%= format_timestamp(workflow.last_run) %></td>
+            <td>
+              <div class="workflow-progress" data-status={workflow.runtime_status}>
+                <span style="width: 100%;"></span>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+</section>
+</main>
+
+<style>
+  :host { display: block; background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; min-height: 100vh; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; padding: 24px; border-bottom: 1px solid #21262d; }
+  .page-header h1 { margin: 0; font-size: 20px; font-weight: 600; }
+  .collected { font-size: 12px; color: #8b949e; }
+  .page { padding: 24px; display: grid; gap: 24px; }
+  section h2 { margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #f0f6fc; border-bottom: 1px solid #21262d; padding-bottom: 8px; }
+  .stats { display: flex; gap: 24px; padding: 12px; background: #161b22; border-radius: 6px; }
+  .stat { font-size: 14px; }
+  .stat.verified { color: #3fb950; }
+  .canonical-id { font-family: monospace; font-size: 12px; color: #8b949e; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; font-weight: 600; color: #8b949e; border-bottom: 1px solid #30363d; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #21262d; color: #e6edf3; }
+  tr:hover { background: #161b22; }
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; text-transform: uppercase; }
+  .status-badge[data-status="VERIFIED_EXECUTABLE"] { background: rgba(63,185,80,0.15); color: #3fb950; }
+  .status-badge[data-status="REGISTRY_ONLY"] { background: rgba(210,153,34,0.15); color: #d29922; }
+  .status-badge[data-status="GITHUB_ACTION"] { background: rgba(88,166,255,0.15); color: #58a6ff; }
+  .status-badge[data-status="CONTROLLER"] { background: rgba(187,134,252,0.15); color: #bb86fc; }
+  .status-badge[data-status="SERVICE"] { background: rgba(255,159,64,0.15); color: #ff9f40; }
+  .status-badge[data-status="HISTORICAL_EXTERNAL"] { background: rgba(139,148,158,0.15); color: #8b949e; }
+  .status-badge[data-status="UNKNOWN"] { background: rgba(139,148,158,0.15); color: #8b949e; }
+  .status-badge[data-status="AMBIGUOUS"] { background: rgba(248,81,73,0.15); color: #f85149; }
+  .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .workflow-progress {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #152229;
+    border: 1px solid #27404a;
+    margin-top: 4px;
+  }
+
+  .workflow-progress > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.3s ease;
+  }
+
+  .workflow-progress.idle > span {
+    width: 10%;
+    background: #8b949e;
+  }
+
+  .workflow-progress.running > span {
+    width: 45%;
+    background:
+      linear-gradient(
+        90deg,
+        #52cfe5,
+        #63d6b0,
+        #52cfe5
+      );
+    background-size: 200% 100%;
+    animation: shadowops-workflow-flow 1.4s linear infinite;
+  }
+
+  .workflow-progress.pending > span {
+    width: 60%;
+    background: #f4c65d;
+    animation: shadowops-pulse 1.6s ease-in-out infinite;
+  }
+
+  .workflow-progress.success > span {
+    width: 100%;
+    background: #63d6b0;
+  }
+
+  .workflow-progress.blocked > span,
+  .workflow-progress.failed > span {
+    width: 100%;
+    background: #ff7983;
+  }
+
+  .workflow-progress.unknown > span {
+    width: 100%;
+    opacity: .35;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        #96adb1 0 8px,
+        transparent 8px 14px
+      );
+  }
+
+  @keyframes shadowops-workflow-flow {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+  }
+
+  @keyframes shadowops-pulse {
+    0%,100% { opacity:.45; }
+    50%     { opacity:1; }
+  }
+</style>
+</body>
+</html>

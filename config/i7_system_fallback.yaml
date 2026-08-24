@@ -1,0 +1,47 @@
+schema_version: 1
+profile: Schattenmacher
+mode: PERSONAL_STRATEGY_REFLECTION
+active_context: general
+goal:
+  title: "KEEP YOUR MISSION"
+  smart: "Persönliche Reflexionsregeln für klare Entscheidungen: Autonomie, Respekt und Reziprozität bleiben gewahrt; kein Druck, keine Täuschung, keine Manipulation."
+current:
+  title: "SELECTION > SEDUCTION"
+  instruction: "OBSERVE → UNDERSTAND → SIGNAL VALUE → STOP → LET THEM INVEST"
+  done_when: "ATTRACTION + RESPECT + RECIPROCITY + CONSISTENCY"
+next:
+  - "OPTIONS > FIXATION"
+  - "KEIN HINTERHERLAUFEN"
+  - "KEINE KÜNSTLICHE DISTANZ"
+writing_framework:
+  - "VERHALTEN > POTENZIAL"
+  - "ACTIONS > ARGUMENTS"
+  - "SAY LESS"
+  - "FEEDBACK = DATEN, NICHT SELBSTWERT"
+  - "KEEP YOUR MISSION"
+  - "OPTIONS > FIXATION"
+  - "ICH KANN JEMANDEN WOLLEN, OHNE IHN ZU BRAUCHEN"
+  - "KEIN HINTERHERLAUFEN"
+  - "KEINE KÜNSTLICHE DISTANZ"
+  - "WERT DURCH SUBSTANZ, NICHT DURCH BEHAUPTUNG"
+execution:
+  focus_minutes: 25
+  break_minutes: 5
+  rule: "KONZENTRATION → ABSCHLUSS → LEISTUNG → REPUTATION → OPTIONEN"
+  error_rule: "FEEDBACK = DATEN, NICHT SELBSTWERT"
+  output_rule: "WERT DURCH SUBSTANZ, NICHT DURCH BEHAUPTUNG — Autonomie und Reziprozität bleiben gewahrt."
+colors:
+  background: "#071019"
+  panel: "#0d1824"
+  focus: "#4ea1ff"
+  action: "#f6c85f"
+  success: "#53d769"
+  error: "#ff5c5c"
+  review: "#a78bfa"
+  recovery: "#4fd1c5"
+  text: "#e8f0f7"
+  muted: "#8ca0b3"
+kpis:
+  - {name: "Autonomie", target: "Entscheidungsfreiheit bleibt gewahrt"}
+  - {name: "Reziprozität", target: "Beidseitige Investition beobachten, nicht erzwingen"}
+  - {name: "Manipulationsfreiheit", target: "Kein Druck, keine Täuschung"}

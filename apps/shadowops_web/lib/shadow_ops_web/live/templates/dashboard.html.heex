@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<header class="governance-chain">
+  <h1>ShadowOps Control Plane</h1>
+  <div class="chain">
+    <div class="stage">
+      <span class="label">Approval</span>
+      <span class="status" data-status={@governance.approval.status}>
+        <span class="dot"></span>
+        <span class="evidence">{@governance.approval.evidence_type} · {@governance.approval.evidence_ref}</span>
+      </span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="stage">
+      <span class="label">PrivacyGate</span>
+      <span class="status" data-status={@governance.privacy_gate.status}>
+        <span class="dot"></span>
+        <span class="evidence">{@governance.privacy_gate.evidence_type} · {@governance.privacy_gate.evidence_ref}</span>
+      </span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="stage">
+      <span class="label">Audit</span>
+      <span class="status" data-status={@governance.audit.status}>
+        <span class="dot"></span>
+        <span class="evidence">{@governance.audit.evidence_type} · {@governance.audit.evidence_ref}</span>
+      </span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="stage">
+      <span class="label">Health/Events</span>
+      <span class="status" data-status={@governance.health_events.status}>
+        <span class="dot"></span>
+        <span class="evidence">{@governance.health_events.evidence_type} · {@governance.health_events.evidence_ref}</span>
+      </span>
+    </div>
+    <span class="arrow">→</span>
+    <div class="stage">
+      <span class="label">ExecutionService</span>
+      <span class="status" data-status={@governance.execution_service.status}>
+        <span class="dot"></span>
+        <span class="evidence">{@governance.execution_service.evidence_type} · {@governance.execution_service.evidence_ref}</span>
+      </span>
+    </div>
+  </div>
+</header>
+
+<main class="dashboard">
+  <section class="infrastructure">
+    <h2>Infrastructure / Compute</h2>
+    <div class="nodes">
+      <%= for node <- @nodes do %>
+        <div class="node-card">
+          <div class="node-header">
+            <span class="display-name"><%= node.display_name %></span>
+            <span class="canonical-id"><%= node.canonical_id %></span>
+          </div>
+          <div class="node-meta">
+            <span class="status" data-status={node.status}>
+              <span class="dot"></span>
+              <%= node.status %>
+            </span>
+            <span class="transport"><%= node.transport %></span>
+            <span class="source"><%= node.source %></span>
+            <span class="collected-at"><%= format_timestamp(node.collected_at) %></span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="workflow-registry">
+    <h2>Workflow Registry</h2>
+    <div class="summary">
+      <div class="stat">Workflows: <%= length(@workflows) %></div>
+      <div class="stat verified"><% count = Enum.count(@workflows, fn w -> w.status == "active" end); %><%= if count > 0, do: "#{count} active", else: "0 active" %></div>
+    </div>
+    <table class="workflows">
+      <thead>
+        <tr>
+          <th>Display Name</th>
+          <th>Canonical ID</th>
+          <th>Domain</th>
+          <th>Runtime</th>
+          <th>Status</th>
+          <th>Risk</th>
+          <th>Provenance</th>
+          <th>Last Run</th>
+          <th>Activity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for workflow <- @workflows do %>
+          <tr class={workflow.status}>
+            <td><%= workflow.display_name || workflow.id %></td>
+            <td class="canonical-id"><%= workflow.id %></td>
+            <td><%= workflow.domain %></td>
+            <td><%= workflow.runtime %></td>
+            <td>
+              <span class="status-badge" data-status={workflow.status}>
+                <span class="dot"></span>
+                <%= workflow.status %>
+              </span>
+            </td>
+            <td><%= workflow.risk || "—" %></td>
+            <td>
+              <div class="workflow-progress" data-status={workflow.runtime_status}>
+                <span style="width: 100%;"></span>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="pending-approvals">
+    <h2>Pending Approvals</h2>
+    <table class="approvals">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Workflow</th>
+          <th>Risk</th>
+          <th>Status</th>
+          <th>Actor</th>
+          <th>Requested</th>
+          <th>Expires</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for approval <- @approvals do %>
+          <tr>
+            <td><%= approval.id %></td>
+            <td><%= approval.workflow %></td>
+            <td><%= approval.risk %></td>
+            <td><span class="status-badge" data-status={approval.status}><%= approval.status %></span></td>
+            <td><%= approval.actor %></td>
+            <td><%= format_timestamp(approval.requested_at) %></td>
+            <td><%= format_timestamp(approval.expires_at) %></td>
+            <td>
+              <button phx-click="approve" phx-value-id={approval.id}>Approve</button>
+              <button phx-click="reject" phx-value-id={approval.id}>Reject</button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="security-ai-agents">
+    <h2>Security / AI / Agents</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Kali Security Node</h3>
+        <div class="node-info">
+          <span class="display-name">Kali security node</span>
+          <span class="canonical-id">node.kali.security</span>
+          <span class="status" data-status={@security.kali_node.status}>
+            <span class="dot"></span>
+            <%= @security.kali_node.status %>
+          </span>
+          <span class="checked">last checked: <%= format_timestamp(@security.kali_node.last_checked) %></span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>OpenClaw Security</h3>
+        <div class="service-info">
+          <span class="status" data-status={@security.openclaw_security.active}>
+            <%= if @security.openclaw_security.active do %>ACTIVE<% else %>INACTIVE<% end %>
+          </span>
+          <span class="last-audit">last audit: <%= format_timestamp(@security.openclaw_security.last_audit) %></span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Governance Chain</h3>
+        <div class="chain-status">
+          <%= for {stage, status} <- @security.governance_chain do %>
+            <div class="stage-status">
+              <span class="stage-label"><%= stage %></span>
+              <span class="status" data-status={status}>
+                <span class="dot"></span>
+                <%= status %>
+              </span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="audit-ledger">
+    <h2>Audit Ledger</h2>
+    <table class="audit">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actor</th>
+          <th>Event</th>
+          <th>Target</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for event <- @events do %>
+          <tr>
+            <td><%= format_timestamp(event.timestamp) %></td>
+            <td><%= event.actor %></td>
+            <td><%= event.event %></td>
+            <td><%= event.target %></td>
+            <td><span class="result" data-result={event.result}><%= event.result %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<style>
+  :host {
+    display: block;
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+  }
+
+  header.governance-chain {
+    padding: 24px;
+    border-bottom: 1px solid #21262d;
+  }
+
+  header.governance-chain h1 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #f0f6fc;
+  }
+
+  .chain {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    min-width: 140px;
+  }
+
+  .stage .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b949e;
+  }
+
+  .stage .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .stage .status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .stage .status[data-status="pending"] .dot,
+  .stage .status[data-status="ready"] .dot {
+    background: #d29922;
+  }
+
+  .stage .status[data-status="passed"] .dot,
+  .stage .status[data-status="ok"] .dot,
+  .stage .status[data-status="recent"] .dot {
+    background: #3fb950;
+  }
+
+  .stage .status[data-status="failed"] .dot {
+    background: #f85149;
+  }
+
+  .stage .status[data-status="unknown"] .dot {
+    background: #8b949e;
+  }
+
+  .stage .evidence {
+    font-size: 11px;
+    color: #8b949e;
+    font-family: monospace;
+  }
+
+  .arrow {
+    color: #484f58;
+    font-weight: 600;
+  }
+
+  main.dashboard {
+    padding: 24px;
+    display: grid;
+    gap: 24px;
+  }
+
+  section h2 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f0f6fc;
+    border-bottom: 1px solid #21262d;
+    padding-bottom: 8px;
+  }
+
+  .nodes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .node-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .node-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .display-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f0f6fc;
+  }
+
+  .canonical-id {
+    font-size: 12px;
+    color: #8b949e;
+    font-family: monospace;
+  }
+
+  .node-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .node-meta .status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .node-meta .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .status-badge[data-status="VERIFIED_EXECUTABLE"] {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
+  }
+
+  .status-badge[data-status="REGISTRY_ONLY"] {
+    background: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+  }
+
+  .status-badge[data-status="GITHUB_ACTION"] {
+    background: rgba(88, 166, 255, 0.15);
+    color: #58a6ff;
+  }
+
+  .status-badge[data-status="CONTROLLER"] {
+    background: rgba(187, 134, 252, 0.15);
+    color: #bb86fc;
+  }
+
+  .status-badge[data-status="SERVICE"] {
+    background: rgba(255, 159, 64, 0.15);
+    color: #ff9f40;
+  }
+
+  .status-badge[data-status="HISTORICAL_EXTERNAL"] {
+    background: rgba(139, 148, 158, 0.15);
+    color: #8b949e;
+  }
+
+  .status-badge[data-status="UNKNOWN"] {
+    background: rgba(139, 148, 158, 0.15);
+    color: #8b949e;
+  }
+
+  .status-badge[data-status="AMBIGUOUS"] {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+  }
+
+  .status-badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #8b949e;
+    border-bottom: 1px solid #30363d;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #30363d;
+    color: #e6edf3;
+  }
+
+  tr:hover {
+    background: #161b22;
+  }
+
+  .summary {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #161b22;
+    border-radius: 6px;
+  }
+
+  .stat {
+    font-size: 14px;
+  }
+
+  .stat.verified {
+    color: #3fb950;
+  }
+
+  .card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .card h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .node-info, .service-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checked, .last-audit {
+    font-size: 12px;
+    color: #8b949e;
+  }
+
+  .chain-status {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stage-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: #0d1117;
+    border-radius: 4px;
+  }
+
+  .stage-label {
+    font-size: 12px;
+    color: #8b949e;
+  }
+
+  .stage-status .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .stage-status .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .result {
+    font-weight: 500;
+  }
+
+  .result[data-result="success"] {
+    color: #3fb950;
+  }
+
+  .result[data-result="failure"] {
+    color: #f85149;
+  }
+
+  .result[data-result="blocked"] {
+    color: #d29922;
+  }
+
+  button {
+    padding: 4px 12px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #e6edf3;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 4px;
+  }
+
+  button:hover {
+    background: #30363d;
+  }
+</style>
+</body>
+</html>

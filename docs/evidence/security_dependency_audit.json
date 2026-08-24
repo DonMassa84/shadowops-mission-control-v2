@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-08-23",
+  "command": "mix hex.audit",
+  "result": "No retired or security advisory packages found",
+  "bandit": {
+    "version": "1.12.5",
+    "fixed_findings": [
+      "EEF-CVE-2026-75484",
+      "EEF-CVE-2026-74836"
+    ],
+    "residual_risks": []
+  }
+}
