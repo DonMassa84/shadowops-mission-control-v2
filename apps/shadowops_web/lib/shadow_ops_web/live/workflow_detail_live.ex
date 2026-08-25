@@ -47,7 +47,8 @@ defmodule ShadowOpsWeb.WorkflowDetailLive do
       handle_run_result(result, socket, workflow_id)
     else
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Workflow authorization failed: #{safe_reason(reason)}")}
+        {:noreply,
+         put_flash(socket, :error, "Workflow authorization failed: #{safe_reason(reason)}")}
     end
   end
 
