@@ -1,9 +1,9 @@
 defmodule ShadowOpsWeb.NodesLive do
   use Phoenix.LiveView
   import ShadowOpsWeb.MissionControlComponents
-  alias ShadowOpsApi
+  alias ShadowOpsWeb.NodeCatalog
 
-  def mount(_, _, socket), do: {:ok, assign(socket, data: ShadowOpsApi.nodes())}
+  def mount(_, _, socket), do: {:ok, assign(socket, data: NodeCatalog.snapshot())}
 
   def render(assigns) do
     ~H"""
