@@ -33,7 +33,7 @@ defmodule ShadowOpsCore.Health.DocumentIntake do
     treatment_year
   )a
 
-  @spec build_event(map(), String.t()) :: {:ok, CanonicalEvent.t()} | {:error, term()}
+  @spec build_event(map(), String.t()) :: {:ok, struct()} | {:error, term()}
   def build_event(manifest, event_type \\ "health.document_ingested")
       when is_map(manifest) and event_type in @event_types do
     with {:ok, resource_id} <- required_id(manifest),
