@@ -54,9 +54,6 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
   end
 
   if File.regular?(@real_source) do
-    import Bitwise
-    alias ShadowOpsCore.Audit
-
     test "real export is idempotently ingested, normalized, analyzed, and audited" do
       root = temporary_root("real")
       state_path = Path.join(root, "aggregate.json")
@@ -85,9 +82,9 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       assert String.starts_with?(first.provenance.trace_id, "wa_trace_")
       assert byte_size(first.provenance.normalized_digest) == 64
 
-      entries_after_first = Audit.list(100)
+      entries_after_first = ShadowOpsCore.Audit.list(100)
       assert length(entries_after_first) == 3
-      assert {:ok, %{valid: true, entries: 3}} = Audit.verify()
+      assert {:ok, %{valid: true, entries: 3}} = ShadowOpsCore.Audit.verify()
 
       assert {:ok, second} =
                WhatsAppAnalytics.load(source_path: @real_source, state_path: state_path)
@@ -96,9 +93,9 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       assert second.provenance.trace_id == first.provenance.trace_id
       assert second.provenance.normalized_digest == first.provenance.normalized_digest
       assert second.analysis == first.analysis
-      assert length(Audit.list(100)) == 3
+      assert length(ShadowOpsCore.Audit.list(100)) == 3
 
-      whatsapp_events = Audit.list(100)
+      whatsapp_events = ShadowOpsCore.Audit.list(100)
 
       assert Enum.sort(Enum.map(whatsapp_events, & &1["resource"])) ==
                ~w(whatsapp_analysis whatsapp_connector whatsapp_import)
@@ -110,7 +107,7 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       refute Enum.any?(all_keys(artifact), &(&1 in ~w(body sender message_text raw_messages)))
 
       assert {:ok, stat} = File.stat(state_path)
-      assert band(stat.mode, 0o777) == 0o600
+      assert Bitwise.band(stat.mode, 0o777) == 0o600
     end
 
     test "unchanged ingest requires matching WhatsApp audit evidence, not only a valid chain" do
@@ -130,7 +127,7 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
 
       assert error.code == "WHATSAPP_AUDIT_EVIDENCE_INVALID"
       assert first.audit.hash_chain == "PASS"
-      assert {:ok, %{valid: true, entries: 3}} = Audit.verify()
+      assert {:ok, %{valid: true, entries: 3}} = ShadowOpsCore.Audit.verify()
     end
 
     defp configure_audit(path) do
