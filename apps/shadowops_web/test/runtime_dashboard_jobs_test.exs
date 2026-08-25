@@ -2,11 +2,23 @@ defmodule ShadowOpsWeb.RuntimeDashboardJobsTest do
   use ExUnit.Case, async: false
 
   test "runtime dashboard is available on loopback" do
-    conn = Plug.Test.conn(:get, "/runtime")
-    response = ShadowOpsWeb.Endpoint.call(conn, [])
+    response =
+      :get
+      |> Plug.Test.conn("/runtime")
+      |> ShadowOpsWeb.Endpoint.call([])
 
-    assert response.status == 200
-    assert response.resp_body =~ "Phoenix LiveDashboard"
+    assert response.status == 302
+
+    [location] = Plug.Conn.get_resp_header(response, "location")
+    assert String.starts_with?(location, "/runtime")
+
+    dashboard =
+      :get
+      |> Plug.Test.conn(location)
+      |> ShadowOpsWeb.Endpoint.call([])
+
+    assert dashboard.status == 200
+    assert dashboard.resp_body =~ "Phoenix LiveDashboard"
   end
 
   test "runtime dashboard fails closed for non-loopback clients" do
