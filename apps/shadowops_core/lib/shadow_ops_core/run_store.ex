@@ -50,6 +50,8 @@ defmodule ShadowOpsCore.RunStore do
   end
 
   def queue_service(service_id, action, actor, attrs \\ %{})
+
+  def queue_service(service_id, action, actor, attrs)
       when is_binary(service_id) and action in @service_actions do
     transact(fn ->
       with true <- service_id != "" and valid_actor?(actor),
