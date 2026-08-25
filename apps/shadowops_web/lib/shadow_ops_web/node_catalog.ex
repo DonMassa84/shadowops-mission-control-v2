@@ -41,7 +41,9 @@ defmodule ShadowOpsWeb.NodeCatalog do
   end
 
   def action(id, "status") when is_binary(id) do
-    if String.starts_with?(id, "chatgpt:"), do: get(id), else: RuntimeSources.node_action(id, "status")
+    if String.starts_with?(id, "chatgpt:"),
+      do: get(id),
+      else: RuntimeSources.node_action(id, "status")
   end
 
   def action("chatgpt:" <> _rest, _action), do: {:error, :action_not_allowed}
