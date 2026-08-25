@@ -1,7 +1,7 @@
 defmodule ShadowOpsCore.DurableGovernanceTest do
   use ExUnit.Case, async: false
 
-  alias ShadowOpsCore.{ApprovalStore, Audit, RunStore}
+  alias ShadowOpsCore.{ApprovalStore, Audit, ResultEvaluator, RunStore}
 
   setup do
     suffix = System.unique_integer([:positive])
@@ -72,13 +72,21 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
 
     assert {:ok, queued} = RunStore.queue("repository_quality", "operator-a")
     assert queued.status == "QUEUED" and is_binary(queued.audit_ref)
+    assert queued.kind == "workflow"
+    assert queued.resource_id == "repository_quality"
     assert {:ok, running} = RunStore.start(queued.id, "operator-a")
     assert running.status == "RUNNING"
 
+    evaluation = ResultEvaluator.workflow("verified result", 0)
+
     assert {:ok, success} =
-             RunStore.succeed(running.id, "operator-a", "verified result", 0, "evidence-a")
+             RunStore.succeed(running.id, "operator-a", "verified result", 0, "evidence-a", %{
+               evaluation: evaluation,
+               score: evaluation.score
+             })
 
     assert success.status == "SUCCESS" and success.evidence_ref == "evidence-a"
+    assert success.score == 100
 
     assert {:error, {:invalid_transition, "SUCCESS", "RUNNING"}} =
              RunStore.start(success.id, "operator-a")
@@ -94,6 +102,44 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
     assert {:ok, blocked} = RunStore.queue("document_ai", "operator-c")
     assert {:ok, blocked} = RunStore.block(blocked.id, "operator-c", "approval required")
     assert blocked.status == "BLOCKED"
+    assert match?({:ok, %{valid: true}}, Audit.verify())
+  end
+
+  test "service run persists before and after state with deterministic evaluation" do
+    before_state = %{active_state: "inactive", pid: nil}
+    after_state = %{active_state: "active", pid: 777}
+    evaluation = ResultEvaluator.service("start", before_state, after_state, :ok)
+
+    assert {:ok, queued} =
+             RunStore.queue_service("user:shadowops-phoenix.service", "start", "operator-service", %{
+               before_state: before_state,
+               trigger: "test"
+             })
+
+    assert queued.kind == "service"
+    assert queued.workflow_id == nil
+    assert queued.resource_id == "user:shadowops-phoenix.service"
+    assert queued.action == "start"
+
+    assert {:ok, running} = RunStore.start(queued.id, "operator-service")
+
+    assert {:ok, success} =
+             RunStore.succeed(running.id, "operator-service", "service started", 0, "service:test", %{
+               after_state: after_state,
+               evaluation: evaluation,
+               score: evaluation.score
+             })
+
+    assert success.status == "SUCCESS"
+    assert success.before_state == before_state
+    assert success.after_state == after_state
+    assert success.score == 100
+    assert success.evaluation.verdict == "EXCELLENT"
+    assert is_integer(success.duration_ms)
+
+    assert {:ok, persisted} = RunStore.get(success.id)
+    assert persisted.kind == "service"
+    assert persisted.resource_id == "user:shadowops-phoenix.service"
     assert match?({:ok, %{valid: true}}, Audit.verify())
   end
 
