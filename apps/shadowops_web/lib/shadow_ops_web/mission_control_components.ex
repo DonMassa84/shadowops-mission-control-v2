@@ -25,7 +25,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
         <nav>
           <.nav_group label="Dashboard" items={[{"Overview", "/"}, {"Layer Health", "/layers"}]} active={@active} />
           <.nav_group label="Operations" items={[{"Infrastructure", "/infrastructure"}, {"Workflows", "/workflows"}, {"Runs", "/runs"}, {"Services", "/services"}, {"Nodes", "/nodes"}, {"Backups", "/backups"}]} active={@active} />
-          <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"ChatGPT", "/projects/chatgpt"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
+          <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Federated", "/projects/federated"}, {"ChatGPT", "/projects/chatgpt"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
           <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
           <.nav_group label="Social" items={[{"Overview", "/social"}, {"Facebook", "/social/facebook"}, {"Social Review", "/social/review"}, {"Messenger", "/social/messenger"}, {"WhatsApp", "/social/whatsapp"}, {"Telegram", "/social/telegram"}]} active={@active} />
           <.nav_group label="Governance" items={[{"Approvals", "/approvals"}, {"Security", "/security"}, {"Audit", "/audit"}, {"Evidence", "/evidence"}, {"Legal", "/legal"}, {"Logs", "/logs"}]} active={@active} />
