@@ -1,6 +1,6 @@
 import Config
 
-registry_path = Path.expand("../../config/workflow_registry_v2.yaml", __DIR__)
+registry_path = Path.expand("workflow_registry_v2.yaml", __DIR__)
 port = System.get_env("PORT", "4000") |> String.to_integer()
 
 config :workflow_engine,
