@@ -1,135 +1,15 @@
 defmodule ShadowOpsWeb.ProjectCatalog do
   @moduledoc """
-  Read-only adapter for the local ShadowOps federated project catalog.
+  Web adapter for the canonical local federated project catalog.
 
-  The catalog is generated outside this repository. Only metadata required by Mission Control is
-  exposed. Local export paths, credentials, raw project content, and arbitrary source payloads are
-  deliberately omitted.
+  Parsing, sanitization, status normalization, and truthfulness rules live in
+  `ShadowOpsCore.ProjectCatalog`; this module only resolves the runtime path.
   """
 
-  @default_relative [".local", "state", "shadowops", "project_catalog.json"]
+  alias ShadowOpsCore.ProjectCatalog, as: CoreProjectCatalog
 
   def snapshot do
-    path = System.get_env("SHADOWOPS_PROJECT_CATALOG") || default_path()
-
-    case File.read(path) do
-      {:ok, body} -> decode(path, body)
-      {:error, :enoent} -> unavailable(path, "SOURCE_MISSING", "Project catalog is not generated")
-      {:error, reason} -> unavailable(path, "SOURCE_UNREADABLE", inspect(reason))
-    end
-  end
-
-  defp decode(path, body) do
-    case Jason.decode(body) do
-      {:ok, %{"projects" => projects} = data} when is_list(projects) ->
-        normalized = projects |> Enum.map(&normalize_project/1) |> Enum.reject(&is_nil/1)
-
-        %{
-          status: "READY",
-          health: "HEALTHY",
-          source_type: "LOCAL_FEDERATED_PROJECT_CATALOG",
-          source: path,
-          generated_at: Map.get(data, "generated_at"),
-          schema_version: Map.get(data, "schema_version"),
-          github_discovery_mode: Map.get(data, "github_discovery_mode", "UNKNOWN"),
-          synthetic: false,
-          real_data: true,
-          reachable: true,
-          counts: counts(normalized),
-          projects: normalized,
-          error_code: nil,
-          error_message: nil
-        }
-
-      {:ok, _other} ->
-        unavailable(path, "INVALID_SCHEMA", "Catalog root must contain a projects array")
-
-      {:error, reason} ->
-        unavailable(path, "INVALID_JSON", Exception.message(reason))
-    end
-  end
-
-  defp normalize_project(project) when is_map(project) do
-    id = string_value(project, "id")
-    name = string_value(project, "name")
-
-    if is_nil(id) or is_nil(name) do
-      nil
-    else
-      real_data = boolean_value(project, "real_data")
-      synthetic = boolean_value(project, "synthetic")
-      reachable = boolean_value(project, "reachable")
-      requested_status = string_value(project, "status") || "NOT_CONFIGURED"
-
-      status =
-        if requested_status == "READY" and real_data and not synthetic and reachable do
-          "READY"
-        else
-          if requested_status == "READY", do: "NOT_CONFIGURED", else: requested_status
-        end
-
-      %{
-        id: id,
-        name: name,
-        source_type: string_value(project, "source_type") || "UNKNOWN",
-        status: status,
-        visibility: string_value(project, "visibility"),
-        default_branch: string_value(project, "default_branch"),
-        archived: boolean_value(project, "archived"),
-        real_data: real_data,
-        synthetic: synthetic,
-        reachable: reachable,
-        content_ingested: boolean_value(project, "content_ingested"),
-        integration_mode: string_value(project, "integration_mode") || "REFERENCE_ONLY",
-        url: safe_github_url(string_value(project, "url"))
-      }
-    end
-  end
-
-  defp normalize_project(_), do: nil
-
-  defp counts(projects) do
-    %{
-      total: length(projects),
-      github: Enum.count(projects, &(&1.source_type == "github_repository")),
-      chatgpt: Enum.count(projects, &(&1.source_type == "chatgpt_library_project")),
-      ready: Enum.count(projects, &(&1.status == "READY")),
-      not_configured: Enum.count(projects, &(&1.status == "NOT_CONFIGURED"))
-    }
-  end
-
-  defp unavailable(path, code, message) do
-    %{
-      status: "NOT_CONFIGURED",
-      health: "UNAVAILABLE",
-      source_type: "LOCAL_FEDERATED_PROJECT_CATALOG",
-      source: path,
-      generated_at: nil,
-      schema_version: nil,
-      github_discovery_mode: "UNAVAILABLE",
-      synthetic: false,
-      real_data: false,
-      reachable: false,
-      counts: %{total: nil, github: nil, chatgpt: nil, ready: nil, not_configured: nil},
-      projects: [],
-      error_code: code,
-      error_message: message
-    }
-  end
-
-  defp string_value(map, key) do
-    case Map.get(map, key) do
-      value when is_binary(value) and value != "" -> value
-      _ -> nil
-    end
-  end
-
-  defp boolean_value(map, key), do: Map.get(map, key) == true
-
-  defp safe_github_url("https://github.com/" <> _rest = url), do: url
-  defp safe_github_url(_), do: nil
-
-  defp default_path do
-    Path.join([System.user_home!() | @default_relative])
+    path = System.get_env("SHADOWOPS_PROJECT_CATALOG") || CoreProjectCatalog.default_path()
+    CoreProjectCatalog.snapshot(path)
   end
 end
