@@ -34,7 +34,12 @@ run_gate() {
 
 http_code() {
   local path="$1"
-  curl -sS --max-time 8 -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || printf '000'
+  if [[ -n "$READ_TOKEN" ]]; then
+    curl -sS --max-time 8 -H "Authorization: Bearer $READ_TOKEN" \
+      -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || printf '000'
+  else
+    curl -sS --max-time 8 -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || printf '000'
+  fi
 }
 
 api_get() {
@@ -52,7 +57,7 @@ printf 'BASE_URL=%s\n' "$BASE_URL"
 
 run_gate format mix format --check-formatted
 run_gate compile mix compile --warnings-as-errors
-run_gate tests mix test
+run_gate tests mix test --seed 12345
 run_gate registry mix shadowops.registry validate
 run_gate prod_compile env MIX_ENV=prod mix compile --warnings-as-errors
 
@@ -89,7 +94,7 @@ else
   ok secret_scan
 fi
 
-if curl -fsS --max-time 4 "$BASE_URL/health" >/tmp/shadowops-health.json 2>/dev/null; then
+if api_get /health >/tmp/shadowops-health.json 2>/dev/null; then
   ok runtime_health
 
   for path in / /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
@@ -153,7 +158,7 @@ PY
   fi
 else
   if [[ "$RUNTIME_REQUIRED" == "1" ]]; then
-    bad runtime_health "runtime required but unreachable"
+    bad runtime_health "runtime required but unreachable or unauthorized"
   else
     printf 'SKIP %-30s %s\n' runtime_health 'runtime not required in this execution context'
   fi
