@@ -130,5 +130,6 @@ defmodule ShadowOpsCore.ExecutionTracker do
   defp safe_reason({tag, _}) when is_atom(tag), do: Atom.to_string(tag)
   defp safe_reason(_), do: "service_execution_failed"
 
-  defp value(map, key) when is_map(map), do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+  defp value(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
 end
