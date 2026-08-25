@@ -106,7 +106,7 @@ defmodule ShadowOpsWeb.ChatGPTNodesTest do
     File.rm(path)
   end
 
-  test "nodes page renders ChatGPT logical nodes from local catalog" do
+  test "nodes page separates physical infrastructure from ChatGPT project nodes" do
     path = temp_catalog_path()
 
     payload = %{
@@ -134,7 +134,12 @@ defmodule ShadowOpsWeb.ChatGPTNodesTest do
     response = ShadowOpsWeb.Endpoint.call(conn, [])
 
     assert response.status == 200
+    assert response.resp_body =~ "Physical infrastructure"
+    assert response.resp_body =~ "ChatGPT project nodes"
     assert response.resp_body =~ "ChatGPT UI Project"
+    assert response.resp_body =~ "chatgpt:ui-project"
+    assert response.resp_body =~ "Status only"
+    assert response.resp_body =~ "Reference only"
     assert response.resp_body =~ "NOT_CONFIGURED"
 
     File.rm(path)
