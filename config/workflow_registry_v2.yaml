@@ -1,104 +1,330 @@
 schema_version: 2
 registry_name: shadowops-workflows
+status: migration_candidate
+
+compatibility:
+  legacy_registry: config/workflow_registry.yaml
+  cutover_policy: keep_v1_until_elixir_loader_and_gates_validate_v2
+  source_of_truth_during_migration: dual_registry
+
 workflows:
-  - id: "agent_state_sync"
-    type: "AGENT_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "system"
-    runtime: "/usr/bin/flock"
-    definition: "{ path=/usr/bin/flock ; argv[]=/usr/bin/flock -n /home/schattenmacher/.local/state/agent-state-hub/sync.lock /home/schattenmacher/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync ; ignore_errors=no ; }"
-  - id: "career_funnel_ihk"
-    type: "BUSINESS_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "career"
-    runtime: "/home/schattenmacher/.local/bin/career-funnel"
-    definition: "{ path=/home/schattenmacher/.local/bin/career-funnel ; argv[]=/home/schattenmacher/.local/bin/career-funnel ihk-check ${IHK_PROJECT_DIR} ; ignore_errors=no ; }"
-  - id: "daily_digest"
-    type: "REPORTING_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "reporting"
-    runtime: "/home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh"
-    definition: "{ path=/home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh ; argv[]=/home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh ; ignore_errors=no ; }"
-  - id: "shadow_system_overnight_audit"
-    type: "SECURITY_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "security"
-    runtime: "/home/schattenmacher/03_scripts/system_overnight_audit.sh"
-    definition: "{ path=/home/schattenmacher/03_scripts/system_overnight_audit.sh ; argv[]=/home/schattenmacher/03_scripts/system_overnight_audit.sh ; ignore_errors=no ; }"
-  - id: "sg_scan"
-    type: "REGISTRY_WORKFLOW"
-    status: "REGISTRY_ONLY"
-    domain: "governance"
-    runtime: ""
-    definition: ""
+  finanzabgleich:
+    type: business
+    domain: finance
+    status: active
+    current_runtime: agent_chain_legacy
+    target_runtime: elixir
+    always_run: true
+    documentation: docs/finanzen/WORKFLOW-Finanzabgleich.md
+    agent_rules: docs/finanzen/AGENTS.md
+    master: docs/finanzen/Soll-Ist-Abgleich_VfB-AFBG-KfW-IHK-Jobcenter.md
+    orchestrator: config/agents/finanzen/finanzabgleich_orchestrator.yaml
+    agents:
+      - id: finanz_quellen_agent
+        path: config/agents/finanzen/finanz_quellen_agent.yaml
+        order: 10
+        required: true
+      - id: finanz_zahlungsketten_agent
+        path: config/agents/finanzen/finanz_zahlungsketten_agent.yaml
+        order: 20
+        required: true
+      - id: finanz_foerderkontroll_agent
+        path: config/agents/finanzen/finanz_foerderkontroll_agent.yaml
+        order: 30
+        required: true
+      - id: finanz_master_sync_agent
+        path: config/agents/finanzen/finanz_master_sync_agent.yaml
+        order: 40
+        required: true
+    internal_statuses:
+      - BELEGT
+      - RECHNERISCH
+      - OFFEN
+      - WIDERSPRUCH
+    quality_gates:
+      - finance_quality_gate
+    migration_priority: 1
+
+  career_email_only:
+    type: business
+    domain: career
+    status: active_definition
+    current_runtime: yaml_pipeline_legacy
+    target_runtime: elixir
+    definition: config/career_email_only_workflow.yaml
+    pipeline:
+      - DISCOVER
+      - VERIFY_EMAIL
+      - DEDUPE_ADDRESS
+      - DEDUPE_COMPANY
+      - FIT_CHECK
+      - COMPANY_RESEARCH
+      - CUSTOMIZE_COVER_LETTER
+      - CUSTOMIZE_CV
+      - SELECT_EVIDENCE
+      - PDF_QA
+      - SEND_EMAIL
+      - VERIFY_SENT
+      - WRITE_GITHUB_REPORT
+      - WRITE_OBSIDIAN_NOTE
+      - FOLLOW_UP
+    external_side_effects:
+      - SEND_EMAIL
+    approval_policy: to_define_for_product_runtime
+    migration_priority: 2
+
+  document_ai:
+    type: business
+    domain: documents
+    status: extraction_candidate
+    current_runtime: python
+    target_runtime: hybrid
+    worker_runtime: python
+    orchestration_target: elixir
+    source_components:
+      - app/ihk_ai.py
+      - app/cli.py
+    registry_definition_status: planned
+    migration_priority: 3
+
+  repository_quality:
+    type: system
+    domain: ci
+    status: active
+    runtime: github_actions
+    definition: .github/workflows/quality.yml
+    responsibility:
+      - python_install
+      - syntax
+      - tests
+      - repository_hygiene
+      - secret_guard
+      - quality_gate
+
+  finance_quality_gate:
+    type: system
+    domain: ci
+    status: active
+    runtime: github_actions
+    definition: .github/workflows/finanzabgleich-gate.yml
+    responsibility:
+      - finance_required_files
+      - legacy_registry_validation
+      - finance_agent_chain
+      - finance_master_structure
+      - privacy_gate
+
+  agent_state_sync:
+    type: system
+    domain: system
+    status: VERIFIED_EXECUTABLE
+    runtime: /usr/bin/flock
+    argv:
+      - "-n"
+      - /home/schattenmacher/.local/state/agent-state-hub/sync.lock
+      - /home/schattenmacher/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync
+    definition: /home/schattenmacher/.config/systemd/user/agent-state-sync.service
+
+  career_funnel_ihk:
+    type: business
+    domain: career
+    status: DISABLED_BY_CONFIGURATION
+    optional: true
+    configuration_status: NOT_CONFIGURED
+    runtime: /home/schattenmacher/.local/bin/career-funnel
+    definition: /home/schattenmacher/.config/systemd/user/career-funnel-ihk.service
+    disabled_reason: configured IHK project directory is not present
+
+  daily_digest:
+    type: system
+    domain: reporting
+    status: VERIFIED_EXECUTABLE
+    runtime: /home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh
+    argv: []
+    definition: /home/schattenmacher/.config/systemd/user/daily-digest.service
+
+  shadow_system_overnight_audit:
+    type: system
+    domain: security
+    status: VERIFIED_EXECUTABLE
+    runtime: /home/schattenmacher/03_scripts/system_overnight_audit.sh
+    argv: []
+    definition: /home/schattenmacher/.config/systemd/user/shadow-system-overnight-audit.service
 
 workflow_runs:
-  - id: "run_20260820_01"
-    workflow: "agent_state_sync"
-    type: "instance"
-    status: "completed"
-    input: "{}"
-    output: "{}"
-    completed_at: "2026-08-20T01:00:00Z"
+  career_wave_07:
+    workflow: career_email_only
+    type: instance
+    status: READY_FOR_CUSTOMIZATION
+    current_stage: COMPANY_RESEARCH
+    input: config/career_wave_07.yaml
+    applications_sent: 0
+    migration_action: persist_as_workflow_run_not_workflow_definition
 
 external_runtime_sets:
-  "systemd_runtime_set":
-    source: "systemd"
-    workflow_count: 5
+  shadowmaker_tasks:
+    runtime: TCC
+    relationship: external_executor_registry
+    total_workflow_count: 48
     risk_distribution:
-      L0: 10
-      L1: 20
-      L2: 15
-      L3: 5
+      L0: 26
+      L1: 14
+      L2: 7
+      L3: 1
     blockers:
-      total: 5
-      critical: 2
-      high: 2
-      medium: 1
-      low: 1
-    whatsapp_agent_pack: false
-  "tcc_runtime_set":
-    source: "tcc"
+      total: 4
+      EXTERNAL_ACTIONS_BLOCKED: 2
+      BLOCKED_AUTH: 1
+      AUTOMATIC_EXECUTION_DISABLED: 1
+    verification_basis: user_confirmed_external_state
+    verified_at: 2026-08-15
+    backup:
+      path: ~/.config/shadowmaker-tasks/workflows.json.bak_20260815_005902
+      size_kb: 11.8
+      present: true
+    worker:
+      file: run-worker.sh
+      once_flag_supported: true
+      evidence_line: 3
+    router:
+      file: worker_router.py
+      router_query_tested: true
+      capabilities:
+        WHATSAPP_MONITORING:
+          risk_level: L0
+          evidence_line: 28
+        WHATSAPP_MAINTENANCE:
+          risk_level: L1
+          evidence_line: 29
+        WHATSAPP_ACTION:
+          risk_level: L2
+          evidence_line: 30
+
+  whatsapp_agent_pack:
+    runtime: TCC
+    relationship: domain_pack_within_shadowmaker_tasks
     workflow_count: 16
-    risk_distribution:
-      L0: 5
-      L1: 8
-      L2: 3
-      L3: 0
-    blockers:
-      total: 2
-      critical: 1
-      high: 1
-      medium: 0
-      low: 0
-    whatsapp_agent_pack: true
-  "opencode_runtime_set":
-    source: "opencode"
-    workflow_count: 3
-    risk_distribution:
-      L0: 1
-      L1: 1
-      L2: 1
-      L3: 0
-    blockers:
-      total: 0
-      critical: 0
-      high: 0
-      medium: 0
-      low: 0
-    whatsapp_agent_pack: false
-  "telegram_runtime_set":
-    source: "telegram"
-    workflow_count: 8
-    risk_distribution:
-      L0: 3
-      L1: 4
-      L2: 1
-      L3: 0
-    blockers:
-      total: 1
-      critical: 0
-      high: 1
-      medium: 0
-      low: 0
-    whatsapp_agent_pack: false
+    included_in_shadowmaker_tasks_total: true
+    readiness: all_16_ready
+    risk_groups:
+      L0:
+        capability: WHATSAPP_MONITORING
+        approval_required: false
+        workflows:
+          - whatsapp-status
+          - whatsapp-sync-status
+          - whatsapp-worker-status
+          - whatsapp-queue
+          - whatsapp-doctor
+          - whatsapp-contacts
+          - whatsapp-report
+          - whatsapp-meta-status
+          - whatsapp-maintenance-15min
+      L1:
+        capability: WHATSAPP_MAINTENANCE
+        approval_required: false
+        workflows:
+          - whatsapp-maintenance-hourly
+          - whatsapp-maintenance-daily
+          - whatsapp-backup
+          - whatsapp-worker-drain
+          - whatsapp-retry-all
+      L2:
+        capability: WHATSAPP_ACTION
+        approval_required: true
+        workflows:
+          - whatsapp-purge-expired
+          - whatsapp-meta-subscribe
+    verification:
+      whatsapp-sync-status:
+        dispatcher_status: done
+        exit_code: 0
+      whatsapp-meta-subscribe:
+        approval_gate_status: blocked
+        approval_gate_reason: waiting_for_approval
+        post_test_state: cancelled
+
+  opencode_standard:
+    relationship: separate_external_workflow_set
+    workflow_count: 7
+    included_in_shadowmaker_tasks_total: false
+    workflow_ids: not_yet_imported
+
+  telegram_workflow_controller:
+    relationship: separate_external_workflow_set
+    workflow_count: 6
+    included_in_shadowmaker_tasks_total: false
+    workflow_ids: not_yet_imported
+
+migration:
+  current_phase: 4
+  implementation_status: phase_4_validated
+  completed:
+    - phase_1_inventory_and_classification
+    - phase_2_schema_v2_registry_candidate
+    - phase_3_elixir_umbrella_bootstrap
+    - phase_4_yaml_registry_loader_hardening
+  phase_3_components:
+    root: shadowops/
+    apps:
+      - shadowops_core
+      - workflow_engine
+      - agent_runtime
+      - shadowops_web
+    infrastructure:
+      - Phoenix
+      - Phoenix_LiveView_dependency
+      - Ecto_SQL
+      - Postgrex
+      - Oban
+      - YAML_registry_loader
+  phase_4_components:
+    - typed_registry_errors
+    - schema_v2_validation
+    - workflow_definition_validation
+    - workflow_run_reference_validation
+    - external_runtime_integrity_validation
+    - risk_distribution_validation
+    - blocker_distribution_validation
+    - whatsapp_pack_integrity_validation
+    - registry_cli
+    - targeted_elixir_ci
+  validation:
+    shadowops_elixir:
+      run_id: 31851602075
+      status: success
+      format: success
+      compile: success
+      tests:
+        status: success
+        count: 9
+        failures: 0
+      registry_cli:
+        validate: success
+        list: success
+        summary: success
+    python_quality:
+      run_id: 31851602072
+      status: success
+    dependency_adjustment:
+      web_adapter: Bandit.PhoenixAdapter
+      cowboy_path_removed: true
+  safety:
+    legacy_python_removed: false
+    legacy_tcc_removed: false
+    legacy_registry_removed: false
+    github_ci_replaced: false
+  next_phase:
+    id: 5
+    name: generic_agent_contract
+    target_components:
+      - agent_spec
+      - version
+      - capabilities
+      - required_inputs
+      - produced_outputs
+      - permissions
+      - timeout
+      - retry_policy
+      - human_review_policy
+      - evidence_policy
