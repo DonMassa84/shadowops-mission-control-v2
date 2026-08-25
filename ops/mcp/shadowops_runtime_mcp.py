@@ -35,6 +35,7 @@ SENSITIVE_VALUE_PATTERNS = (
     re.compile(r"(?i)((?:token|password|passwd|secret|api[_-]?key)\s*[:=]\s*)[^\s,;]+"),
     re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b"),
 )
+WRITE_PATH = re.compile(r"(?:/actions/|/run|/approve|/reject)$")
 
 StatusView = Literal[
     "health",
@@ -176,7 +177,7 @@ def _sanitize(value: Any) -> Any:
 def _read(path: str) -> dict[str, Any]:
     if not path.startswith("/api/"):
         return {"ok": False, "error": "non_api_path_rejected"}
-    if any(marker in path for marker in ("/actions/", "/run", "/approve", "/reject")):
+    if WRITE_PATH.search(path):
         return {"ok": False, "error": "write_capability_rejected"}
 
     try:
