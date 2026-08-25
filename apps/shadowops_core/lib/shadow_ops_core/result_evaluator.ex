@@ -11,7 +11,11 @@ defmodule ShadowOpsCore.ResultEvaluator do
   def workflow(result, exit_code) do
     checks = [
       check("execution_exit_code", exit_code == 0, "exit_code=#{inspect(exit_code)}"),
-      check("result_present", present?(result), if(present?(result), do: "result captured", else: "result missing"))
+      check(
+        "result_present",
+        present?(result),
+        if(present?(result), do: "result captured", else: "result missing")
+      )
     ]
 
     build("workflow", checks)
@@ -59,7 +63,14 @@ defmodule ShadowOpsCore.ResultEvaluator do
     after_pid = value(after_state, :pid)
 
     if measurable_pid?(before_pid) and measurable_pid?(after_pid) do
-      checks ++ [check("process_replaced", before_pid != after_pid, "before_pid=#{before_pid}; after_pid=#{after_pid}")]
+      checks ++
+        [
+          check(
+            "process_replaced",
+            before_pid != after_pid,
+            "before_pid=#{before_pid}; after_pid=#{after_pid}"
+          )
+        ]
     else
       checks
     end
@@ -99,7 +110,9 @@ defmodule ShadowOpsCore.ResultEvaluator do
   defp measurable_pid?(pid) when is_binary(pid), do: pid not in ["", "0"]
   defp measurable_pid?(_), do: false
 
-  defp value(map, key) when is_map(map), do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+  defp value(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+
   defp value(_, _), do: nil
 
   defp safe_text(reason) when is_atom(reason), do: Atom.to_string(reason)
