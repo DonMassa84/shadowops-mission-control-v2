@@ -25,7 +25,7 @@ jobs:
   quality:
     name: Build, test and production gate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v5
@@ -50,6 +50,9 @@ jobs:
 
       - name: Install dependencies
         run: mix deps.get
+
+      - name: Install Sobelow 0.15.0
+        run: mix archive.install hex sobelow 0.15.0 --force
 
       - name: Check formatting
         run: mix format --check-formatted
@@ -93,3 +96,45 @@ jobs:
         env:
           MIX_ENV: prod
         run: mix release shadowops --overwrite
+
+      - name: Start release and run production smoke
+        shell: bash
+        env:
+          MIX_ENV: prod
+          PORT: "4013"
+          SHADOWOPS_START_PERSISTENCE: "false"
+        run: |
+          set -Eeuo pipefail
+          export SHADOWOPS_SECRET_KEY_BASE="$(openssl rand -hex 64)"
+          export SHADOWOPS_READ_TOKEN="$(openssl rand -hex 32)"
+          export SHADOWOPS_WRITE_TOKEN="$(openssl rand -hex 32)"
+          export SHADOWOPS_STATE_DIR="$RUNNER_TEMP/shadowops-state"
+          mkdir -p "$SHADOWOPS_STATE_DIR"
+
+          cleanup() {
+            _build/prod/rel/shadowops/bin/shadowops stop >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          _build/prod/rel/shadowops/bin/shadowops start
+
+          ready=0
+          for _ in $(seq 1 30); do
+            if curl -fsS --max-time 2 \
+              -H "Authorization: Bearer $SHADOWOPS_READ_TOKEN" \
+              http://127.0.0.1:4013/health >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [[ "$ready" != "1" ]]; then
+            echo 'Production release did not become healthy' >&2
+            _build/prod/rel/shadowops/bin/shadowops rpc 'IO.inspect(:init.get_status())' || true
+            exit 1
+          fi
+
+          SHADOWOPS_BASE_URL=http://127.0.0.1:4013 \
+          SHADOWOPS_READ_TOKEN="$SHADOWOPS_READ_TOKEN" \
+            bash scripts/runtime_smoke.sh
