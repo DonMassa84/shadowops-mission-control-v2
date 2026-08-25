@@ -1,10 +1,12 @@
 import Config
 
 registry_path = Path.expand("workflow_registry_v2.yaml", __DIR__)
+workflow_ids_path = Path.expand("workflow_ids.yaml", __DIR__)
 port = System.get_env("PORT", "4000") |> String.to_integer()
 
 config :workflow_engine,
-  registry_path: registry_path
+  registry_path: registry_path,
+  workflow_ids_path: workflow_ids_path
 
 # Runtime-specific persistence and credentials are resolved in runtime.exs.
 # Keep the compile-time/default configuration inert and local-safe.
