@@ -51,6 +51,9 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
       - name: Install Sobelow 0.15.0
         run: mix archive.install hex sobelow 0.15.0 --force
 
@@ -112,7 +115,7 @@ jobs:
           mkdir -p "$SHADOWOPS_STATE_DIR"
 
           cleanup() {
-            _build/prod/rel/shadowops/bin/shadowops stop >/dev/null 2>&1 || true
+            timeout 10s _build/prod/rel/shadowops/bin/shadowops stop >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
@@ -135,6 +138,7 @@ jobs:
             exit 1
           fi
 
-          SHADOWOPS_BASE_URL=http://127.0.0.1:4013 \
-          SHADOWOPS_READ_TOKEN="$SHADOWOPS_READ_TOKEN" \
+          timeout 180s env \
+            SHADOWOPS_BASE_URL=http://127.0.0.1:4013 \
+            SHADOWOPS_READ_TOKEN="$SHADOWOPS_READ_TOKEN" \
             bash scripts/runtime_smoke.sh
