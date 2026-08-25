@@ -74,6 +74,18 @@ else
   ok layer_api_read_only
 fi
 
+if grep -F '/projects/federated' /tmp/shadowops-routes.txt >/dev/null && grep -F '/api/projects' /tmp/shadowops-routes.txt >/dev/null; then
+  ok project_catalog_routes
+else
+  bad project_catalog_routes "browser or API project catalog route missing"
+fi
+
+if grep -E '(POST|PUT|PATCH|DELETE)[[:space:]]+/api/projects([[:space:]/]|$)' /tmp/shadowops-routes.txt >/dev/null; then
+  bad project_catalog_read_only "mutation route detected"
+else
+  ok project_catalog_read_only
+fi
+
 if mix hex.audit >/tmp/shadowops-hex-audit.log 2>&1; then
   ok dependency_audit
 else
@@ -110,7 +122,7 @@ fi
 if api_get /health >/tmp/shadowops-health.json 2>/dev/null; then
   ok runtime_health
 
-  for path in / /layers /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
+  for path in / /layers /projects/federated /projects/chatgpt /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
     code="$(http_code "$path")"
     if [[ "$code" =~ ^(200|204|301|302|307|308)$ ]]; then
       ok "route:$path" "HTTP=$code"
@@ -151,6 +163,33 @@ print(len(layers))
       bad layer_api "authorized API request failed"
     else
       printf 'SKIP %-30s %s\n' layer_api 'read token not provided or API protected'
+    fi
+  fi
+
+  if payload="$(api_get /api/projects 2>/dev/null)"; then
+    if printf '%s' "$payload" | python3 -c '
+import json, sys
+p=json.load(sys.stdin)
+assert p.get("synthetic") is False
+projects=p.get("projects", [])
+for item in projects:
+    assert "local_export_path" not in item
+    assert "secret" not in item
+    if item.get("status") == "READY":
+        assert item.get("real_data") is True, (item.get("id"), "positive_without_real_data")
+        assert item.get("synthetic") is False, (item.get("id"), "positive_synthetic")
+        assert item.get("reachable") is True, (item.get("id"), "positive_unreachable")
+print(len(projects))
+' >/tmp/shadowops-project-count; then
+      ok project_catalog_truthfulness "projects=$(cat /tmp/shadowops-project-count)"
+    else
+      bad project_catalog_truthfulness
+    fi
+  else
+    if [[ -n "$READ_TOKEN" ]]; then
+      bad project_catalog_api "authorized API request failed"
+    else
+      printf 'SKIP %-30s %s\n' project_catalog_api 'read token not provided or API protected'
     fi
   fi
 
