@@ -67,13 +67,17 @@ ready_payload="$(curl -fsS --max-time 8 -H "Authorization: Bearer $READ_TOKEN" "
 printf '%s' "$health_payload" | python3 -c '
 import json, sys
 payload=json.load(sys.stdin)
-assert payload.get("status") in {"ok", "READY", "HEALTHY"}, payload
+status=str(payload.get("status", "")).upper()
+assert status in {"OK", "READY", "HEALTHY"}, payload
 '
 
 printf '%s' "$ready_payload" | python3 -c '
 import json, sys
 payload=json.load(sys.stdin)
-assert payload.get("status") in {"ok", "READY", "HEALTHY"}, payload
+status=str(payload.get("status", "")).upper()
+assert status in {"OK", "READY", "HEALTHY"}, payload
 '
 
+echo 'HEALTH_PAYLOAD=PASS'
+echo 'READINESS_PAYLOAD=PASS'
 echo 'FINAL_STATUS=RUNTIME_SMOKE_PASS'
