@@ -1,11 +1,23 @@
 defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
-  @moduledoc "Evidence-only adapter for the existing OpenCode external runtime set."
+  @moduledoc """
+  Governed local OpenCode adapter.
+
+  Execution is non-interactive (`opencode run`) and never enables OpenCode's
+  auto-approval flag. The adapter accepts only bounded prompts and project
+  directories below explicitly allowed local roots.
+  """
   @behaviour ShadowOpsCore.Adapters.RuntimeAdapter
 
   alias ShadowOpsCore.{Evidence, WorkflowSource}
 
+  @max_prompt_bytes 32_000
+  @max_output_bytes 128_000
+  @default_timeout_ms 120_000
+
   @impl true
   def discover(_opts \\ []) do
+    executable = executable()
+
     with {:ok, registry} <- WorkflowSource.load(),
          set when is_map(set) <- registry["external_runtime_sets"]["opencode_standard"] do
       {:ok,
@@ -13,6 +25,8 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
          %{
            id: "opencode_standard",
            source: "opencode",
+           executable: executable,
+           reachable: is_binary(executable),
            workflow_count: set["workflow_count"],
            workflow_ids: set["workflow_ids"]
          }
@@ -23,40 +37,180 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
   end
 
   @impl true
-  def status(opts \\ []),
-    do:
-      case(discover(opts),
-        do: (
-          {:ok, rows} ->
-            %{state: "DEGRADED", discovered: length(rows), reason: "workflow_ids_not_imported"}
+  def status(opts \\ []) do
+    case discover(opts) do
+      {:ok, [row | _]} ->
+        cond do
+          not row.reachable ->
+            %{state: "NOT_CONFIGURED", discovered: 1, reachable: false, reason: "opencode_not_found"}
 
-          {:error, reason} ->
-            %{state: "UNAVAILABLE", discovered: 0, reason: inspect(reason)}
-        )
-      )
+          is_list(row.workflow_ids) ->
+            %{state: "AVAILABLE", discovered: 1, reachable: true, reason: nil}
+
+          true ->
+            %{
+              state: "DEGRADED",
+              discovered: 1,
+              reachable: true,
+              reason: "workflow_ids_not_imported"
+            }
+        end
+
+      {:error, reason} ->
+        %{state: "UNAVAILABLE", discovered: 0, reachable: false, reason: inspect(reason)}
+    end
+  end
 
   @impl true
-  def validate(%{workflow_ids: ids}) when is_list(ids), do: :ok
-  def validate(_), do: {:error, :workflow_ids_not_imported}
+  def validate(%{executable: executable}) when is_binary(executable), do: :ok
+  def validate(_), do: {:error, :opencode_not_configured}
+
   @impl true
-  def run(_, _, _), do: {:error, :opencode_execution_not_connected}
+  def run(resource, input, %{policy_decision: decision}) when decision in ["AUTO", "APPROVED"] do
+    with :ok <- validate(resource),
+         {:ok, prompt} <- prompt(input),
+         {:ok, project_dir} <- project_dir(input),
+         {:ok, args} <- args(input, prompt),
+         {:ok, output} <- execute(resource.executable, args, project_dir, timeout_ms(input)) do
+      {:ok,
+       %{
+         status: "COMPLETED",
+         runtime: "opencode",
+         output: truncate(output),
+         real_data: true,
+         synthetic: false,
+         reachable: true
+       }}
+    end
+  end
+
+  def run(_, _, _), do: {:error, :policy_decision_required}
+
   @impl true
-  def stop(_, _), do: {:error, :opencode_execution_not_connected}
+  def stop(_, _), do: {:error, :action_not_allowed}
+
   @impl true
-  def health(row), do: %{status: if(validate(row) == :ok, do: "PASS", else: "FAIL")}
+  def health(%{executable: executable}) when is_binary(executable) do
+    case System.cmd(executable, ["--version"], stderr_to_stdout: true) do
+      {_output, 0} -> %{status: "PASS", reachable: true}
+      {_output, code} -> %{status: "FAIL", reachable: false, exit_code: code}
+    end
+  rescue
+    _ -> %{status: "FAIL", reachable: false}
+  end
+
+  def health(_), do: %{status: "FAIL", reachable: false}
+
   @impl true
-  def evidence(row),
-    do:
-      Evidence.build(
-        "workflow:opencode_standard",
-        "registry",
-        [
-          %{
-            gate: "workflow_ids",
-            result: if(validate(row) == :ok, do: "PASS", else: "FAIL"),
-            evidence_ref: "registry:opencode_standard"
-          }
-        ],
-        "canonical workflow registry"
-      )
+  def evidence(row) do
+    ids_imported = is_list(Map.get(row, :workflow_ids))
+    reachable = Map.get(row, :reachable) == true
+
+    Evidence.build(
+      "workflow:opencode_standard",
+      "opencode",
+      [
+        %{
+          gate: "runtime_binary",
+          result: if(reachable, do: "PASS", else: "FAIL"),
+          evidence_ref: "runtime:opencode"
+        },
+        %{
+          gate: "workflow_ids",
+          result: if(ids_imported, do: "PASS", else: "NOT_ASSESSED"),
+          evidence_ref: "registry:opencode_standard"
+        }
+      ],
+      "local OpenCode runtime and canonical workflow registry"
+    )
+  end
+
+  defp executable do
+    case System.get_env("SHADOWOPS_OPENCODE_BIN") do
+      value when is_binary(value) and value != "" -> resolve_executable(value)
+      _ -> System.find_executable("opencode")
+    end
+  end
+
+  defp resolve_executable(value) do
+    expanded = Path.expand(value)
+
+    cond do
+      Path.type(value) == :absolute and File.regular?(expanded) -> expanded
+      true -> System.find_executable(value)
+    end
+  end
+
+  defp prompt(input) when is_map(input) do
+    value = value(input, :prompt) || value(input, :task)
+
+    if is_binary(value) and byte_size(value) in 1..@max_prompt_bytes,
+      do: {:ok, value},
+      else: {:error, :invalid_prompt}
+  end
+
+  defp prompt(_), do: {:error, :invalid_prompt}
+
+  defp args(input, prompt) do
+    with {:ok, agent_args} <- optional_flag(input, :agent, "--agent"),
+         {:ok, model_args} <- optional_flag(input, :model, "--model") do
+      {:ok, ["run", "--format", "json"] ++ agent_args ++ model_args ++ [prompt]}
+    end
+  end
+
+  defp optional_flag(input, key, flag) do
+    case value(input, key) do
+      nil -> {:ok, []}
+      value when is_binary(value) and byte_size(value) in 1..200 -> {:ok, [flag, value]}
+      _ -> {:error, {:invalid_option, key}}
+    end
+  end
+
+  defp project_dir(input) do
+    requested = value(input, :project_dir) || File.cwd!()
+    path = Path.expand(requested)
+
+    cond do
+      not File.dir?(path) -> {:error, :project_dir_missing}
+      Enum.any?(allowed_roots(), &inside_root?(path, &1)) -> {:ok, path}
+      true -> {:error, :project_dir_not_allowlisted}
+    end
+  end
+
+  defp allowed_roots do
+    default = Path.join(System.user_home!(), "Projects")
+
+    System.get_env("SHADOWOPS_OPENCODE_ALLOWED_ROOTS", default)
+    |> String.split(":", trim: true)
+    |> Enum.map(&Path.expand/1)
+  end
+
+  defp inside_root?(path, root), do: path == root or String.starts_with?(path, root <> "/")
+
+  defp timeout_ms(input) do
+    case value(input, :timeout_ms) do
+      timeout when is_integer(timeout) and timeout in 1_000..600_000 -> timeout
+      _ -> @default_timeout_ms
+    end
+  end
+
+  defp execute(executable, args, project_dir, timeout) do
+    task =
+      Task.async(fn ->
+        System.cmd(executable, args, cd: project_dir, stderr_to_stdout: true)
+      end)
+
+    case Task.yield(task, timeout) || Task.shutdown(task, :brutal_kill) do
+      {:ok, {output, 0}} -> {:ok, output}
+      {:ok, {output, code}} -> {:error, {:opencode_failed, code, truncate(output)}}
+      nil -> {:error, :opencode_timeout}
+    end
+  rescue
+    error -> {:error, {:opencode_execution_failed, Exception.message(error)}}
+  end
+
+  defp truncate(value) when byte_size(value) <= @max_output_bytes, do: value
+  defp truncate(value), do: binary_part(value, 0, @max_output_bytes) <> "\n[TRUNCATED]"
+
+  defp value(map, key), do: Map.get(map, key, Map.get(map, Atom.to_string(key)))
 end
