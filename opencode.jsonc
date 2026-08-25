@@ -1,0 +1,20 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "docs/CHATGPT_OPENCODE_GITHUB_MCP.md"
+  ],
+  "mcp": {
+    "servers": {
+      "github": {
+        "type": "remote",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "oauth": false,
+        "headers": {
+          "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}",
+          "X-MCP-Toolsets": "repos,pull_requests,issues,actions",
+          "X-MCP-Readonly": "true"
+        }
+      }
+    }
+  }
+}
