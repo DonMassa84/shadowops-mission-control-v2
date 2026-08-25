@@ -18,7 +18,12 @@ defmodule ShadowOpsWeb.ProjectCatalogTest do
   end
 
   test "missing catalog remains fail-visible" do
-    path = Path.join(System.tmp_dir!(), "shadowops-project-catalog-missing-#{System.unique_integer([:positive])}.json")
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "shadowops-project-catalog-missing-#{System.unique_integer([:positive])}.json"
+      )
+
     System.put_env("SHADOWOPS_PROJECT_CATALOG", path)
 
     catalog = ProjectCatalog.snapshot()
@@ -33,7 +38,11 @@ defmodule ShadowOpsWeb.ProjectCatalogTest do
   end
 
   test "catalog sanitizes metadata and refuses fabricated READY state" do
-    path = Path.join(System.tmp_dir!(), "shadowops-project-catalog-#{System.unique_integer([:positive])}.json")
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "shadowops-project-catalog-#{System.unique_integer([:positive])}.json"
+      )
 
     payload = %{
       "schema_version" => 1,
@@ -100,7 +109,12 @@ defmodule ShadowOpsWeb.ProjectCatalogTest do
   end
 
   test "browser route renders without requiring catalog connectivity" do
-    path = Path.join(System.tmp_dir!(), "shadowops-project-catalog-route-missing-#{System.unique_integer([:positive])}.json")
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "shadowops-project-catalog-route-missing-#{System.unique_integer([:positive])}.json"
+      )
+
     System.put_env("SHADOWOPS_PROJECT_CATALOG", path)
 
     conn = Plug.Test.conn(:get, "/projects/federated")
