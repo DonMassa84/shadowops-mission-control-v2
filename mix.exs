@@ -8,7 +8,8 @@ defmodule ShadowOps.MixProject do
       elixir: ">= 1.17.0 and < 2.0.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      releases: releases()
     ]
   end
 
@@ -16,5 +17,19 @@ defmodule ShadowOps.MixProject do
 
   defp aliases do
     ["phx.routes": "phx.routes ShadowOpsWeb.Router"]
+  end
+
+  defp releases do
+    [
+      shadowops: [
+        applications: [
+          shadowops_core: :permanent,
+          workflow_engine: :permanent,
+          agent_runtime: :permanent,
+          shadowops_web: :permanent
+        ],
+        include_executables_for: [:unix]
+      ]
+    ]
   end
 end
