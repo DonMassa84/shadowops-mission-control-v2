@@ -33,6 +33,12 @@ defmodule ShadowOpsWeb.SourceRegistry do
       domains: ~w(shadowops ihk infrastructure),
       secrets: ~w(GITHUB_TOKEN)
     },
+    %{
+      id: "chatgpt_project",
+      name: "ChatGPT Project",
+      domains: ~w(chatgpt knowledge shadowops),
+      secrets: []
+    },
     %{id: "whatsapp", name: "WhatsApp", domains: ~w(social community), secrets: []},
     %{
       id: "telegram",
