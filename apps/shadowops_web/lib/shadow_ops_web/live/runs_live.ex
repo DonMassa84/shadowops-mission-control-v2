@@ -69,7 +69,6 @@ defmodule ShadowOpsWeb.RunsLive do
   end
 
   defp evaluation(%{status: status}) when status in ["SUCCESS", "FAILED"] do
-    # Backward-compatible assessment for historical workflow runs that predate stored evaluation.
     ResultEvaluator.workflow(status, if(status == "SUCCESS", do: 0, else: 1))
   end
 
@@ -115,6 +114,8 @@ defmodule ShadowOpsWeb.RunsLive do
     end
   end
 
-  defp value(map, key) when is_map(map), do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+  defp value(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
+
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
 end
