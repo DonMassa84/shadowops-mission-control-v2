@@ -23,6 +23,8 @@ defmodule ShadowOpsWeb.Router do
     pipe_through(:browser)
 
     live("/", DashboardLive, :index)
+    live("/layers", LayersLive, :index)
+    live("/layers/:id", LayerDetailLive, :show)
     live("/infrastructure", InfrastructureLive, :index)
     live("/compute", ComputeLive, :index)
     live("/workflows", WorkflowsLive, :index)
@@ -78,6 +80,8 @@ defmodule ShadowOpsWeb.Router do
     get("/health", HealthController, :show)
     get("/ready", ReadinessController, :show)
     get("/system/overview", SystemOverviewController, :show)
+    get("/layers", LayersController, :index)
+    get("/layers/:id", LayersController, :show)
     get("/system", ModuleSourcesController, :system)
     get("/integrations", IntegrationsController, :index)
     get("/workflows", WorkflowsController, :index)
