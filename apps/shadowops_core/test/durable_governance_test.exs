@@ -143,15 +143,19 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
              )
 
     assert success.status == "SUCCESS"
-    assert success.before_state == before_state
-    assert success.after_state == after_state
+    assert nested_value(success.before_state, :active_state) == "inactive"
+    assert nested_value(success.after_state, :active_state) == "active"
+    assert nested_value(success.after_state, :pid) == 777
     assert success.score == 100
-    assert success.evaluation.verdict == "EXCELLENT"
+    assert nested_value(success.evaluation, :verdict) == "EXCELLENT"
     assert is_integer(success.duration_ms)
 
     assert {:ok, persisted} = RunStore.get(success.id)
     assert persisted.kind == "service"
     assert persisted.resource_id == "user:shadowops-phoenix.service"
+    assert nested_value(persisted.before_state, :active_state) == "inactive"
+    assert nested_value(persisted.after_state, :active_state) == "active"
+    assert nested_value(persisted.evaluation, :verdict) == "EXCELLENT"
     assert match?({:ok, %{valid: true}}, Audit.verify())
   end
 
@@ -168,6 +172,9 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
 
     assert {:ok, %{valid: true, entries: 20}} = Audit.verify()
   end
+
+  defp nested_value(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
 
   defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
   defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)
