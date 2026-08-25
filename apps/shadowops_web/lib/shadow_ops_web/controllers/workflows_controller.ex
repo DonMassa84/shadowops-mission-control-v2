@@ -1,7 +1,7 @@
 defmodule ShadowOpsWeb.WorkflowsController do
   use Phoenix.Controller, formats: [:json]
 
-  alias ShadowOpsCore.WorkflowJobs
+  alias ShadowOpsCore.{ExecutionTracker, WorkflowJobs}
   alias ShadowOpsApi
 
   def index(conn, _params) do
@@ -51,7 +51,7 @@ defmodule ShadowOpsWeb.WorkflowsController do
       if WorkflowJobs.enabled?() do
         WorkflowJobs.enqueue_request(id, actor, input, context)
       else
-        ShadowOpsApi.execute_workflow(id, actor, input, context)
+        ExecutionTracker.execute_workflow(id, actor, input, context)
       end
 
     case result do
