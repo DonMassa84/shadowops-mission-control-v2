@@ -10,6 +10,8 @@ defmodule ShadowOpsCore.ExecutionTracker do
   @service_actions ["start", "restart", "stop"]
 
   def execute_service(action, actor, service_id, context \\ %{})
+
+  def execute_service(action, actor, service_id, context)
       when action in @service_actions and is_binary(actor) and is_binary(service_id) do
     with {:ok, before_state} <- RuntimeSources.service(service_id),
          {:ok, queued} <-
