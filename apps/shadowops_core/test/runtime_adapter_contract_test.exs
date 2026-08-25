@@ -98,6 +98,7 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
     resource = %{name: "qwen2.5-coder:14b", base_url: "http://127.0.0.1:11434"}
 
     assert :ok = OllamaAdapter.validate(resource)
+
     assert {:error, :invalid_model} =
              OllamaAdapter.validate(%{resource | name: "bad model; rm -rf /"})
 
