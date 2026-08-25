@@ -26,6 +26,16 @@ required_secret! = fn name, minimum_bytes ->
   end
 end
 
+# Config.Reader.read!/1 is used by tests/tools without supplying :env. Keep the
+# file inspectable there, while releases and Mix runtime evaluation still
+# receive the real config environment and therefore enforce production gates.
+runtime_env =
+  try do
+    config_env()
+  rescue
+    RuntimeError -> :unknown
+  end
+
 if token = System.get_env("SHADOWOPS_READ_TOKEN") do
   config :shadowops_web, read_token: token
 end
@@ -46,7 +56,7 @@ if start_persistence do
     )
 
   password =
-    if config_env() == :prod do
+    if runtime_env == :prod do
       required_secret!.("SHADOWOPS_DB_PASSWORD", 16)
     else
       System.get_env("SHADOWOPS_DB_PASSWORD", "postgres")
@@ -71,7 +81,7 @@ if state_dir = System.get_env("SHADOWOPS_STATE_DIR") do
     run_path: Path.join(state_dir, "runs.jsonl")
 end
 
-if config_env() == :prod do
+if runtime_env == :prod do
   secret_key_base = required_secret!.("SHADOWOPS_SECRET_KEY_BASE", 64)
   read_token = required_secret!.("SHADOWOPS_READ_TOKEN", 32)
 
