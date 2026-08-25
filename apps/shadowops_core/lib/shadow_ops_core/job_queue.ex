@@ -27,7 +27,8 @@ defmodule ShadowOpsCore.JobQueue do
         records: [],
         record_count: nil,
         error_code: "PERSISTENCE_DISABLED",
-        error_message: "Set SHADOWOPS_START_PERSISTENCE=true and migrate the database to enable Oban.",
+        error_message:
+          "Set SHADOWOPS_START_PERSISTENCE=true and migrate the database to enable Oban.",
         metadata: %{queues: ["default", "workflows", "agents"]}
       }
     end
