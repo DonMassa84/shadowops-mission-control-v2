@@ -193,9 +193,14 @@ defmodule ShadowOpsCore.Adapters.OllamaAdapter do
     ensure_http_started()
 
     case :httpc.request(:get, {String.to_charlist(url), []}, request_opts(timeout), body_opts()) do
-      {:ok, {{_, code, _}, _headers, body}} when code in 200..299 -> bounded_body(body)
-      {:ok, {{_, code, _}, _headers, body}} -> {:error, {:ollama_http_error, code, truncate(body)}}
-      {:error, reason} -> {:error, {:ollama_unreachable, reason}}
+      {:ok, {{_, code, _}, _headers, body}} when code in 200..299 ->
+        bounded_body(body)
+
+      {:ok, {{_, code, _}, _headers, body}} ->
+        {:error, {:ollama_http_error, code, truncate(body)}}
+
+      {:error, reason} ->
+        {:error, {:ollama_unreachable, reason}}
     end
   end
 
@@ -204,7 +209,9 @@ defmodule ShadowOpsCore.Adapters.OllamaAdapter do
     request = {String.to_charlist(url), [], ~c"application/json", body}
 
     case :httpc.request(:post, request, request_opts(timeout), body_opts()) do
-      {:ok, {{_, code, _}, _headers, response}} when code in 200..299 -> bounded_body(response)
+      {:ok, {{_, code, _}, _headers, response}} when code in 200..299 ->
+        bounded_body(response)
+
       {:ok, {{_, code, _}, _headers, response}} ->
         {:error, {:ollama_http_error, code, truncate(response)}}
 
@@ -249,8 +256,11 @@ defmodule ShadowOpsCore.Adapters.OllamaAdapter do
 
   defp executable do
     case System.get_env("SHADOWOPS_OLLAMA_BIN") do
-      value when is_binary(value) and value != "" -> System.find_executable(value) || Path.expand(value)
-      _ -> System.find_executable("ollama")
+      value when is_binary(value) and value != "" ->
+        System.find_executable(value) || Path.expand(value)
+
+      _ ->
+        System.find_executable("ollama")
     end
   end
 
@@ -267,8 +277,12 @@ defmodule ShadowOpsCore.Adapters.OllamaAdapter do
     error -> {:error, {:ollama_stop_failed, Exception.message(error)}}
   end
 
-  defp truncate(value) when is_binary(value) and byte_size(value) <= @max_response_bytes, do: value
-  defp truncate(value) when is_binary(value), do: binary_part(value, 0, @max_response_bytes) <> "\n[TRUNCATED]"
+  defp truncate(value) when is_binary(value) and byte_size(value) <= @max_response_bytes,
+    do: value
+
+  defp truncate(value) when is_binary(value),
+    do: binary_part(value, 0, @max_response_bytes) <> "\n[TRUNCATED]"
+
   defp truncate(value), do: inspect(value)
 
   defp option(opts, key) when is_list(opts), do: Keyword.get(opts, key)
