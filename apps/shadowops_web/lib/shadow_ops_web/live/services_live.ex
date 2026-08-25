@@ -44,7 +44,10 @@ defmodule ShadowOpsWeb.ServicesLive do
       {:noreply,
        socket
        |> assign(data: data, services: data.services, last_run: run)
-       |> put_flash(:info, "#{service_id}: #{action} completed · #{run.evaluation.verdict} #{run.score}/100")}
+       |> put_flash(
+         :info,
+         "#{service_id}: #{action} completed · #{run.evaluation.verdict} #{run.score}/100"
+       )}
     else
       {:error, reason, run} ->
         {:noreply,
@@ -53,7 +56,8 @@ defmodule ShadowOpsWeb.ServicesLive do
          |> put_flash(:error, "Service action blocked/failed: #{safe_reason(reason)}")}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Service action unavailable: #{safe_reason(reason)}")}
+        {:noreply,
+         put_flash(socket, :error, "Service action unavailable: #{safe_reason(reason)}")}
 
       false ->
         {:noreply, put_flash(socket, :error, "Invalid service action")}
