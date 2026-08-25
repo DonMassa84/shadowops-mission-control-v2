@@ -126,13 +126,13 @@ defmodule ShadowOpsCore.ExecutionTracker do
               evaluation: ResultEvaluator.blocked("workflow", reason),
               score: 0
             })
-            |> as_approval_error(reason)
+            |> as_approval_error()
           else
             RunStore.fail(running.id, actor, safe_reason(reason), 1, %{
               evaluation: evaluation,
               score: evaluation.score
             })
-            |> as_execution_error(reason)
+            |> as_completed_failure()
           end
       end
     end
@@ -150,11 +150,10 @@ defmodule ShadowOpsCore.ExecutionTracker do
     end
   end
 
-  defp as_approval_error({:ok, blocked}, _reason), do: {:error, {:approval_required, blocked}}
-  defp as_approval_error({:error, persist_reason}, _reason), do: {:error, {:run_finalize_failed, persist_reason}}
-
-  defp as_execution_error({:ok, failed}, reason), do: {:error, {reason, failed}}
-  defp as_execution_error({:error, persist_reason}, _reason), do: {:error, {:run_finalize_failed, persist_reason}}
+  defp as_approval_error({:ok, blocked}), do: {:error, {:approval_required, blocked}}
+  defp as_approval_error({:error, reason}), do: {:error, {:run_finalize_failed, reason}}
+  defp as_completed_failure({:ok, failed}), do: {:ok, failed}
+  defp as_completed_failure({:error, reason}), do: {:error, {:run_finalize_failed, reason}}
 
   defp finalize_service_error(run, actor, reason, after_state, evaluation) do
     attrs = %{
