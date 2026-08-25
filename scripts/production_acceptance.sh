@@ -61,6 +61,19 @@ run_gate tests mix test --seed 12345
 run_gate registry mix shadowops.registry validate
 run_gate prod_compile env MIX_ENV=prod mix compile --warnings-as-errors
 
+mix phx.routes > /tmp/shadowops-routes.txt
+if grep -F '/layers' /tmp/shadowops-routes.txt >/dev/null && grep -F '/api/layers' /tmp/shadowops-routes.txt >/dev/null; then
+  ok layer_routes
+else
+  bad layer_routes "browser or API Layer Health route missing"
+fi
+
+if grep -E 'POST[[:space:]]+/api/layers([[:space:]/]|$)' /tmp/shadowops-routes.txt >/dev/null; then
+  bad layer_api_read_only "mutation route detected"
+else
+  ok layer_api_read_only
+fi
+
 if mix hex.audit >/tmp/shadowops-hex-audit.log 2>&1; then
   ok dependency_audit
 else
@@ -97,7 +110,7 @@ fi
 if api_get /health >/tmp/shadowops-health.json 2>/dev/null; then
   ok runtime_health
 
-  for path in / /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
+  for path in / /layers /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
     code="$(http_code "$path")"
     if [[ "$code" =~ ^(200|204|301|302|307|308)$ ]]; then
       ok "route:$path" "HTTP=$code"
@@ -110,6 +123,35 @@ if api_get /health >/tmp/shadowops-health.json 2>/dev/null; then
     ok integration_catalog_ui
   else
     bad integration_catalog_ui
+  fi
+
+  if payload="$(api_get /api/layers 2>/dev/null)"; then
+    if printf '%s' "$payload" | python3 -c '
+import json, sys
+p=json.load(sys.stdin)
+assert p.get("id") == "layer-health"
+assert p.get("synthetic") is False
+assert p.get("real_data") is True
+assert p.get("total_layers") == 12
+layers=p.get("layers", [])
+assert len(layers) == 12
+for layer in layers:
+    if not layer.get("assessed"):
+        assert layer.get("state") == "NOT_ASSESSED"
+        assert layer.get("score") is None
+        assert layer.get("coverage") is None
+print(len(layers))
+' >/tmp/shadowops-layer-count; then
+      ok layer_truthfulness "layers=$(cat /tmp/shadowops-layer-count)"
+    else
+      bad layer_truthfulness
+    fi
+  else
+    if [[ -n "$READ_TOKEN" ]]; then
+      bad layer_api "authorized API request failed"
+    else
+      printf 'SKIP %-30s %s\n' layer_api 'read token not provided or API protected'
+    fi
   fi
 
   if payload="$(api_get /api/connectors 2>/dev/null)"; then
