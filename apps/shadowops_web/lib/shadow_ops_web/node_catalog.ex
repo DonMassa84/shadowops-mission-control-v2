@@ -6,7 +6,7 @@ defmodule ShadowOpsWeb.NodeCatalog do
   a remote ChatGPT runtime connection and never expose local export paths or raw project content.
   """
 
-  alias ShadowOpsCore.RuntimeSources
+  alias ShadowOpsCore.{Audit, RuntimeSources}
   alias ShadowOpsWeb.ProjectCatalog
 
   @chatgpt_source_type "chatgpt_library_project"
@@ -46,6 +46,22 @@ defmodule ShadowOpsWeb.NodeCatalog do
 
   def action("chatgpt:" <> _rest, _action), do: {:error, :action_not_allowed}
   def action(id, action), do: RuntimeSources.node_action(id, action)
+
+  def execute_action(id, action, actor) do
+    case action(id, action) do
+      {:ok, result} ->
+        Audit.record(:node_action, actor, id, :success, %{action: action})
+        {:ok, result}
+
+      {:error, reason} ->
+        Audit.record(:node_action, actor, id, :blocked, %{
+          action: action,
+          reason: inspect(reason)
+        })
+
+        {:error, reason}
+    end
+  end
 
   defp chatgpt_nodes(%{projects: projects, generated_at: generated_at}) when is_list(projects) do
     projects
