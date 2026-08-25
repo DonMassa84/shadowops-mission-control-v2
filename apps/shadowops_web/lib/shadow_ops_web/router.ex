@@ -101,6 +101,7 @@ defmodule ShadowOpsWeb.Router do
     get("/workflows/:id", WorkflowsController, :show)
     get("/runs", RunsController, :index)
     get("/runs/:id", RunsController, :show)
+    get("/runs/:id/evaluation", RunsController, :evaluation)
     get("/nodes", NodesController, :index)
     get("/nodes/:id", NodesController, :show)
     get("/services", ServicesController, :index)
