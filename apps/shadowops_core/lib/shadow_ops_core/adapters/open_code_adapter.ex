@@ -42,7 +42,12 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
       {:ok, [row | _]} ->
         cond do
           not row.reachable ->
-            %{state: "NOT_CONFIGURED", discovered: 1, reachable: false, reason: "opencode_not_found"}
+            %{
+              state: "NOT_CONFIGURED",
+              discovered: 1,
+              reachable: false,
+              reason: "opencode_not_found"
+            }
 
           is_list(row.workflow_ids) ->
             %{state: "AVAILABLE", discovered: 1, reachable: true, reason: nil}
