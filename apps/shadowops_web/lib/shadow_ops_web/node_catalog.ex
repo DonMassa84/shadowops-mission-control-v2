@@ -1,12 +1,12 @@
 defmodule ShadowOpsWeb.NodeCatalog do
   @moduledoc """
-  Read-only node projection combining physical runtime nodes with logical ChatGPT project nodes.
+  Read-only node projection combining physical runtime nodes with logical project nodes.
 
-  ChatGPT nodes are derived exclusively from the local federated project catalog. They never imply
-  a remote ChatGPT runtime connection and never expose local export paths or raw project content.
+  Provider-specific node semantics live in `ShadowOpsCore.Node`; this module only
+  joins runtime evidence with the bounded local project catalog for the web layer.
   """
 
-  alias ShadowOpsCore.{Audit, RuntimeSources, Truthfulness}
+  alias ShadowOpsCore.{Audit, Node, RuntimeSources}
   alias ShadowOpsWeb.ProjectCatalog
 
   @chatgpt_source_type "chatgpt_library_project"
@@ -34,20 +34,18 @@ defmodule ShadowOpsWeb.NodeCatalog do
   end
 
   def get(id) when is_binary(id) do
-    case Enum.find(snapshot().records, &node_id?(&1, id)) do
+    case Enum.find(snapshot().records, &(Node.id(&1) == id)) do
       nil -> {:error, :not_found}
       node -> {:ok, node}
     end
   end
 
-  def action(id, "status") when is_binary(id) do
-    if String.starts_with?(id, "chatgpt:"),
-      do: get(id),
-      else: RuntimeSources.node_action(id, "status")
+  def action(id, action) when is_binary(id) do
+    case get(id) do
+      {:ok, node} -> route_action(node, id, action)
+      {:error, :not_found} -> RuntimeSources.node_action(id, action)
+    end
   end
-
-  def action("chatgpt:" <> _rest, _action), do: {:error, :action_not_allowed}
-  def action(id, action), do: RuntimeSources.node_action(id, action)
 
   def execute_action(id, action, actor) do
     case action(id, action) do
@@ -65,59 +63,22 @@ defmodule ShadowOpsWeb.NodeCatalog do
     end
   end
 
+  defp route_action(node, id, action) do
+    cond do
+      Node.logical?(node) and Node.action_allowed?(node, action) -> {:ok, node}
+      Node.logical?(node) -> {:error, :action_not_allowed}
+      true -> RuntimeSources.node_action(id, action)
+    end
+  end
+
   defp chatgpt_nodes(%{projects: projects, generated_at: generated_at}) when is_list(projects) do
     projects
     |> Enum.filter(&(&1.source_type == @chatgpt_source_type))
-    |> Enum.map(&chatgpt_node(&1, generated_at))
+    |> Enum.map(&Node.logical_project(&1, generated_at, :chatgpt))
     |> Enum.sort_by(& &1.node_id)
   end
 
   defp chatgpt_nodes(_), do: []
-
-  defp chatgpt_node(project, generated_at) do
-    ready = Truthfulness.ready?(project)
-    status = Truthfulness.normalize_ready_state(project)
-
-    %{
-      id: project.id,
-      node_id: project.id,
-      name: project.name,
-      kind: "logical_project_node",
-      status: status,
-      health: if(ready, do: "HEALTHY", else: "UNAVAILABLE"),
-      availability: if(ready, do: "AVAILABLE", else: "UNAVAILABLE"),
-      source: "federated ChatGPT project catalog",
-      source_type: "CHATGPT_LIBRARY_PROJECT",
-      real_data: ready,
-      synthetic: false,
-      enabled: true,
-      reachable: ready,
-      optional: true,
-      load: nil,
-      ram: nil,
-      uptime_seconds: nil,
-      last_sync_at: generated_at,
-      last_success_at: if(ready, do: generated_at),
-      latency_ms: nil,
-      record_count: nil,
-      updated_at: generated_at,
-      error_code: if(ready, do: nil, else: "CHATGPT_PROJECT_NOT_CONFIGURED"),
-      error_message:
-        if(ready,
-          do: nil,
-          else: "No evidenced local ChatGPT project export is available for this node"
-        ),
-      metadata: %{
-        logical: true,
-        provider: "chatgpt",
-        control_actions: ["status"],
-        integration_mode: project.integration_mode,
-        content_ingested: project.content_ingested
-      }
-    }
-  end
-
-  defp node_id?(node, id), do: Map.get(node, :node_id) == id or Map.get(node, :id) == id
 
   defp newest_timestamp(nil, other), do: other
   defp newest_timestamp(value, nil), do: value
