@@ -27,13 +27,16 @@ defmodule ShadowOpsCore.Truthfulness do
   @spec validate(map()) :: :ok | {:error, atom()}
   def validate(record) when is_map(record) do
     cond do
-      positive_state?(record) and has_key?(record, :real_data) and value(record, :real_data) != true ->
+      positive_state?(record) and has_key?(record, :real_data) and
+          value(record, :real_data) != true ->
         {:error, :positive_without_real_data}
 
-      positive_state?(record) and has_key?(record, :synthetic) and value(record, :synthetic) != false ->
+      positive_state?(record) and has_key?(record, :synthetic) and
+          value(record, :synthetic) != false ->
         {:error, :positive_with_synthetic_data}
 
-      positive_state?(record) and has_key?(record, :reachable) and value(record, :reachable) != true ->
+      positive_state?(record) and has_key?(record, :reachable) and
+          value(record, :reachable) != true ->
         {:error, :positive_without_reachability}
 
       true ->
@@ -53,10 +56,14 @@ defmodule ShadowOpsCore.Truthfulness do
     value(record, :status) || value(record, :state) || value(record, :availability) || "UNKNOWN"
   end
 
-  defp evidence_true_or_absent?(record, key), do: not has_key?(record, key) or value(record, key) == true
-  defp evidence_false_or_absent?(record, key), do: not has_key?(record, key) or value(record, key) == false
+  defp evidence_true_or_absent?(record, key),
+    do: not has_key?(record, key) or value(record, key) == true
 
-  defp has_key?(record, key), do: Map.has_key?(record, key) or Map.has_key?(record, to_string(key))
+  defp evidence_false_or_absent?(record, key),
+    do: not has_key?(record, key) or value(record, key) == false
+
+  defp has_key?(record, key),
+    do: Map.has_key?(record, key) or Map.has_key?(record, to_string(key))
 
   defp value(record, key), do: Map.get(record, key, Map.get(record, to_string(key)))
 end
