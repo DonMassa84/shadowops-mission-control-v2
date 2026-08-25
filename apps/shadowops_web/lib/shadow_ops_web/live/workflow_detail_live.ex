@@ -2,7 +2,7 @@ defmodule ShadowOpsWeb.WorkflowDetailLive do
   use Phoenix.LiveView
   import ShadowOpsWeb.MissionControlComponents
   alias ShadowOpsApi
-  alias ShadowOpsCore.WorkflowJobs
+  alias ShadowOpsCore.{ExecutionTracker, WorkflowJobs}
   alias ShadowOpsWeb.Plugs.Security
 
   def mount(%{"id" => id}, _session, socket) do
@@ -41,7 +41,7 @@ defmodule ShadowOpsWeb.WorkflowDetailLive do
         if WorkflowJobs.enabled?() do
           WorkflowJobs.enqueue_request(workflow_id, actor, input, context)
         else
-          ShadowOpsApi.execute_workflow(workflow_id, actor, input, context)
+          ExecutionTracker.execute_workflow(workflow_id, actor, input, context)
         end
 
       handle_run_result(result, socket, workflow_id)
