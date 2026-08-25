@@ -32,6 +32,7 @@ erl_crash.dump
 /priv/private/
 /priv/legal/
 /priv/runtime/
+/priv/health/
 
 # Local import evidence / private manifests
 /imports/
@@ -40,6 +41,9 @@ erl_crash.dump
 /application_pipeline_status*
 /finance*.json
 /legal*.json
+/health*.json
+/medical*.json
+/dental*.json
 /investigation*.json
 
 # Editor / OS
