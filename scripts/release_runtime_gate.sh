@@ -22,7 +22,9 @@ if [[ ! -x "$RELEASE_BIN" ]]; then
   exit 1
 fi
 
-timeout 20s "$RELEASE_BIN" start
+# `start` is the foreground release command. The CI gate must continue to the
+# health probes, so launch the release with the built-in daemon command instead.
+timeout 20s "$RELEASE_BIN" daemon
 
 ready=0
 for _ in $(seq 1 30); do
@@ -41,7 +43,11 @@ if [[ "$ready" != "1" ]]; then
   exit 1
 fi
 
+echo 'RELEASE_HEALTH=PASS'
+
 timeout 180s env \
   SHADOWOPS_BASE_URL="http://127.0.0.1:${PORT}" \
   SHADOWOPS_READ_TOKEN="$SHADOWOPS_READ_TOKEN" \
   bash scripts/runtime_smoke.sh
+
+echo 'FINAL_STATUS=RELEASE_RUNTIME_GATE_PASS'
