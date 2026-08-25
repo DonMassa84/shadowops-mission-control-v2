@@ -15,7 +15,13 @@ defmodule ShadowOpsWeb.ChatGPTProjectTest do
     else
       assert domain.status == "NOT_CONFIGURED"
       assert domain.reachable == false
-      assert domain.error_code in ["SOURCE_MISSING", "SOURCE_UNREADABLE", "INVALID_SCHEMA", "INVALID_JSON"]
+
+      assert domain.error_code in [
+               "SOURCE_MISSING",
+               "SOURCE_UNREADABLE",
+               "INVALID_SCHEMA",
+               "INVALID_JSON"
+             ]
     end
   end
 
