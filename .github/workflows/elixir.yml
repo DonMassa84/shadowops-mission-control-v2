@@ -75,6 +75,9 @@ jobs:
       - name: Validate workflow registry
         run: mix shadowops.registry validate
 
+      - name: Validate workflow IDs
+        run: mix shadowops.workflow_ids.validate
+
       - name: Audit Hex dependencies
         run: mix hex.audit
 
