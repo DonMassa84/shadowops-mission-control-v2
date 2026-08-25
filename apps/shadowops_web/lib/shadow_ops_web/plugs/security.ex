@@ -63,8 +63,12 @@ defmodule ShadowOpsWeb.Plugs.Security do
     expected = Application.get_env(:shadowops_web, :write_token)
 
     cond do
-      not (is_binary(expected) and byte_size(expected) > 0) -> {:error, :writes_disabled}
-      not valid_actor?(actor) -> {:error, :valid_actor_required}
+      not (is_binary(expected) and byte_size(expected) > 0) ->
+        {:error, :writes_disabled}
+
+      not valid_actor?(actor) ->
+        {:error, :valid_actor_required}
+
       not (is_binary(supplied_token) and byte_size(supplied_token) == byte_size(expected)) ->
         {:error, :write_authorization_required}
 
