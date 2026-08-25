@@ -145,7 +145,7 @@ defmodule ShadowOpsCore.Adapters.OllamaAdapter do
     value =
       option(opts, :base_url) || System.get_env("SHADOWOPS_OLLAMA_URL") || @default_url
 
-    with %URI{scheme: "http", host: host, port: port, path: path} = uri <- URI.parse(value),
+    with %URI{scheme: "http", host: host, path: path} = uri <- URI.parse(value),
          true <- is_binary(host) and host != "",
          true <- path in [nil, "", "/"],
          true <- host in allowed_hosts() do
