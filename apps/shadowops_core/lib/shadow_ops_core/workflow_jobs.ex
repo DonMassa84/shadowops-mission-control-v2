@@ -109,7 +109,10 @@ defmodule ShadowOpsCore.WorkflowJobs do
 
   defp persistable_value?(list) when is_list(list), do: Enum.all?(list, &persistable_value?/1)
   defp persistable_value?(value) when is_binary(value), do: byte_size(value) <= 16_384
-  defp persistable_value?(value) when is_number(value) or is_boolean(value) or is_nil(value), do: true
+
+  defp persistable_value?(value) when is_number(value) or is_boolean(value) or is_nil(value),
+    do: true
+
   defp persistable_value?(_), do: false
 
   defp safe_reason(%Ecto.Changeset{}), do: :invalid_job
