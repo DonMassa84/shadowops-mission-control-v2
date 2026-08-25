@@ -494,7 +494,8 @@ defmodule ShadowOpsWeb.DashboardLive do
     Enum.filter(node_records(o), &(get_in(&1, [:metadata, :logical]) == true))
   end
 
-  defp physical_node_count(o), do: Enum.count(node_records(o), &(get_in(&1, [:metadata, :logical]) != true))
+  defp physical_node_count(o),
+    do: Enum.count(node_records(o), &(get_in(&1, [:metadata, :logical]) != true))
 
   defp chatgpt_summary(o) do
     nodes = chatgpt_nodes(o)
