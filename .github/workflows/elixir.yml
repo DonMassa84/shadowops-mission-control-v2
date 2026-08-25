@@ -29,6 +29,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Set up Erlang and Elixir
         uses: erlef/setup-beam@v1
@@ -57,6 +59,18 @@ jobs:
 
       - name: Run full test suite
         run: mix test --seed 12345
+
+      - name: Verify Layer Health routes and read-only contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          mix phx.routes > /tmp/shadowops-routes.txt
+          grep -F '/layers' /tmp/shadowops-routes.txt
+          grep -F '/api/layers' /tmp/shadowops-routes.txt
+          if grep -E 'POST[[:space:]]+/api/layers([[:space:]/]|$)' /tmp/shadowops-routes.txt; then
+            echo 'Layer API mutation route detected' >&2
+            exit 1
+          fi
 
       - name: Validate workflow registry
         run: mix shadowops.registry validate
