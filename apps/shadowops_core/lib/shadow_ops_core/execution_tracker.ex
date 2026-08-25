@@ -17,6 +17,8 @@ defmodule ShadowOpsCore.ExecutionTracker do
   @service_actions ["start", "restart", "stop"]
 
   def execute_workflow(workflow_id, actor, input, context \\ %{})
+
+  def execute_workflow(workflow_id, actor, input, context)
       when is_binary(workflow_id) and is_binary(actor) and is_map(input) and is_map(context) do
     input = Map.drop(input, [:approval_id, "approval_id"])
 
