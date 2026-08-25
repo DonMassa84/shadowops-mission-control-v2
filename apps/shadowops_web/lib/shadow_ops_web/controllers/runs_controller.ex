@@ -31,7 +31,8 @@ defmodule ShadowOpsWeb.RunsController do
 
   defp evaluation_for(%{evaluation: evaluation}) when is_map(evaluation), do: evaluation
 
-  defp evaluation_for(%{status: status, exit_code: exit_code}) when status in ["SUCCESS", "FAILED"] do
+  defp evaluation_for(%{status: status, exit_code: exit_code})
+       when status in ["SUCCESS", "FAILED"] do
     ResultEvaluator.workflow(status, exit_code || if(status == "SUCCESS", do: 0, else: 1))
   end
 
