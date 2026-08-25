@@ -45,21 +45,50 @@ defmodule ShadowOpsWeb.LayerEvaluator do
   def build_snapshot do
     runtime = RuntimeOverview.snapshot()
 
-    layers = [
-      probe_layer("sources", "Sources", Map.get(runtime, :connectors), "runtime connectors"),
-      not_assessed("data_fabric", "Data Fabric", "Canonical Data Fabric projection is not implemented in this standalone repository."),
-      not_assessed("data_quality", "Data Quality", "Canonical record-quality evidence is not implemented in this standalone repository."),
-      not_assessed("lineage", "Lineage", "Canonical lineage projection is not implemented in this standalone repository."),
-      not_assessed("ontology", "Ontology", "Ontology projection is not implemented in this standalone repository."),
-      not_assessed("identity", "Identity", "Canonical identity-resolution evidence is not implemented in this standalone repository."),
-      not_assessed("relationships", "Relationships", "Evidence-backed relationship graph is not implemented in this standalone repository."),
-      not_assessed("projects", "Projects", "Canonical Project-object evidence is not implemented in this standalone repository."),
-      probe_layer("workflows", "Workflows", Map.get(runtime, :workflows), "workflow registry"),
-      runtime_layer(runtime),
-      governance_layer(runtime),
-      probe_layer("knowledge", "Knowledge", Map.get(runtime, :knowledge), "knowledge runtime")
-    ]
-    |> sort_layers()
+    layers =
+      [
+        probe_layer("sources", "Sources", Map.get(runtime, :connectors), "runtime connectors"),
+        not_assessed(
+          "data_fabric",
+          "Data Fabric",
+          "Canonical Data Fabric projection is not implemented in this standalone repository."
+        ),
+        not_assessed(
+          "data_quality",
+          "Data Quality",
+          "Canonical record-quality evidence is not implemented in this standalone repository."
+        ),
+        not_assessed(
+          "lineage",
+          "Lineage",
+          "Canonical lineage projection is not implemented in this standalone repository."
+        ),
+        not_assessed(
+          "ontology",
+          "Ontology",
+          "Ontology projection is not implemented in this standalone repository."
+        ),
+        not_assessed(
+          "identity",
+          "Identity",
+          "Canonical identity-resolution evidence is not implemented in this standalone repository."
+        ),
+        not_assessed(
+          "relationships",
+          "Relationships",
+          "Evidence-backed relationship graph is not implemented in this standalone repository."
+        ),
+        not_assessed(
+          "projects",
+          "Projects",
+          "Canonical Project-object evidence is not implemented in this standalone repository."
+        ),
+        probe_layer("workflows", "Workflows", Map.get(runtime, :workflows), "workflow registry"),
+        runtime_layer(runtime),
+        governance_layer(runtime),
+        probe_layer("knowledge", "Knowledge", Map.get(runtime, :knowledge), "knowledge runtime")
+      ]
+      |> sort_layers()
 
     assessed = Enum.filter(layers, & &1.assessed)
     findings = layers |> Enum.flat_map(& &1.findings) |> sort_findings()
@@ -109,13 +138,20 @@ defmodule ShadowOpsWeb.LayerEvaluator do
           |> Enum.any?(fn probe -> normalize_status(probe) in @negative end)
 
         if critical do
-          finding = finding("GOVERNANCE_CONTROL_FAILURE", "CRITICAL", "Security or audit evidence reports a failing control.", "governance")
+          finding =
+            finding(
+              "GOVERNANCE_CONTROL_FAILURE",
+              "CRITICAL",
+              "Security or audit evidence reports a failing control.",
+              "governance"
+            )
 
-          %{layer |
-            state: "CRITICAL",
-            score: min(layer.score || 0, 49),
-            failures: layer.failures + 1,
-            findings: sort_findings([finding | layer.findings])
+          %{
+            layer
+            | state: "CRITICAL",
+              score: min(layer.score || 0, 49),
+              failures: layer.failures + 1,
+              findings: sort_findings([finding | layer.findings])
           }
         else
           layer
@@ -137,8 +173,20 @@ defmodule ShadowOpsWeb.LayerEvaluator do
 
       findings =
         []
-        |> maybe_add(failures > 0, "#{String.upcase(id)}_FAILURE", "CRITICAL", "#{failures} #{source} probe(s) report failure.", id)
-        |> maybe_add(warnings > 0, "#{String.upcase(id)}_REVIEW", "WARN", "#{warnings} #{source} probe(s) require review.", id)
+        |> maybe_add(
+          failures > 0,
+          "#{String.upcase(id)}_FAILURE",
+          "CRITICAL",
+          "#{failures} #{source} probe(s) report failure.",
+          id
+        )
+        |> maybe_add(
+          warnings > 0,
+          "#{String.upcase(id)}_REVIEW",
+          "WARN",
+          "#{warnings} #{source} probe(s) require review.",
+          id
+        )
 
       result(id, name, score, ratio(length(present), length(probes)), findings, %{
         source: source,
@@ -155,8 +203,20 @@ defmodule ShadowOpsWeb.LayerEvaluator do
 
       findings =
         []
-        |> maybe_add(status in @negative, "#{String.upcase(id)}_FAILURE", "CRITICAL", "#{name} evidence reports #{status}.", id)
-        |> maybe_add(status in @review, "#{String.upcase(id)}_REVIEW", "WARN", "#{name} evidence reports #{status}.", id)
+        |> maybe_add(
+          status in @negative,
+          "#{String.upcase(id)}_FAILURE",
+          "CRITICAL",
+          "#{name} evidence reports #{status}.",
+          id
+        )
+        |> maybe_add(
+          status in @review,
+          "#{String.upcase(id)}_REVIEW",
+          "WARN",
+          "#{name} evidence reports #{status}.",
+          id
+        )
 
       result(id, name, score, 1.0, findings, %{
         source: source,
@@ -211,7 +271,10 @@ defmodule ShadowOpsWeb.LayerEvaluator do
   defp record_count(_), do: nil
 
   defp result(id, name, score, coverage, findings, metrics) do
-    state = if Enum.any?(findings, &(&1.severity == "CRITICAL")), do: "CRITICAL", else: state_for_score(score)
+    state =
+      if Enum.any?(findings, &(&1.severity == "CRITICAL")),
+        do: "CRITICAL",
+        else: state_for_score(score)
 
     %{
       id: id,
