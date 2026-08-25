@@ -92,15 +92,15 @@ else
   bad dependency_audit "see /tmp/shadowops-hex-audit.log"
 fi
 
-if command -v sobelow >/dev/null 2>&1; then
-  if sobelow --root "$ROOT/apps/shadowops_web" --private --exit high --threshold high \
+if mix help sobelow >/dev/null 2>&1; then
+  if (cd "$ROOT/apps/shadowops_web" && mix sobelow --private --strict --exit high --threshold high) \
     >/tmp/shadowops-sobelow.log 2>&1; then
     ok phoenix_security_scan
   else
-    bad phoenix_security_scan "high-confidence Sobelow finding; see /tmp/shadowops-sobelow.log"
+    bad phoenix_security_scan "Sobelow high-confidence finding or parse failure; see /tmp/shadowops-sobelow.log"
   fi
 else
-  printf 'SKIP %-30s %s\n' phoenix_security_scan 'sobelow executable not installed'
+  bad phoenix_security_scan "Sobelow is required but unavailable"
 fi
 
 if grep -RInE --exclude-dir='_build' --exclude-dir='deps' --exclude='*.md' \
