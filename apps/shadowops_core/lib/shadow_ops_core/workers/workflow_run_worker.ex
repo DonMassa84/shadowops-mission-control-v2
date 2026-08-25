@@ -9,7 +9,7 @@ defmodule ShadowOpsCore.Workers.WorkflowRunWorker do
 
   use Oban.Worker, queue: :workflows, max_attempts: 3
 
-  alias ShadowOpsCore.{ExecutionService, RunStore}
+  alias ShadowOpsCore.{ExecutionService, ResultEvaluator, RunStore}
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: args, attempt: attempt, max_attempts: max_attempts}) do
@@ -27,12 +27,30 @@ defmodule ShadowOpsCore.Workers.WorkflowRunWorker do
     with {:ok, _run} <- ensure_running(run_id, actor) do
       case ExecutionService.execute("workflow.execute", actor, workflow_id, input, context) do
         {:ok, result} ->
-          _ = RunStore.succeed(run_id, actor, result_summary(result), result_exit_code(result))
+          exit_code = result_exit_code(result)
+          evaluation = ResultEvaluator.workflow(result, exit_code)
+
+          _ =
+            RunStore.succeed(
+              run_id,
+              actor,
+              result_summary(result),
+              exit_code,
+              evidence_ref(result),
+              %{evaluation: evaluation, score: evaluation.score}
+            )
+
           :ok
 
         {:error, reason} ->
           if attempt >= max_attempts do
-            _ = RunStore.fail(run_id, actor, safe_reason(reason), 1)
+            evaluation = ResultEvaluator.workflow(safe_reason(reason), 1)
+
+            _ =
+              RunStore.fail(run_id, actor, safe_reason(reason), 1, %{
+                evaluation: evaluation,
+                score: evaluation.score
+              })
           end
 
           {:error, safe_reason(reason)}
@@ -56,6 +74,10 @@ defmodule ShadowOpsCore.Workers.WorkflowRunWorker do
   defp result_exit_code(%{exit_code: code}) when is_integer(code), do: code
   defp result_exit_code(%{"exit_code" => code}) when is_integer(code), do: code
   defp result_exit_code(_), do: 0
+
+  defp evidence_ref(%{evidence_ref: ref}) when is_binary(ref), do: ref
+  defp evidence_ref(%{"evidence_ref" => ref}) when is_binary(ref), do: ref
+  defp evidence_ref(_), do: nil
 
   defp safe_reason(reason) when is_atom(reason), do: Atom.to_string(reason)
   defp safe_reason({tag, _detail}) when is_atom(tag), do: Atom.to_string(tag)
