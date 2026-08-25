@@ -1,15 +1,15 @@
 defmodule ShadowOpsWeb.NodesController do
   use Phoenix.Controller, formats: [:json]
 
-  alias ShadowOpsApi
   alias ShadowOpsCore.GovernanceGate
+  alias ShadowOpsWeb.NodeCatalog
 
   def index(conn, _params) do
-    json(conn, ShadowOpsApi.nodes())
+    json(conn, NodeCatalog.snapshot())
   end
 
   def show(conn, %{"id" => id}) do
-    case ShadowOpsApi.get_node(id) do
+    case NodeCatalog.get(id) do
       {:ok, node} -> json(conn, node)
       {:error, :not_found} -> conn |> put_status(404) |> json(%{error: "node_not_found"})
     end
@@ -34,7 +34,7 @@ defmodule ShadowOpsWeb.NodesController do
     context = %{request_id: List.first(get_resp_header(conn, "x-request-id"))}
 
     with {:ok, _decision} <- GovernanceGate.authorize(capability, actor, id, input, context) do
-      action_result(conn, ShadowOpsApi.execute_node_action(id, action, actor, context))
+      action_result(conn, NodeCatalog.execute_action(id, action, actor))
     else
       {:error, reason} -> governance_error(conn, reason)
     end
