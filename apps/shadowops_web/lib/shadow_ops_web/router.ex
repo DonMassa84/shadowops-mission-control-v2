@@ -59,6 +59,7 @@ defmodule ShadowOpsWeb.Router do
     live("/projects/community", ProjectDomainLive, :community)
     live("/projects/social", ProjectDomainLive, :social)
     live("/projects/knowledge", ProjectDomainLive, :knowledge)
+    live("/projects/chatgpt", ProjectDomainLive, :chatgpt)
     live("/projects/housing", ProjectDomainLive, :housing)
     live("/projects/administration", ProjectDomainLive, :administration)
     live("/projects/health", ProjectDomainLive, :health)
