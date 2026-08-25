@@ -2,7 +2,7 @@ defmodule ShadowOpsWeb.ServicesController do
   use Phoenix.Controller, formats: [:json]
 
   alias ShadowOpsApi
-  alias ShadowOpsCore.GovernanceGate
+  alias ShadowOpsCore.ExecutionService
 
   def index(conn, _params) do
     json(conn, ShadowOpsApi.services())
@@ -18,18 +18,35 @@ defmodule ShadowOpsWeb.ServicesController do
     end
   end
 
-  def operate(conn, %{"id" => id, "action" => action}) do
+  def operate(conn, %{"id" => id, "action" => action} = params) do
     actor = conn.assigns.actor
     capability = "service.#{action}"
     input = %{service_id: id, action: action}
-    context = %{request_id: List.first(get_resp_header(conn, "x-request-id"))}
 
-    with {:ok, _decision} <- GovernanceGate.authorize(capability, actor, id, input, context),
-         {:ok, service} <- ShadowOpsApi.execute_service_action(id, action, actor) do
-      json(conn, service)
-    else
+    context = %{
+      request_id: List.first(get_resp_header(conn, "x-request-id")),
+      approval_id: params["approval_id"]
+    }
+
+    case ExecutionService.execute(capability, actor, id, input, context) do
+      {:ok, service} ->
+        json(conn, service)
+
       {:error, :approval_required} ->
         conn |> put_status(:conflict) |> json(%{error: "approval_required"})
+
+      {:error, {:approval_required, _}} ->
+        conn |> put_status(:conflict) |> json(%{error: "approval_required"})
+
+      {:error, {:approval_blocked, reason}} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "approval_blocked", reason: inspect(reason)})
+
+      {:error, {:approval_invalid, reason}} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "approval_invalid", reason: inspect(reason)})
 
       {:error, {:unknown_capability, _} = reason} ->
         conn
