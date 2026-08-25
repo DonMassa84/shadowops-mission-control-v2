@@ -23,7 +23,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
         <nav>
-          <.nav_group label="Dashboard" items={[{"Overview", "/"}]} active={@active} />
+          <.nav_group label="Dashboard" items={[{"Overview", "/"}, {"Layer Health", "/layers"}]} active={@active} />
           <.nav_group label="Operations" items={[{"Infrastructure", "/infrastructure"}, {"Workflows", "/workflows"}, {"Runs", "/runs"}, {"Services", "/services"}, {"Nodes", "/nodes"}, {"Backups", "/backups"}]} active={@active} />
           <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
           <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
@@ -144,16 +144,16 @@ defmodule ShadowOpsWeb.MissionControlComponents do
 
   defp tone(value) do
     cond do
-      value in ~w(PASS VALID AVAILABLE CONNECTED ONLINE SUCCESS APPROVED READY VERIFIED HEALTHY ACTIVE) ->
+      value in ~w(PASS VALID AVAILABLE CONNECTED ONLINE SUCCESS APPROVED READY VERIFIED HEALTHY ACTIVE EXCELLENT) ->
         "success"
 
-      value in ~w(FAIL INVALID ERROR OFFLINE FAILED REJECTED BLOCKED BLOCKED_CONFIGURATION) ->
+      value in ~w(FAIL INVALID ERROR OFFLINE FAILED REJECTED BLOCKED BLOCKED_CONFIGURATION CRITICAL) ->
         "error"
 
-      value in ~w(PENDING RUNNING QUEUED DEGRADED PARTIAL REVIEW) ->
+      value in ~w(PENDING RUNNING QUEUED DEGRADED PARTIAL REVIEW WARN WARNING) ->
         "review"
 
-      value in ~w(NOT_CONFIGURED NOT_CONNECTED UNAVAILABLE UNKNOWN NOT_CHECKED EXPIRED DISABLED DISABLED_BY_CONFIGURATION) ->
+      value in ~w(NOT_ASSESSED NOT_CONFIGURED NOT_CONNECTED UNAVAILABLE UNKNOWN NOT_CHECKED EXPIRED DISABLED DISABLED_BY_CONFIGURATION) ->
         "muted"
 
       true ->
