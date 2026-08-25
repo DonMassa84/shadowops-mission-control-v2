@@ -1,12 +1,14 @@
 defmodule ShadowOpsWeb.NodesLive do
   use Phoenix.LiveView
   import ShadowOpsWeb.MissionControlComponents
+
+  alias ShadowOpsCore.{Node, Truthfulness}
   alias ShadowOpsWeb.NodeCatalog
 
   def mount(_, _, socket) do
     data = NodeCatalog.snapshot()
-    physical_nodes = Enum.reject(data.records, &logical_node?/1)
-    chatgpt_nodes = Enum.filter(data.records, &logical_node?/1)
+    physical_nodes = Enum.reject(data.records, &Node.logical?/1)
+    chatgpt_nodes = Enum.filter(data.records, &Node.logical?/1)
 
     {:ok,
      assign(socket,
@@ -129,7 +131,7 @@ defmodule ShadowOpsWeb.NodesLive do
                 <td><.status_badge status={node.status} /></td>
                 <td>
                   <.status_badge
-                    status={if(node.real_data and not node.synthetic, do: "VERIFIED", else: "NOT_CONFIGURED")}
+                    status={if(Truthfulness.ready?(node), do: "VERIFIED", else: "NOT_CONFIGURED")}
                   />
                 </td>
                 <td>{node.metadata.integration_mode}</td>
@@ -145,6 +147,4 @@ defmodule ShadowOpsWeb.NodesLive do
     </.app_shell>
     """
   end
-
-  defp logical_node?(node), do: get_in(node, [:metadata, :logical]) == true
 end
