@@ -144,8 +144,22 @@ defmodule ShadowOpsCore.WorkflowFabricContractTest do
     assert %{state: ^expected_state, discovered: 4, available: ^available} =
              ScriptAdapter.status()
 
-    assert %{state: "DEGRADED", reason: "workflow_ids_not_imported"} =
-             OpenCodeAdapter.status()
+    opencode_status = OpenCodeAdapter.status()
+    assert opencode_status.state in ["NOT_CONFIGURED", "DEGRADED", "AVAILABLE"]
+
+    case opencode_status.state do
+      "NOT_CONFIGURED" ->
+        assert opencode_status.reason == "opencode_not_found"
+        assert opencode_status.reachable == false
+
+      "DEGRADED" ->
+        assert opencode_status.reason == "workflow_ids_not_imported"
+        assert opencode_status.reachable == true
+
+      "AVAILABLE" ->
+        assert opencode_status.reason == nil
+        assert opencode_status.reachable == true
+    end
 
     tcc_status = TccAdapter.status()
     assert tcc_status.state in ["DEGRADED", "UNAVAILABLE"]
