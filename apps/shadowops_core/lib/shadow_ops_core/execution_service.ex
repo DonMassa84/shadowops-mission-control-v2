@@ -119,7 +119,11 @@ defmodule ShadowOpsCore.ExecutionService do
   defp dispatch(%{executor: :service_runtime, id: capability}, input, context) do
     action = action_from_capability(capability)
 
-    with {:ok, id} <- required_id(value(input, :service_id) || value(input, :service_name) || context[:resource], :service_id_required),
+    with {:ok, id} <-
+           required_id(
+             value(input, :service_id) || value(input, :service_name) || context[:resource],
+             :service_id_required
+           ),
          {:ok, service} <- RuntimeSources.service(id),
          :ok <- SystemdAdapter.validate(service) do
       case action do
@@ -174,7 +178,7 @@ defmodule ShadowOpsCore.ExecutionService do
     end
   end
 
-  defp required_id(value, error) when is_binary(value) and value != "", do: {:ok, value}
+  defp required_id(value, _error) when is_binary(value) and value != "", do: {:ok, value}
   defp required_id(_value, error), do: {:error, error}
 
   defp action_from_capability(capability) do
