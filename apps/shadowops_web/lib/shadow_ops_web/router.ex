@@ -1,6 +1,7 @@
 defmodule ShadowOpsWeb.Router do
   use Phoenix.Router
 
+  import Phoenix.LiveDashboard.Router
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -10,6 +11,10 @@ defmodule ShadowOpsWeb.Router do
     plug(:fetch_live_flash)
   end
 
+  pipeline :runtime_dashboard do
+    plug(ShadowOpsWeb.Plugs.RuntimeDashboardAccess)
+  end
+
   pipeline :api do
     plug(:accepts, ["json"])
     plug(ShadowOpsWeb.Plugs.Security, :require_read)
@@ -17,6 +22,11 @@ defmodule ShadowOpsWeb.Router do
 
   pipeline :write_api do
     plug(ShadowOpsWeb.Plugs.Security, :require_write_actor)
+  end
+
+  scope "/" do
+    pipe_through([:browser, :runtime_dashboard])
+    live_dashboard("/runtime", metrics: ShadowOpsWeb.Telemetry)
   end
 
   scope "/", ShadowOpsWeb do
