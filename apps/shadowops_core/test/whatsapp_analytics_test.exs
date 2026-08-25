@@ -1,10 +1,7 @@
 defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
   use ExUnit.Case, async: false
 
-  import Bitwise
-
   alias ShadowOps.Social.WhatsAppAnalytics
-  alias ShadowOpsCore.Audit
 
   @real_source "/home/schattenmacher/social-exports/whatsapp/WhatsApp Chat Existing Workflow.txt"
 
@@ -57,6 +54,9 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
   end
 
   if File.regular?(@real_source) do
+    import Bitwise
+    alias ShadowOpsCore.Audit
+
     test "real export is idempotently ingested, normalized, analyzed, and audited" do
       root = temporary_root("real")
       state_path = Path.join(root, "aggregate.json")
@@ -132,13 +132,25 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       assert first.audit.hash_chain == "PASS"
       assert {:ok, %{valid: true, entries: 3}} = Audit.verify()
     end
-  end
 
-  defp configure_audit(path) do
-    previous = Application.get_env(:shadowops_core, :audit_path)
-    Application.put_env(:shadowops_core, :audit_path, path)
+    defp configure_audit(path) do
+      previous = Application.get_env(:shadowops_core, :audit_path)
+      Application.put_env(:shadowops_core, :audit_path, path)
 
-    on_exit(fn -> restore(:audit_path, previous) end)
+      on_exit(fn -> restore(:audit_path, previous) end)
+    end
+
+    defp all_keys(value) when is_map(value),
+      do: Map.keys(value) ++ Enum.flat_map(Map.values(value), &all_keys/1)
+
+    defp all_keys(value) when is_list(value), do: Enum.flat_map(value, &all_keys/1)
+    defp all_keys(_value), do: []
+
+    defp sha256(value),
+      do: :sha256 |> :crypto.hash(value) |> Base.encode16(case: :lower)
+
+    defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
+    defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)
   end
 
   defp temporary_root(label) do
@@ -152,16 +164,4 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
     on_exit(fn -> File.rm_rf(root) end)
     root
   end
-
-  defp all_keys(value) when is_map(value),
-    do: Map.keys(value) ++ Enum.flat_map(Map.values(value), &all_keys/1)
-
-  defp all_keys(value) when is_list(value), do: Enum.flat_map(value, &all_keys/1)
-  defp all_keys(_value), do: []
-
-  defp sha256(value),
-    do: :sha256 |> :crypto.hash(value) |> Base.encode16(case: :lower)
-
-  defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
-  defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)
 end
