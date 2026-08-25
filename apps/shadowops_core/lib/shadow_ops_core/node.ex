@@ -27,7 +27,8 @@ defmodule ShadowOpsCore.Node do
       health: if(ready, do: "HEALTHY", else: "UNAVAILABLE"),
       availability: if(ready, do: "AVAILABLE", else: "UNAVAILABLE"),
       source: "federated #{provider_label(provider)} project catalog",
-      source_type: provider |> provider_label() |> String.upcase() |> Kernel.<>("_LIBRARY_PROJECT"),
+      source_type:
+        provider |> provider_label() |> String.upcase() |> Kernel.<>("_LIBRARY_PROJECT"),
       real_data: ready,
       synthetic: false,
       enabled: true,
