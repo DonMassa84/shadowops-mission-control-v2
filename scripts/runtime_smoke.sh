@@ -25,6 +25,13 @@ require_http() {
   printf 'PASS %-30s HTTP=%s\n' "$path" "$code"
 }
 
+runtime_location() {
+  curl -sS --max-time 8 \
+    -H "Authorization: Bearer $READ_TOKEN" \
+    -D - -o /dev/null "$BASE_URL/runtime" \
+    | awk 'BEGIN { IGNORECASE=1 } /^location:/ { gsub("\r", "", $2); print $2; exit }'
+}
+
 printf '=== SHADOWOPS PRODUCTION RUNTIME SMOKE ===\n'
 printf 'BASE_URL=%s\n' "$BASE_URL"
 
@@ -39,6 +46,16 @@ require_http /nodes 200
 require_http /api/nodes 200
 require_http /workflows 200
 require_http /api/workflows 200
+require_http /jobs 200
+require_http /runtime 302
+
+runtime_path="$(runtime_location)"
+if [[ "$runtime_path" != /runtime/* ]]; then
+  printf 'FAIL %-30s redirect=%s\n' '/runtime' "$runtime_path" >&2
+  exit 1
+fi
+require_http "$runtime_path" 200
+
 require_http /security 200
 require_http /api/security/status 200
 require_http /audit 200
