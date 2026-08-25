@@ -107,3 +107,60 @@ jobs:
           PORT: "4013"
           SHADOWOPS_START_PERSISTENCE: "false"
         run: timeout 240s bash scripts/release_runtime_gate.sh
+
+  persistence_e2e:
+    name: PostgreSQL + Oban persistence gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadowops_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d shadowops_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      MIX_ENV: test
+      SHADOWOPS_START_PERSISTENCE: "true"
+      SHADOWOPS_DB_HOST: localhost
+      SHADOWOPS_DB_USER: postgres
+      SHADOWOPS_DB_PASSWORD: postgres
+      SHADOWOPS_DB_NAME: shadowops_dev
+      SHADOWOPS_DB_POOL_SIZE: "5"
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.3"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Compile persistence path
+        run: mix compile --warnings-as-errors
+
+      - name: Migrate Oban schema
+        env:
+          SHADOWOPS_START_PERSISTENCE: "false"
+        run: mix ecto.migrate -r ShadowOpsCore.Repo
+
+      - name: Run PostgreSQL Oban persistence E2E
+        run: mix run scripts/persistence_e2e.exs
