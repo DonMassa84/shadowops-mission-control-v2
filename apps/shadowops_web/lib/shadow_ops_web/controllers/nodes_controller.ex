@@ -82,10 +82,16 @@ defmodule ShadowOpsWeb.NodesController do
     do: conn |> put_status(:conflict) |> json(%{error: "approval_required"})
 
   defp governance_error(conn, {:approval_blocked, reason}),
-    do: conn |> put_status(:forbidden) |> json(%{error: "approval_blocked", reason: inspect(reason)})
+    do:
+      conn
+      |> put_status(:forbidden)
+      |> json(%{error: "approval_blocked", reason: inspect(reason)})
 
   defp governance_error(conn, {:approval_invalid, reason}),
-    do: conn |> put_status(:forbidden) |> json(%{error: "approval_invalid", reason: inspect(reason)})
+    do:
+      conn
+      |> put_status(:forbidden)
+      |> json(%{error: "approval_invalid", reason: inspect(reason)})
 
   defp governance_error(conn, :action_not_allowed),
     do: conn |> put_status(:method_not_allowed) |> json(%{error: "action_not_allowed"})
