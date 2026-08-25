@@ -6,7 +6,7 @@ defmodule ShadowOpsWeb.NodeCatalog do
   a remote ChatGPT runtime connection and never expose local export paths or raw project content.
   """
 
-  alias ShadowOpsCore.{Audit, RuntimeSources}
+  alias ShadowOpsCore.{Audit, RuntimeSources, Truthfulness}
   alias ShadowOpsWeb.ProjectCatalog
 
   @chatgpt_source_type "chatgpt_library_project"
@@ -75,11 +75,8 @@ defmodule ShadowOpsWeb.NodeCatalog do
   defp chatgpt_nodes(_), do: []
 
   defp chatgpt_node(project, generated_at) do
-    ready =
-      project.status == "READY" and project.real_data == true and project.synthetic == false and
-        project.reachable == true
-
-    status = if(ready, do: "READY", else: "NOT_CONFIGURED")
+    ready = Truthfulness.ready?(project)
+    status = Truthfulness.normalize_ready_state(project)
 
     %{
       id: project.id,
