@@ -1,0 +1,80 @@
+schema_version: 1
+namespace: shadowops.workflow
+id_format: so:wf:v1:<slug>
+source_registry: config/workflow_registry_v2.yaml
+
+canonical_workflows:
+  finanzabgleich:
+    id: so:wf:v1:finanzabgleich
+    domain: finance
+  career_email_only:
+    id: so:wf:v1:career-email-only
+    domain: career
+  document_ai:
+    id: so:wf:v1:document-ai
+    domain: documents
+  repository_quality:
+    id: so:wf:v1:repository-quality
+    domain: ci
+  finance_quality_gate:
+    id: so:wf:v1:finance-quality-gate
+    domain: ci
+  agent_state_sync:
+    id: so:wf:v1:agent-state-sync
+    domain: system
+  career_funnel_ihk:
+    id: so:wf:v1:career-funnel-ihk
+    domain: career
+  daily_digest:
+    id: so:wf:v1:daily-digest
+    domain: reporting
+  shadow_system_overnight_audit:
+    id: so:wf:v1:shadow-system-overnight-audit
+    domain: security
+
+federation_workflows:
+  project_federation_sync:
+    id: so:wf:v1:project-federation-sync
+    domain: projects
+    source_repository: DonMassa84/shadowops
+    source_definition: scripts/sync_all_projects.sh
+    integration_mode: EXTERNAL_REFERENCE
+  project_catalog_sync:
+    id: so:wf:v1:project-catalog-sync
+    domain: projects
+    source_repository: DonMassa84/shadowops
+    source_definition: scripts/sync_project_catalog.py
+    integration_mode: EXTERNAL_REFERENCE
+  project_federation_validate:
+    id: so:wf:v1:project-federation-validate
+    domain: governance
+    source_repository: DonMassa84/shadowops
+    source_definition: scripts/validate_project_federation.py
+    integration_mode: EXTERNAL_REFERENCE
+  project_federation_ci:
+    id: so:wf:v1:project-federation-ci
+    domain: ci
+    source_repository: DonMassa84/shadowops
+    source_definition: .github/workflows/project-federation.yml
+    integration_mode: EXTERNAL_REFERENCE
+
+external_runtime_sets:
+  shadowmaker_tasks:
+    set_id: so:wfset:v1:shadowmaker-tasks
+    external_ids_status: EVIDENCED_IN_EXTERNAL_RUNTIME
+  whatsapp_agent_pack:
+    set_id: so:wfset:v1:whatsapp-agent-pack
+    external_ids_status: EVIDENCED_BY_NAMES
+  opencode_standard:
+    set_id: so:wfset:v1:opencode-standard
+    external_ids_status: NOT_IMPORTED
+  telegram_workflow_controller:
+    set_id: so:wfset:v1:telegram-workflow-controller
+    external_ids_status: NOT_IMPORTED
+
+rules:
+  ids_are_immutable: true
+  registry_key_remains_local_workflow_key: true
+  unknown_external_ids_must_not_be_fabricated: true
+  external_ids_require_evidence: true
+  duplicate_ids_forbidden: true
