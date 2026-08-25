@@ -2,6 +2,8 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   @moduledoc "Reusable, accessible Mission Control UI components."
   use Phoenix.Component
 
+  alias ShadowOpsCore.Status
+
   attr(:title, :string, required: true)
   attr(:subtitle, :string, default: nil)
   attr(:active, :string, required: true)
@@ -69,8 +71,8 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   attr(:label, :string, default: nil)
 
   def status_badge(assigns) do
-    value = normalize(assigns.status)
-    assigns = assigns |> assign(:value, value) |> assign(:tone, tone(value))
+    value = Status.normalize(assigns.status)
+    assigns = assigns |> assign(:value, value) |> assign(:tone, Status.tone(value))
 
     ~H"""
     <span class={["mc-badge", "is-#{@tone}"]}><span aria-hidden="true"></span>{@label || @value}</span>
@@ -138,26 +140,4 @@ defmodule ShadowOpsWeb.MissionControlComponents do
 
   defp active?(active, "/"), do: active == "/"
   defp active?(active, path), do: active == path or String.starts_with?(active, path <> "/")
-  defp normalize(value) when is_atom(value), do: value |> Atom.to_string() |> String.upcase()
-  defp normalize(value) when is_binary(value), do: String.upcase(value)
-  defp normalize(value), do: to_string(value) |> String.upcase()
-
-  defp tone(value) do
-    cond do
-      value in ~w(PASS VALID AVAILABLE CONNECTED ONLINE SUCCESS APPROVED READY VERIFIED HEALTHY ACTIVE EXCELLENT) ->
-        "success"
-
-      value in ~w(FAIL INVALID ERROR OFFLINE FAILED REJECTED BLOCKED BLOCKED_CONFIGURATION CRITICAL) ->
-        "error"
-
-      value in ~w(PENDING RUNNING QUEUED DEGRADED PARTIAL REVIEW WARN WARNING) ->
-        "review"
-
-      value in ~w(NOT_ASSESSED NOT_CONFIGURED NOT_CONNECTED UNAVAILABLE UNKNOWN NOT_CHECKED EXPIRED DISABLED DISABLED_BY_CONFIGURATION) ->
-        "muted"
-
-      true ->
-        "neutral"
-    end
-  end
 end
