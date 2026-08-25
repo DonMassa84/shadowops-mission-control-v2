@@ -111,10 +111,15 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
     evaluation = ResultEvaluator.service("start", before_state, after_state, :ok)
 
     assert {:ok, queued} =
-             RunStore.queue_service("user:shadowops-phoenix.service", "start", "operator-service", %{
-               before_state: before_state,
-               trigger: "test"
-             })
+             RunStore.queue_service(
+               "user:shadowops-phoenix.service",
+               "start",
+               "operator-service",
+               %{
+                 before_state: before_state,
+                 trigger: "test"
+               }
+             )
 
     assert queued.kind == "service"
     assert queued.workflow_id == nil
@@ -124,11 +129,18 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
     assert {:ok, running} = RunStore.start(queued.id, "operator-service")
 
     assert {:ok, success} =
-             RunStore.succeed(running.id, "operator-service", "service started", 0, "service:test", %{
-               after_state: after_state,
-               evaluation: evaluation,
-               score: evaluation.score
-             })
+             RunStore.succeed(
+               running.id,
+               "operator-service",
+               "service started",
+               0,
+               "service:test",
+               %{
+                 after_state: after_state,
+                 evaluation: evaluation,
+                 score: evaluation.score
+               }
+             )
 
     assert success.status == "SUCCESS"
     assert success.before_state == before_state
