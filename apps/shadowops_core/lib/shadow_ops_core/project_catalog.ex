@@ -22,6 +22,23 @@ defmodule ShadowOpsCore.ProjectCatalog do
     end
   end
 
+  @doc """
+  Replaces one provider's bounded project records while preserving every other provider.
+
+  The resulting list is deterministic and de-duplicated by `{source_type, id}`.
+  """
+  @spec merge_provider_projects([map()], [map()], String.t()) :: [map()]
+  def merge_provider_projects(existing, provider_projects, source_type)
+      when is_list(existing) and is_list(provider_projects) and is_binary(source_type) do
+    preserved = Enum.reject(existing, &(value(&1, :source_type) == source_type))
+
+    (preserved ++ provider_projects)
+    |> Enum.map(&normalize_maybe/1)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq_by(&{&1.source_type, &1.id})
+    |> Enum.sort_by(&{&1.source_type, &1.id})
+  end
+
   @spec normalize_project(map()) :: map() | nil
   def normalize_project(project) when is_map(project) do
     id = string_value(project, "id")
@@ -120,6 +137,24 @@ defmodule ShadowOpsCore.ProjectCatalog do
       error_message: message
     }
   end
+
+  defp normalize_maybe(%{} = project) do
+    normalized = normalize_project(project)
+
+    if is_nil(normalized) do
+      project
+      |> stringify_keys()
+      |> normalize_project()
+    else
+      normalized
+    end
+  end
+
+  defp stringify_keys(map) do
+    Map.new(map, fn {key, value} -> {to_string(key), value} end)
+  end
+
+  defp value(map, key), do: Map.get(map, key, Map.get(map, to_string(key)))
 
   defp string_value(map, key) do
     case Map.get(map, key) do
