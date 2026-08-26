@@ -269,7 +269,10 @@ defmodule ShadowOpsWeb.MissionControlUITest do
   test "Mission Control asset contains responsive and keyboard focus rules" do
     css = request(:get, "/assets/mission-control.css")
     assert css.status == 200
-    assert css.resp_body =~ "@media(max-width:760px)"
+    assert css.resp_body =~ "@media(max-width:900px)"
+    assert css.resp_body =~ ".mc-shell{display:block}"
+    assert css.resp_body =~ "@media(max-width:560px)"
+    assert css.resp_body =~ "grid-template-columns:1fr"
     assert css.resp_body =~ ":focus-visible"
     assert css.resp_body =~ "prefers-reduced-motion"
 
