@@ -111,7 +111,9 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     }
   end
 
-  defp required_core?(%{scope: "core", name: name}), do: MapSet.member?(@required_core_names, name)
+  defp required_core?(%{scope: "core", name: name}),
+    do: MapSet.member?(@required_core_names, name)
+
   defp required_core?(_), do: false
 
   defp retired_local_llm_connector?(payload) do
