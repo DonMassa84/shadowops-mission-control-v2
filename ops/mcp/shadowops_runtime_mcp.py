@@ -35,7 +35,7 @@ SENSITIVE_VALUE_PATTERNS = (
     re.compile(r"(?i)((?:token|password|passwd|secret|api[_-]?key)\s*[:=]\s*)[^\s,;]+"),
     re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b"),
 )
-WRITE_PATH = re.compile(r"(?:/actions/|/run|/approve|/reject)$")
+WRITE_PATH = re.compile(r"(?:/actions/(?:start|stop|restart|pause|resume)|/run|/approve|/reject)$")
 
 StatusView = Literal[
     "health",
