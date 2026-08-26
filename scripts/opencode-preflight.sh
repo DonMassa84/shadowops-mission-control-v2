@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+# Never let Python imports/tests create repository-local __pycache__ / .pyc drift.
+export PYTHONDONTWRITEBYTECODE=1
+
 EXPECTED_BRANCH="${SHADOWOPS_OPENCODE_BRANCH:-local/all-developments}"
 REMOTE_REF="${SHADOWOPS_OPENCODE_REMOTE_REF:-origin/${EXPECTED_BRANCH}}"
 MCP_FILE="ops/mcp/shadowops_runtime_mcp.py"
@@ -90,14 +93,15 @@ fi
 [[ -f "$HANDOFF_FILE" ]] || fail "HANDOFF_FILE_MISSING_SYNC_REMOTE_FIRST"
 pass "handoff_present"
 
-python3 -m py_compile "$MCP_FILE"
-pass "mcp_python_compile"
+# Syntax-only compile in memory. Do not use `python -m py_compile`: it writes .pyc by design.
+python3 -B -c 'from pathlib import Path; p=Path("ops/mcp/shadowops_runtime_mcp.py"); compile(p.read_text(encoding="utf-8"), str(p), "exec")'
+pass "mcp_python_syntax_no_bytecode"
 
 if command -v uv >/dev/null 2>&1; then
   uv run --with 'mcp>=2,<3' --with 'httpx>=0.28,<1' \
-    python -m unittest discover -s ops/mcp -p 'test_*.py' -v
-elif python3 -c 'import mcp, httpx' >/dev/null 2>&1; then
-  python3 -m unittest discover -s ops/mcp -p 'test_*.py' -v
+    env PYTHONDONTWRITEBYTECODE=1 python -B -m unittest discover -s ops/mcp -p 'test_*.py' -v
+elif python3 -B -c 'import mcp, httpx' >/dev/null 2>&1; then
+  python3 -B -m unittest discover -s ops/mcp -p 'test_*.py' -v
 else
   fail "MCP_TEST_DEPENDENCIES_MISSING_INSTALL_UV_OR_PYTHON_MCP_HTTPX" 22
 fi
@@ -121,6 +125,7 @@ echo "BRANCH=$(git branch --show-current)"
 echo "HEAD=$(git rev-parse HEAD)"
 echo "REMOTE_HEAD=$(git rev-parse "$REMOTE_REF")"
 echo "MCP_CANONICAL=YES"
+echo "PYTHON_BYTECODE=DISABLED"
 echo "HANDOFF=$HANDOFF_FILE"
 echo "NEXT_TASK=ATOMIC_SINGLE_USE_APPROVAL_CONSUMPTION"
 echo "NEXT_COMMAND=scripts/shadowops-coder.sh --next"
