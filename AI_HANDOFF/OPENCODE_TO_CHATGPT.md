@@ -1,0 +1,41 @@
+# OpenCode → ChatGPT
+
+RESULT_ID=NONE
+TASK_ID=shadowops-runtime-gate-2026-08-26-001
+STATUS=AWAITING_OPENCODE
+RESULT_SHA=NONE
+UPDATED_AT=2026-08-26T00:00:00Z
+
+No OpenCode result has been published yet.
+
+## Required result fields
+
+```text
+[OPENCODE_RESULT]
+TASK_REF=
+REPO=
+BRANCH=
+HEAD=
+WORKTREE=
+CHANGED_FILES=
+FORMAT=
+COMPILE=
+TESTS=
+CREDO=
+CI=
+RUNTIME_STATUS=
+RUNTIME_PORT=
+HEALTH_HTTP=
+READY_HTTP=
+PROJECTS_HTTP=
+CHATGPT_PROJECT_HTTP=
+CHATGPT_SOURCE=
+ROOT_CAUSE=
+FIX=
+COMMIT=
+PUSH=
+BLOCKERS=
+FINAL_STATUS=PASS|PARTIAL|BLOCKED_<reason>|FAIL
+```
+
+Do not include secrets, tokens, cookies, raw chats, private attachments, full environment dumps, or long logs.
