@@ -13,10 +13,12 @@ defmodule ShadowOpsCore.Policy do
   Evaluates a capability request against policy.
   Returns {:ok, risk_level} or {:error, reason}.
   """
+  def evaluate(capability, actor, context \\ %{})
+
   def evaluate(capability, _actor, _context) when capability in @local_ai_capabilities,
     do: {:error, :local_ai_forbidden}
 
-  def evaluate(capability, _actor, context \\ %{}) do
+  def evaluate(capability, _actor, context) do
     risk_level = RiskPolicy.infer_risk(capability, context)
 
     case RiskPolicy.get(risk_level) do
@@ -29,10 +31,12 @@ defmodule ShadowOpsCore.Policy do
   end
 
   @doc "Returns AUTO, APPROVAL_REQUIRED, or fails closed for an unknown action/risk."
+  def evaluate_action(action, context \\ %{})
+
   def evaluate_action(action, _context) when action in @local_ai_capabilities,
     do: {:error, :local_ai_forbidden}
 
-  def evaluate_action(action, context \\ %{}) do
+  def evaluate_action(action, context) do
     risk_level = RiskPolicy.infer_risk(action, context)
 
     with {:ok, policy} <- RiskPolicy.get(risk_level) do
