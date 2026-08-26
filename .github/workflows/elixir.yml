@@ -32,9 +32,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate local production handoff script
+      - name: Validate local configuration scripts
         shell: bash
-        run: bash -n scripts/local_production_handoff.sh
+        run: |
+          bash -n scripts/local_production_handoff.sh
+          bash -n scripts/configure_local_all.sh
 
       - name: Set up Erlang and Elixir
         uses: erlef/setup-beam@v1
