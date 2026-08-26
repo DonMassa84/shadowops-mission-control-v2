@@ -112,6 +112,40 @@ jobs:
           SHADOWOPS_START_PERSISTENCE: "false"
         run: timeout 240s bash scripts/release_runtime_gate.sh
 
+  modern_toolchain_compat:
+    name: Elixir 1.20 + OTP 28 compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.20.3"
+          otp-version: "28.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Run full test suite
+        run: mix test --seed 12345
+
+      - name: Check whitespace
+        run: git diff --check
+
   persistence_e2e:
     name: PostgreSQL + Oban persistence gate
     runs-on: ubuntu-latest
