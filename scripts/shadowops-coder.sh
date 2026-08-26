@@ -32,9 +32,14 @@ if ! command -v ollama >/dev/null 2>&1; then
   echo "SHADOWOPS_CODER=BLOCKED_OLLAMA_NOT_INSTALLED" >&2
   exit 127
 fi
+if ! command -v timeout >/dev/null 2>&1; then
+  echo "SHADOWOPS_CODER=BLOCKED_TIMEOUT_COMMAND_MISSING" >&2
+  exit 127
+fi
 
 MODEL="${SHADOWOPS_CODER_MODEL:-ollama/qwen2.5-coder:14b}"
 LOCAL_MODEL="${MODEL#ollama/}"
+RUN_TIMEOUT="${SHADOWOPS_CODER_TIMEOUT:-45m}"
 
 if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -Fxq "$LOCAL_MODEL"; then
   echo "SHADOWOPS_CODER=BLOCKED_MODEL_NOT_AVAILABLE" >&2
@@ -59,7 +64,7 @@ if [[ "$NEXT_MODE" == "1" ]]; then
   echo "=== SHADOWOPS OPENCODE PREFLIGHT + KNOWN-DRIFT RECOVERY ==="
   bash scripts/opencode-preflight.sh --repair-known-drift --sync
 
-  PROMPT='Read docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md completely before editing anything. The preflight has already established the canonical local state. Execute ONLY the CURRENT TASK marked P0 in that document. Do not rediscover the architecture. Do not rewrite whole existing source files. Make the smallest targeted edits, one file at a time, and run the exact focused tests after each step. Respect every STOP condition. Do not touch MCP, Project Catalog, workflow registry, UI, release scripts, systemd, port 4013, main, deployments, or unrelated code. Finish with exactly the completion report format defined in the handoff document.'
+  PROMPT='Read README.md, AGENTS.md, docs/AI_CONTEXT.md, docs/PROJECT_STATUS.md, docs/LOCAL_ALL_DEVELOPMENTS.md, and docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md completely before editing anything. The preflight has already established the canonical local state. Execute ONLY the CURRENT TASK marked P0 in the handoff. Do not rediscover the architecture. Do not write any report, plan, scratch, example, or handoff file: the final completion report must be returned as text on stdout only. Never attempt placeholder/example paths or any path outside the current repository. Do not rewrite whole existing source files. Make the smallest targeted edits, one file at a time, and run the exact focused tests after each step. Respect every STOP condition. Do not touch MCP, Project Catalog, workflow registry, UI, release scripts, systemd, port 4013, main, deployments, or unrelated code. Finish with exactly the completion report format defined in the handoff document.'
 else
   if [[ $# -eq 0 ]]; then
     cat >&2 <<'EOF'
@@ -72,18 +77,58 @@ Recommended deterministic mode:
 
 Optional model override:
   SHADOWOPS_CODER_MODEL=ollama/qwen2.5-coder:7b scripts/shadowops-coder.sh --next
+
+Optional run bound (GNU timeout syntax):
+  SHADOWOPS_CODER_TIMEOUT=30m scripts/shadowops-coder.sh --next
 EOF
     exit 64
   fi
   PROMPT="$*"
 fi
 
-printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nROOT=%s\nMODE=%s\n' \
-  "$(git branch --show-current)" "$MODEL" "$ROOT" "$([[ "$NEXT_MODE" == "1" ]] && echo NEXT || echo CUSTOM)"
+STATE_DIR="${SHADOWOPS_STATE_DIR:-$HOME/.local/state/shadowops}"
+LOG_DIR="$STATE_DIR/opencode"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/shadowops-coder-$(date +%Y%m%d-%H%M%S).log"
 
-exec opencode run \
-  --dir "$ROOT" \
-  --agent shadowops-coder \
-  --model "$MODEL" \
-  --format default \
-  "$PROMPT"
+printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nROOT=%s\nMODE=%s\nTIMEOUT=%s\nLOG=%s\n' \
+  "$(git branch --show-current)" "$MODEL" "$ROOT" "$([[ "$NEXT_MODE" == "1" ]] && echo NEXT || echo CUSTOM)" "$RUN_TIMEOUT" "$LOG_FILE"
+
+set +e
+timeout --foreground --signal=INT --kill-after=30s "$RUN_TIMEOUT" \
+  opencode run \
+    --dir "$ROOT" \
+    --agent shadowops-coder \
+    --model "$MODEL" \
+    --format default \
+    "$PROMPT" 2>&1 | tee "$LOG_FILE"
+RUN_RC=${PIPESTATUS[0]}
+set -e
+
+if [[ "$NEXT_MODE" == "1" ]]; then
+  echo "=== SHADOWOPS OPENCODE POSTFLIGHT ==="
+  if ! bash scripts/opencode-postflight.sh; then
+    echo "SHADOWOPS_CODER=BLOCKED_POSTFLIGHT" >&2
+    echo "LOG=$LOG_FILE" >&2
+    exit 70
+  fi
+fi
+
+case "$RUN_RC" in
+  0)
+    echo "SHADOWOPS_CODER=COMPLETE"
+    echo "LOG=$LOG_FILE"
+    ;;
+  124|137)
+    echo "SHADOWOPS_CODER=BLOCKED_TIMEOUT" >&2
+    echo "TIMEOUT=$RUN_TIMEOUT" >&2
+    echo "LOG=$LOG_FILE" >&2
+    exit 71
+    ;;
+  *)
+    echo "SHADOWOPS_CODER=FAILED" >&2
+    echo "RC=$RUN_RC" >&2
+    echo "LOG=$LOG_FILE" >&2
+    exit "$RUN_RC"
+    ;;
+esac
