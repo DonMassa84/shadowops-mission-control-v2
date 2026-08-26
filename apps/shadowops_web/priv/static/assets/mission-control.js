@@ -146,10 +146,17 @@ function installCommandTrigger() {
   meta.prepend(button)
 }
 
+function setText(node, value) {
+  if (node && node.textContent !== value) node.textContent = value
+}
+
 function setBadge(badge, label, tone = "success") {
   if (!badge) return
-  badge.className = `mc-badge is-${tone}`
-  badge.innerHTML = `<span aria-hidden="true"></span>${label}`
+  const expectedClass = `mc-badge is-${tone}`
+  if (badge.className !== expectedClass || badge.textContent.trim() !== label) {
+    badge.className = expectedClass
+    badge.innerHTML = `<span aria-hidden="true"></span>${label}`
+  }
 }
 
 function decorateDashboardPolicy() {
@@ -157,29 +164,30 @@ function decorateDashboardPolicy() {
 
   const aiCard = document.querySelector('.mc-card-link[href="/ai"] .mc-metric')
   if (aiCard) {
-    const label = aiCard.querySelector(".mc-metric-label>span:last-child")
-    const value = aiCard.querySelector(":scope>strong")
-    const note = aiCard.querySelector(":scope>p")
-    const source = aiCard.querySelector(":scope>small")
-    if (label) label.textContent = "AI policy"
-    if (value) value.textContent = "REMOTE_ONLY"
-    if (note) note.textContent = "Explicit remote provider/model required · no local inference fallback"
-    if (source) source.textContent = "Source: docs/REMOTE_AI_POLICY.md"
+    setText(aiCard.querySelector(".mc-metric-label>span:last-child"), "AI policy")
+    setText(aiCard.querySelector(":scope>strong"), "REMOTE_ONLY")
+    setText(aiCard.querySelector(":scope>p"), "Explicit remote provider/model required · no local inference fallback")
+    setText(aiCard.querySelector(":scope>small"), "Source: docs/REMOTE_AI_POLICY.md")
     setBadge(aiCard.querySelector(".mc-badge"), "ENFORCED", "success")
   }
 
   const agentsCard = document.querySelector('.mc-card-link[href="/agents"] .mc-metric')
-  const agentsNote = agentsCard?.querySelector(":scope>p")
-  if (agentsNote) agentsNote.textContent = "Coding and automation agents are shown only when evidenced; AI execution remains remote-only"
+  setText(
+    agentsCard?.querySelector(":scope>p"),
+    "Coding and automation agents are shown only when evidenced; AI execution remains remote-only"
+  )
 }
 
 function decorateRuntimePolicy() {
-  document.documentElement.dataset.aiExecutionPolicy = "remote-only"
+  if (document.documentElement.dataset.aiExecutionPolicy !== "remote-only") {
+    document.documentElement.dataset.aiExecutionPolicy = "remote-only"
+  }
   document.querySelectorAll('a[href="/ai"]').forEach(link => {
-    link.title = "AI Governance · remote-only execution"
+    if (link.title !== "AI Governance · remote-only execution") {
+      link.title = "AI Governance · remote-only execution"
+    }
     if (link.closest(".mc-nav-group")) {
-      const label = link.querySelector("span:last-child")
-      if (label) label.textContent = "AI Governance"
+      setText(link.querySelector("span:last-child"), "AI Governance")
     }
   })
   decorateDashboardPolicy()
