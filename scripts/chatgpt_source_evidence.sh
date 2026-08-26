@@ -24,7 +24,7 @@ export MIX_ENV="${MIX_ENV:-prod}"
 
 mix shadowops.chatgpt.catalog
 
-CATALOG="${SHADOWOPS_PROJECT_CATALOG:-$HOME/.local/state/shadowops/project_catalog.json}"
+CATALOG="$HOME/.local/state/shadowops/project_catalog.json"
 DOMAIN="${SHADOWOPS_CHATGPT_MANIFEST:-$HOME/.local/share/shadowops/domains/chatgpt.json}"
 IMPORT_ROOT="${SHADOWOPS_IMPORT_DIR:-$HOME/.local/share/shadowops/imports}"
 IMPORT="$IMPORT_ROOT/chatgpt_project.json"
@@ -38,16 +38,17 @@ for path in "$CATALOG" "$DOMAIN" "$IMPORT"; do
   fi
 done
 
-elixir -e '
+mix run -e '
   paths = System.argv()
   Enum.each(paths, fn path ->
     body = File.read!(path)
+
     case Jason.decode(body) do
       {:ok, _} -> :ok
       {:error, reason} -> raise "invalid evidence JSON #{path}: #{Exception.message(reason)}"
     end
   end)
-' "$CATALOG" "$DOMAIN" "$IMPORT"
+' -- "$CATALOG" "$DOMAIN" "$IMPORT"
 
 if command -v rg >/dev/null 2>&1; then
   if rg -n -i 'authorization|bearer|cookie|refresh[_-]?token|access[_-]?token|client[_-]?secret|private raw message' \
