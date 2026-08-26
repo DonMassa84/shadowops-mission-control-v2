@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-if [[ -z "$ROOT" || ! -d "$ROOT/.git" ]]; then
+if [[ -z "$ROOT" || ! -e "$ROOT/.git" ]]; then
   echo "SHADOWOPS_CODER=BLOCKED_NOT_A_GIT_WORKTREE" >&2
   exit 64
 fi
