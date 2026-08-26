@@ -91,6 +91,10 @@ Editing discipline:
 - If your own changes cause the same focused test to remain failing after two distinct fixes, STOP and report instead of entering a rewrite loop.
 - Do not weaken, delete, skip, or rewrite a security assertion merely to obtain green tests.
 - Do not touch a passing subsystem to fix an unrelated failure.
+- Never create progress reports, execution reports, scratch notes, plans, examples, or temporary files inside the repository unless the active handoff explicitly names that exact path as an allowed implementation file.
+- The completion report is STDOUT/TEXT ONLY. Do not write `execution_report.md`, `report.md`, `notes.md`, `plan.md`, `handoff/*`, or any equivalent report artifact.
+- Never attempt placeholder or example filesystem paths such as `/path/to/your/...`, `/tmp/example/...`, `/home/user/...`, or any path outside the current repository worktree through edit/write tools.
+- If a requested write would require an external-directory permission, STOP that write immediately. Do not request permission and do not substitute another external path.
 
 For every change:
 
