@@ -4,10 +4,14 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
   alias ShadowOpsCore.{CapabilityRegistry, RiskPolicy}
   alias ShadowOpsCore.Adapters.{OllamaAdapter, OpenCodeAdapter}
 
+  @root Path.expand("../../..", __DIR__)
+  @opencode_agent Path.join(@root, ".opencode/agent/shadowops-coder.md")
+
   setup do
     previous = %{
       opencode_bin: System.get_env("SHADOWOPS_OPENCODE_BIN"),
       opencode_roots: System.get_env("SHADOWOPS_OPENCODE_ALLOWED_ROOTS"),
+      opencode_model: System.get_env("SHADOWOPS_CODER_MODEL"),
       ollama_url: System.get_env("SHADOWOPS_OLLAMA_URL"),
       ollama_hosts: System.get_env("SHADOWOPS_OLLAMA_ALLOWED_HOSTS")
     }
@@ -15,6 +19,7 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
     on_exit(fn ->
       restore_env("SHADOWOPS_OPENCODE_BIN", previous.opencode_bin)
       restore_env("SHADOWOPS_OPENCODE_ALLOWED_ROOTS", previous.opencode_roots)
+      restore_env("SHADOWOPS_CODER_MODEL", previous.opencode_model)
       restore_env("SHADOWOPS_OLLAMA_URL", previous.ollama_url)
       restore_env("SHADOWOPS_OLLAMA_ALLOWED_HOSTS", previous.ollama_hosts)
     end)
@@ -34,7 +39,7 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
     assert RiskPolicy.infer_risk("ollama.generate") == "L0"
   end
 
-  test "OpenCode executes argv without a shell and enforces project roots" do
+  test "OpenCode executes argv without a shell, requires remote inference, and enforces project roots" do
     root = temp_dir("opencode")
     executable = Path.join(root, "opencode")
     marker = Path.join(root, "must-not-exist")
@@ -47,24 +52,62 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
     File.chmod!(executable, 0o755)
     System.put_env("SHADOWOPS_OPENCODE_BIN", executable)
     System.put_env("SHADOWOPS_OPENCODE_ALLOWED_ROOTS", root)
+    System.delete_env("SHADOWOPS_CODER_MODEL")
 
     resource = %{executable: executable}
     prompt = "literal $(touch #{marker})"
+    remote_model = "openai/gpt-5.2-codex"
 
     assert {:ok, result} =
              OpenCodeAdapter.run(
                resource,
-               %{prompt: prompt, project_dir: root},
+               %{prompt: prompt, project_dir: root, model: remote_model},
                %{policy_decision: "APPROVED"}
              )
 
     assert result.status == "COMPLETED"
     assert result.runtime == "opencode"
+    assert result.model == remote_model
+    assert result.execution_policy == "REMOTE_ONLY"
     assert result.real_data == true
     assert result.synthetic == false
     assert result.output =~ "run --format json"
+    assert result.output =~ "--model #{remote_model}"
     assert result.output =~ prompt
     refute File.exists?(marker)
+
+    assert {:error, :remote_model_required} =
+             OpenCodeAdapter.run(
+               resource,
+               %{prompt: "safe", project_dir: root},
+               %{policy_decision: "APPROVED"}
+             )
+
+    for local_model <- [
+          "ollama/qwen2.5-coder:14b",
+          "local/qwen",
+          "lmstudio/coder",
+          "llamacpp/model",
+          "llama.cpp/model"
+        ] do
+      assert {:error, :local_model_forbidden} =
+               OpenCodeAdapter.run(
+                 resource,
+                 %{prompt: "safe", project_dir: root, model: local_model},
+                 %{policy_decision: "APPROVED"}
+               )
+    end
+
+    System.put_env("SHADOWOPS_CODER_MODEL", remote_model)
+
+    assert {:ok, env_result} =
+             OpenCodeAdapter.run(
+               resource,
+               %{prompt: "safe", project_dir: root},
+               %{policy_decision: "APPROVED"}
+             )
+
+    assert env_result.model == remote_model
 
     outside = System.tmp_dir!()
 
@@ -72,13 +115,24 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
       assert {:error, :project_dir_not_allowlisted} =
                OpenCodeAdapter.run(
                  resource,
-                 %{prompt: "safe", project_dir: outside},
+                 %{prompt: "safe", project_dir: outside, model: remote_model},
                  %{policy_decision: "APPROVED"}
                )
     end
 
     assert {:error, :policy_decision_required} =
              OpenCodeAdapter.run(resource, %{prompt: "safe", project_dir: root}, %{})
+  end
+
+  test "OpenCode project agent contains no local coding model fallback" do
+    agent = File.read!(@opencode_agent)
+
+    refute agent =~ "model: ollama/"
+    refute agent =~ "model: local/"
+    refute agent =~ "model: lmstudio/"
+    refute agent =~ "model: llamacpp/"
+    refute agent =~ "model: llama.cpp/"
+    assert agent =~ "explicit remote `provider/model`"
   end
 
   test "Ollama rejects non-allowlisted endpoints without making a network request" do
