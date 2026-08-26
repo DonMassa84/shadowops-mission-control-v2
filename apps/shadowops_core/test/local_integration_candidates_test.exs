@@ -16,7 +16,10 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
     snapshot = LocalIntegrationCandidates.snapshot(root)
 
     assert snapshot.status == "NOT_CONFIGURED"
+    assert snapshot.source_type == "LOCAL_BOUNDED_FOLDER_DISCOVERY"
     assert snapshot.counts.total == 10
+    assert snapshot.counts.known_total == 10
+    assert snapshot.counts.auto_discovered == 0
     assert snapshot.counts.discovered == 0
     assert snapshot.real_data == false
     assert snapshot.reachable == false
@@ -27,7 +30,9 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
                record.synthetic == false and
                record.reachable == false and
                record.executable == false and
-               record.integration_mode == "REFERENCE_ONLY"
+               record.integration_mode == "REFERENCE_ONLY" and
+               record.runtime_verified == false and
+               record.governance_mapped == false
            end)
   end
 
@@ -48,6 +53,8 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
     snapshot = LocalIntegrationCandidates.snapshot(root)
 
     assert snapshot.status == "DISCOVERED"
+    assert snapshot.counts.known_discovered == 3
+    assert snapshot.counts.auto_discovered == 0
     assert snapshot.counts.discovered == 3
     assert snapshot.real_data == true
     assert snapshot.reachable == true
@@ -55,11 +62,44 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
     for id <- ["bot_gateway", "system_healer", "voice_agent"] do
       record = Enum.find(snapshot.records, &(&1.id == id))
       assert record.status == "DISCOVERED"
+      assert record.discovery_mode == "FIXED_PATH"
       assert record.real_data == true
       assert record.reachable == true
       assert record.executable == false
       refute Enum.any?(record.evidence, &String.contains?(&1, root))
     end
+  end
+
+  test "folder scan discovers additional automation entrypoints without granting execution", %{
+    root: root
+  } do
+    script =
+      Path.join(root, "DokumentenSystem/07_AUTOMATION/custom_agent/run_worker.py")
+
+    File.mkdir_p!(Path.dirname(script))
+    File.write!(script, "print('fixture')")
+
+    snapshot = LocalIntegrationCandidates.snapshot(root)
+
+    assert snapshot.status == "DISCOVERED"
+    assert snapshot.counts.known_discovered == 0
+    assert snapshot.counts.auto_discovered == 1
+    assert snapshot.counts.discovered == 1
+    assert snapshot.counts.total == 11
+
+    record = Enum.find(snapshot.records, &(&1.source_ref =~ "custom_agent/run_worker.py"))
+
+    assert record.kind == "AUTOMATION_SCRIPT"
+    assert record.domain == "ai"
+    assert record.discovery_mode == "FOLDER_SCAN"
+    assert record.status == "DISCOVERED"
+    assert record.real_data == true
+    assert record.reachable == true
+    assert record.runtime_verified == false
+    assert record.governance_mapped == false
+    assert record.integration_mode == "REFERENCE_ONLY"
+    assert record.executable == false
+    refute String.starts_with?(record.source_ref, "/")
   end
 
   test "child services are evidence only and never become top-level executable actions", %{
