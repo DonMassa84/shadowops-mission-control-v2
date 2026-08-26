@@ -1,5 +1,6 @@
 import {Socket} from "/vendor/phoenix/phoenix.mjs"
 import {LiveSocket} from "/vendor/live-view/phoenix_live_view.esm.js"
+import "/assets/mission-control-v4.js"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']")?.getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}})
