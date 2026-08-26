@@ -1,0 +1,148 @@
+name: ShadowOps Product Release Gate
+
+on:
+  push:
+    branches:
+      - release/product-finish-2026-08-26
+  pull_request:
+    branches:
+      - local/all-developments
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shadowops-product-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MIX_ENV: test
+  SHADOWOPS_START_PERSISTENCE: "false"
+
+jobs:
+  product_contract:
+    name: Product contract and full quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.3"
+
+      - name: Restore Mix cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-product-otp27-elixir1.17-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-product-otp27-elixir1.17-
+
+      - name: Validate product scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/product_acceptance.sh
+          bash -n scripts/product_preview.sh
+          bash -n scripts/configure_local_all.sh
+
+      - name: Validate Mission Control client syntax
+        run: node --check apps/shadowops_web/priv/static/assets/mission-control.js
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Install Sobelow 0.15.0
+        run: mix archive.install hex sobelow 0.15.0 --force
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Run hermetic full test suite
+        shell: bash
+        run: |
+          env \
+            -u PORT \
+            -u SHADOWOPS_PUBLIC_HOST \
+            -u SHADOWOPS_SECRET_KEY_BASE \
+            -u SHADOWOPS_READ_TOKEN \
+            -u SHADOWOPS_WRITE_TOKEN \
+            -u SHADOWOPS_STATE_DIR \
+            -u SHADOWOPS_DB_HOST \
+            -u SHADOWOPS_DB_USER \
+            -u SHADOWOPS_DB_PASSWORD \
+            -u SHADOWOPS_DB_NAME \
+            -u SHADOWOPS_DB_POOL_SIZE \
+            -u DATABASE_URL \
+            -u RELEASE_NODE \
+            -u RELEASE_COOKIE \
+            MIX_ENV=test SHADOWOPS_START_PERSISTENCE=false \
+            mix test --seed 12345
+
+      - name: Run product UI contract tests
+        run: mix test apps/shadowops_web/test/product_ui_contract_test.exs --seed 12345
+
+      - name: Run Credo
+        run: mix credo --strict
+
+      - name: Run Sobelow
+        run: mix sobelow --config
+
+      - name: Validate workflow registry
+        run: mix shadowops.registry validate
+
+      - name: Validate workflow IDs
+        run: mix shadowops.workflow_ids.validate
+
+      - name: Audit Hex dependencies
+        run: mix hex.audit
+
+      - name: Validate read-only MCP contract
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -m unittest -v ops.mcp.test_shadowops_runtime_mcp
+
+      - name: Validate remote-only AI product contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'AI_EXECUTION_POLICY=REMOTE_ONLY' docs/REMOTE_AI_POLICY.md
+          grep -F 'REMOTE_ONLY' apps/shadowops_web/lib/shadow_ops_web/live/ai_live.ex
+          grep -F 'FORBIDDEN' apps/shadowops_web/lib/shadow_ops_web/live/ai_live.ex
+          grep -F 'mc-command-palette' apps/shadowops_web/priv/static/assets/mission-control.js
+          if grep -Eq '"model"[[:space:]]*:[[:space:]]*"(ollama|local|lmstudio|llamacpp|llama\.cpp)/' opencode.jsonc; then
+            echo 'Local AI model default detected' >&2
+            exit 1
+          fi
+
+      - name: Require P0 single-use approval consumption
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Rqs --include='*.ex' --include='*.exs' 'approval_consumed' apps/shadowops_core
+          grep -Rqs --include='*.ex' --include='*.exs' 'consumed_at' apps/shadowops_core
+          grep -Rqs --include='*.ex' --include='*.exs' 'consumed_by' apps/shadowops_core
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Build production release
+        env:
+          MIX_ENV: prod
+        run: mix release shadowops --overwrite
