@@ -33,8 +33,7 @@ defmodule ShadowOpsWeb.WorkflowDetailLive do
         refresh_after_run(socket, workflow_id, run, "Workflow one-click execution accepted")
 
       {:error, reason} ->
-        {:noreply,
-         put_flash(socket, :error, "Workflow execution failed: #{safe_reason(reason)}")}
+        {:noreply, put_flash(socket, :error, "Workflow execution failed: #{safe_reason(reason)}")}
     end
   end
 
