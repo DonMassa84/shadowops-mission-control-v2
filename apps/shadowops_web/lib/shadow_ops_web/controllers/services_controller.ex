@@ -2,10 +2,11 @@ defmodule ShadowOpsWeb.ServicesController do
   use Phoenix.Controller, formats: [:json]
 
   alias ShadowOpsApi
-  alias ShadowOpsCore.ExecutionTracker
+  alias ShadowOpsCore.{ExecutionTracker, LocalIntegrationCandidates}
 
   def index(conn, _params) do
-    json(conn, ShadowOpsApi.services())
+    data = ShadowOpsApi.services()
+    json(conn, Map.put(data, :integration_candidates, LocalIntegrationCandidates.snapshot()))
   end
 
   def show(conn, %{"id" => id}) do
