@@ -44,20 +44,43 @@ if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -Fxq "$LOCAL_MODEL
   exit 69
 fi
 
-if [[ $# -eq 0 ]]; then
-  cat >&2 <<'EOF'
-Usage:
-  scripts/shadowops-coder.sh "implement <task> and run relevant tests"
-
-Optional:
-  SHADOWOPS_CODER_MODEL=ollama/qwen2.5-coder:7b scripts/shadowops-coder.sh "..."
-EOF
-  exit 64
+NEXT_MODE=0
+if [[ "${1:-}" == "--next" ]]; then
+  NEXT_MODE=1
+  shift
 fi
 
-PROMPT="$*"
+if [[ "$NEXT_MODE" == "1" ]]; then
+  [[ $# -eq 0 ]] || {
+    echo "SHADOWOPS_CODER=BLOCKED_NEXT_MODE_TAKES_NO_EXTRA_ARGUMENTS" >&2
+    exit 64
+  }
 
-printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nROOT=%s\n' "$BRANCH" "$MODEL" "$ROOT"
+  echo "=== SHADOWOPS OPENCODE PREFLIGHT + KNOWN-DRIFT RECOVERY ==="
+  bash scripts/opencode-preflight.sh --repair-known-drift --sync
+
+  PROMPT='Read docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md completely before editing anything. The preflight has already established the canonical local state. Execute ONLY the CURRENT TASK marked P0 in that document. Do not rediscover the architecture. Do not rewrite whole existing source files. Make the smallest targeted edits, one file at a time, and run the exact focused tests after each step. Respect every STOP condition. Do not touch MCP, Project Catalog, workflow registry, UI, release scripts, systemd, port 4013, main, deployments, or unrelated code. Finish with exactly the completion report format defined in the handoff document.'
+else
+  if [[ $# -eq 0 ]]; then
+    cat >&2 <<'EOF'
+Usage:
+  scripts/shadowops-coder.sh --next
+  scripts/shadowops-coder.sh "implement <task> and run relevant tests"
+
+Recommended deterministic mode:
+  scripts/shadowops-coder.sh --next
+
+Optional model override:
+  SHADOWOPS_CODER_MODEL=ollama/qwen2.5-coder:7b scripts/shadowops-coder.sh --next
+EOF
+    exit 64
+  fi
+  PROMPT="$*"
+fi
+
+printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nROOT=%s\nMODE=%s\n' \
+  "$(git branch --show-current)" "$MODEL" "$ROOT" "$([[ "$NEXT_MODE" == "1" ]] && echo NEXT || echo CUSTOM)"
+
 exec opencode run \
   --dir "$ROOT" \
   --agent shadowops-coder \
