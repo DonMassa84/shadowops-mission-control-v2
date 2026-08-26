@@ -13,42 +13,72 @@ defmodule ShadowOpsWeb.SourceRegistry do
       id: "gmail",
       name: "Gmail",
       domains: ~w(career administration),
-      secrets: ~w(GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN)
+      secrets: ~w(GMAIL_CLIENT_ID GMAIL_CLIENT_SECRET GMAIL_REFRESH_TOKEN),
+      import_file: "gmail.json"
     },
     %{
       id: "calendar",
       name: "Google Calendar",
       domains: ~w(career ihk administration health),
-      secrets: ~w(GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REFRESH_TOKEN)
+      secrets: ~w(GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REFRESH_TOKEN),
+      import_file: "calendar.json"
     },
     %{
       id: "drive",
       name: "Google Drive",
       domains: ~w(ihk legal finance housing knowledge),
-      secrets: ~w(GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REFRESH_TOKEN)
+      secrets: ~w(GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET GOOGLE_REFRESH_TOKEN),
+      import_file: "drive.json"
     },
     %{
       id: "github",
       name: "GitHub",
       domains: ~w(shadowops ihk infrastructure),
-      secrets: ~w(GITHUB_TOKEN)
+      secrets: ~w(GITHUB_TOKEN),
+      import_file: "github.json"
     },
     %{
       id: "chatgpt_project",
       name: "ChatGPT Project",
       domains: ~w(chatgpt knowledge shadowops),
-      secrets: []
+      secrets: [],
+      import_file: "chatgpt_project.json"
     },
-    %{id: "whatsapp", name: "WhatsApp", domains: ~w(social community), secrets: []},
+    %{
+      id: "whatsapp",
+      name: "WhatsApp",
+      domains: ~w(social community),
+      secrets: [],
+      import_file: "whatsapp.json"
+    },
     %{
       id: "telegram",
       name: "Telegram",
       domains: ~w(social community),
-      secrets: ~w(TELEGRAM_BOT_TOKEN)
+      secrets: ~w(TELEGRAM_BOT_TOKEN),
+      import_file: "telegram.json"
     },
-    %{id: "obsidian", name: "Obsidian", domains: ~w(knowledge ihk), secrets: []},
-    %{id: "finance", name: "Finance", domains: ~w(finance), secrets: []},
-    %{id: "i7", name: "i7 Node", domains: ~w(infrastructure), secrets: []}
+    %{
+      id: "obsidian",
+      name: "Obsidian",
+      domains: ~w(knowledge ihk),
+      secrets: [],
+      import_file: "obsidian.json"
+    },
+    %{
+      id: "finance",
+      name: "Finance",
+      domains: ~w(finance),
+      secrets: [],
+      import_file: "finance.json"
+    },
+    %{
+      id: "i7",
+      name: "i7 Node",
+      domains: ~w(infrastructure),
+      secrets: [],
+      import_file: "i7.json"
+    }
   ]
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
@@ -70,10 +100,10 @@ defmodule ShadowOpsWeb.SourceRegistry do
   end
 
   defp source_snapshot(source) do
-    path = import_path(source.id)
+    path = import_path(source)
     secret_state = secret_state(source.secrets)
 
-    case File.read(path) do
+    case safe_read(path) do
       {:ok, body} ->
         decode(source, path, body, secret_state)
 
@@ -84,6 +114,15 @@ defmodule ShadowOpsWeb.SourceRegistry do
           secret_state,
           "IMPORT_MISSING",
           "No import evidence is available"
+        )
+
+      {:error, :symlink_rejected} ->
+        unavailable_source(
+          source,
+          path,
+          secret_state,
+          "IMPORT_SYMLINK_REJECTED",
+          "Import evidence must be a regular file inside the configured import root"
         )
 
       {:error, reason} ->
@@ -199,12 +238,30 @@ defmodule ShadowOpsWeb.SourceRegistry do
     end
   end
 
-  defp import_path(id) do
+  defp import_path(%{import_file: file}) do
     root =
       System.get_env("SHADOWOPS_IMPORT_DIR") ||
         Path.join([System.user_home!(), ".local", "share", "shadowops", "imports"])
 
-    Path.join(root, id <> ".json")
+    root = Path.expand(root)
+    path = Path.expand(file, root)
+    relative = Path.relative_to(path, root)
+
+    if Path.type(relative) == :relative and relative != ".." and
+         not String.starts_with?(relative, "../") do
+      path
+    else
+      raise ArgumentError, "source import path escaped configured import root"
+    end
+  end
+
+  defp safe_read(path) do
+    case File.lstat(path) do
+      {:ok, %{type: :symlink}} -> {:error, :symlink_rejected}
+      {:ok, %{type: :regular}} -> File.read(path)
+      {:ok, _stat} -> {:error, :not_regular_file}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp normalize(nil), do: "UNKNOWN"
