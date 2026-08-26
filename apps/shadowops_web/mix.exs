@@ -31,6 +31,7 @@ defmodule ShadowOpsWeb.MixProject do
       {:lazy_html, ">= 0.1.0", only: :test},
       {:bandit, "~> 1.12"},
       {:jason, "~> 1.4"},
+      {:hammer, "~> 7.4"},
       {:workflow_engine, in_umbrella: true},
       {:shadowops_core, in_umbrella: true}
     ]
