@@ -1,0 +1,50 @@
+name: UI V4 Contract
+
+on:
+  push:
+    branches:
+      - ui/mission-control-v4
+  pull_request:
+    paths:
+      - 'apps/shadowops_web/lib/shadow_ops_web/live/**'
+      - 'apps/shadowops_web/priv/static/assets/mission-control*.js'
+      - 'apps/shadowops_web/priv/static/assets/mission-control*.css'
+      - '.github/workflows/ui-v4-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ui-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: JavaScript syntax
+        run: |
+          node --check apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          node --check apps/shadowops_web/priv/static/assets/mission-control.js
+
+      - name: V4 integration markers
+        run: |
+          grep -F 'import "/assets/mission-control-v4.js"' apps/shadowops_web/priv/static/assets/mission-control.js
+          grep -F "link.href = '/assets/mission-control-v4.css'" apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          grep -F "Ctrl/Cmd K command palette" apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          grep -F "mc-mobile-nav-open" apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          grep -F "prefers-reduced-motion" apps/shadowops_web/priv/static/assets/mission-control-v4.css
+
+      - name: Remote-only AI UI contract
+        run: |
+          grep -F 'Remote-only model execution' apps/shadowops_web/lib/shadow_ops_web/live/ai_live.ex
+          grep -F 'No local-model fallback is permitted.' apps/shadowops_web/lib/shadow_ops_web/live/ai_live.ex
+          ! grep -F 'Installed local Ollama models' apps/shadowops_web/lib/shadow_ops_web/live/ai_live.ex
+
+      - name: No remote UI dependency injection
+        run: |
+          ! grep -F 'http://' apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          ! grep -F 'https://' apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          ! grep -F 'http://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
+          ! grep -F 'https://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
+
+      - name: Commit hygiene
+        run: git show --check --oneline HEAD
