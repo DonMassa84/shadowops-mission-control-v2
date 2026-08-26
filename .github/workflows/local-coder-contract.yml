@@ -1,0 +1,48 @@
+name: ShadowOps Local Coder Contract
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "opencode.jsonc"
+      - ".opencode/**"
+      - "scripts/shadowops-coder.sh"
+      - "scripts/test-shadowops-coder.sh"
+      - "scripts/run-shadowops-mcp.sh"
+      - "ops/mcp/**"
+      - ".github/workflows/local-coder-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: OpenCode config · guarded launcher · read-only MCP
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - name: Install pinned OpenCode
+        run: npm install --global opencode-ai@1.18.23
+
+      - name: Validate OpenCode config and project agent
+        run: |
+          set -euo pipefail
+          opencode agent list | tee /tmp/opencode-agents.txt
+          grep -q 'shadowops-coder' /tmp/opencode-agents.txt
+
+      - name: Exercise guarded local coder launcher
+        run: bash scripts/test-shadowops-coder.sh
+
+      - name: Compile MCP gateway
+        run: python3 -m py_compile ops/mcp/shadowops_runtime_mcp.py
+
+      - name: Install MCP unit-test dependencies
+        run: python3 -m pip install 'mcp>=2,<3' 'httpx>=0.28,<1'
+
+      - name: Run read-only MCP tests
+        run: python3 -m unittest discover -s ops/mcp -p 'test_*.py' -v
