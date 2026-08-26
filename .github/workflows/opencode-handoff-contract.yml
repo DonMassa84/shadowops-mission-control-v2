@@ -1,0 +1,55 @@
+name: OpenCode Handoff Contract
+
+on:
+  push:
+    branches: ["local/all-developments"]
+    paths:
+      - "docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md"
+      - "scripts/opencode-preflight.sh"
+      - "scripts/shadowops-coder.sh"
+      - ".opencode/agent/shadowops-coder.md"
+      - ".github/workflows/opencode-handoff-contract.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md"
+      - "scripts/opencode-preflight.sh"
+      - "scripts/shadowops-coder.sh"
+      - ".opencode/agent/shadowops-coder.md"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Shell syntax
+        run: |
+          bash -n scripts/opencode-preflight.sh
+          bash -n scripts/shadowops-coder.sh
+
+      - name: Canonical handoff markers
+        run: |
+          grep -Fq 'CURRENT TASK — P0: atomic single-use approval consumption' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
+          grep -Fq 'PrivacyGate failure must leave an approved approval still `APPROVED`' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
+          grep -Fq 'CONCURRENT_SINGLE_WINNER=' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
+          grep -Fq 'FINAL_STATUS=' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
+
+      - name: Agent discipline markers
+        run: |
+          grep -Fq 'OPENCODE_NEMOTRON_EXECUTION.md' .opencode/agent/shadowops-coder.md
+          grep -Fq 'Never rewrite a non-disposable existing source file wholesale' .opencode/agent/shadowops-coder.md
+          grep -Fq 'after two distinct fixes, STOP' .opencode/agent/shadowops-coder.md
+
+      - name: Launcher next mode
+        run: |
+          grep -Fq -- '--next' scripts/shadowops-coder.sh
+          grep -Fq 'opencode-preflight.sh --repair-known-drift --sync' scripts/shadowops-coder.sh
+
+      - name: MCP canonical source remains syntactically valid
+        run: python3 -m py_compile ops/mcp/shadowops_runtime_mcp.py
