@@ -7,8 +7,6 @@ cd "$ROOT"
 TARGET_BRANCH="${SHADOWOPS_HANDOFF_BRANCH:-hardening/production-ready-2026-08-25}"
 REMOTE_REF="${SHADOWOPS_HANDOFF_REMOTE_REF:-origin/${TARGET_BRANCH}}"
 PORT="${SHADOWOPS_HANDOFF_PORT:-4014}"
-EXPECTED_ELIXIR="${SHADOWOPS_HANDOFF_ELIXIR:-1.17.3}"
-EXPECTED_OTP_MAJOR="${SHADOWOPS_HANDOFF_OTP_MAJOR:-27}"
 STATE_ROOT="${SHADOWOPS_HANDOFF_STATE_ROOT:-${HOME}/.local/state/shadowops/handoff}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 REPORT="${STATE_ROOT}/handoff-${STAMP}.log"
@@ -70,6 +68,16 @@ critical_untracked_files() {
   git ls-files --others --exclude-standard -- apps config test .github scripts 2>/dev/null || true
 }
 
+certified_toolchain() {
+  local elixir_version="$1"
+  local otp_major="$2"
+
+  case "${elixir_version}/${otp_major}" in
+    1.17.3/27|1.20.3/28) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 validate_port
 
 echo "=== SHADOWOPS LOCAL PRODUCTION HANDOFF ==="
@@ -109,8 +117,8 @@ ELIXIR_VERSION="$(elixir --version | awk '/^Elixir / {print $2; exit}')"
 OTP_MAJOR="$(erl -noshell -eval 'io:format("~s", [erlang:system_info(otp_release)]), halt().' 2>/dev/null)"
 echo "ELIXIR_VERSION=$ELIXIR_VERSION"
 echo "OTP_MAJOR=$OTP_MAJOR"
-[[ "$ELIXIR_VERSION" == "$EXPECTED_ELIXIR" ]] || fail "ELIXIR_VERSION_MISMATCH"
-[[ "$OTP_MAJOR" == "$EXPECTED_OTP_MAJOR" ]] || fail "OTP_VERSION_MISMATCH"
+echo "CERTIFIED_TOOLCHAINS=1.17.3/27,1.20.3/28"
+certified_toolchain "$ELIXIR_VERSION" "$OTP_MAJOR" || fail "UNCERTIFIED_BEAM_TOOLCHAIN"
 pass "toolchain"
 
 echo
