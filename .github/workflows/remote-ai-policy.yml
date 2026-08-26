@@ -6,6 +6,9 @@ on:
     paths:
       - "opencode.jsonc"
       - "scripts/shadowops-coder.sh"
+      - "scripts/test-shadowops-coder.sh"
+      - "scripts/local_all_developments.sh"
+      - "scripts/shadowops-local.sh"
       - "README.md"
       - "AGENTS.md"
       - "docs/AI_CONTEXT.md"
@@ -16,6 +19,9 @@ on:
     paths:
       - "opencode.jsonc"
       - "scripts/shadowops-coder.sh"
+      - "scripts/test-shadowops-coder.sh"
+      - "scripts/local_all_developments.sh"
+      - "scripts/shadowops-local.sh"
       - "README.md"
       - "AGENTS.md"
       - "docs/AI_CONTEXT.md"
@@ -34,7 +40,11 @@ jobs:
           persist-credentials: false
 
       - name: Shell syntax
-        run: bash -n scripts/shadowops-coder.sh
+        run: |
+          bash -n scripts/shadowops-coder.sh
+          bash -n scripts/test-shadowops-coder.sh
+          bash -n scripts/local_all_developments.sh
+          bash -n scripts/shadowops-local.sh
 
       - name: No repository local AI provider
         run: |
@@ -56,6 +66,15 @@ jobs:
           grep -Fq 'opencode models' scripts/shadowops-coder.sh
           if grep -Fq 'ollama/qwen' scripts/shadowops-coder.sh; then
             echo "Local Ollama default reintroduced" >&2
+            exit 1
+          fi
+
+      - name: Coder contract enforces remote-only
+        run: |
+          bash scripts/test-shadowops-coder.sh
+          grep -Fq 'AI_EXECUTION_POLICY=REMOTE_ONLY' scripts/local_all_developments.sh
+          if grep -Eq 'OLLAMA_NOT_REACHABLE|OLLAMA_MODEL_MISSING|ollama_and_opencode|SHADOWOPS_CODER_PRIMARY_MODEL|SHADOWOPS_CODER_SMALL_MODEL' scripts/local_all_developments.sh; then
+            echo "Local AI requirement reintroduced into preview setup" >&2
             exit 1
           fi
 
