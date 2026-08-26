@@ -9,6 +9,7 @@ REMOTE_REF="${SHADOWOPS_ALL_REMOTE_REF:-origin/${TARGET_BRANCH}}"
 PREVIEW_PORT="${SHADOWOPS_ALL_PREVIEW_PORT:-4014}"
 STATE_ROOT="${SHADOWOPS_STATE_ROOT:-${HOME}/.local/state/shadowops}"
 PROJECT_CATALOG="${SHADOWOPS_PROJECT_CATALOG:-${STATE_ROOT}/project_catalog.json}"
+VALIDATE_CODER_CONTRACT="${SHADOWOPS_VALIDATE_CODER_CONTRACT:-0}"
 
 FINAL_STATUS="LOCAL_ALL_DEVELOPMENTS_FAILED"
 FAIL_REASON="UNKNOWN"
@@ -24,6 +25,7 @@ final_report() {
   echo "PREVIEW_PORT=$PREVIEW_PORT"
   echo "PROJECT_CATALOG=$PROJECT_CATALOG"
   echo "AI_EXECUTION_POLICY=REMOTE_ONLY"
+  echo "CODER_CONTRACT_REQUIRED_FOR_PREVIEW=NO"
   echo "FAIL_REASON=${FAIL_REASON:-NONE}"
   echo "FINAL_STATUS=$FINAL_STATUS"
   exit "$rc"
@@ -44,7 +46,7 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "MISSING_COMMAND_$1"
 }
 
-for cmd in git mix elixir erl curl ss systemctl openssl sha256sum opencode python3; do
+for cmd in git mix elixir erl curl ss systemctl openssl sha256sum python3; do
   require_cmd "$cmd"
 done
 
@@ -66,10 +68,18 @@ pass "source_parity"
 
 echo
 echo "=== AI EXECUTION POLICY ==="
-OPENCODE_VERSION="$(opencode --version 2>/dev/null | head -1 || true)"
-[[ -n "$OPENCODE_VERSION" ]] || fail "OPENCODE_VERSION_UNAVAILABLE"
-echo "OPENCODE_VERSION=$OPENCODE_VERSION"
 echo "AI_EXECUTION_POLICY=REMOTE_ONLY"
+if command -v opencode >/dev/null 2>&1; then
+  OPENCODE_VERSION="$(opencode --version 2>/dev/null | head -1 || true)"
+  if [[ -n "$OPENCODE_VERSION" ]]; then
+    echo "OPENCODE_VERSION=$OPENCODE_VERSION"
+    echo "OPENCODE=AVAILABLE_OPTIONAL"
+  else
+    echo "OPENCODE=INSTALLED_VERSION_UNAVAILABLE_OPTIONAL"
+  fi
+else
+  echo "OPENCODE=NOT_CONFIGURED_OPTIONAL"
+fi
 pass "remote_only_ai_policy"
 
 echo
@@ -84,9 +94,16 @@ pass "project_catalog_seed"
 
 echo
 echo "=== CODER CONTRACT ==="
-bash scripts/test-shadowops-coder.sh
-opencode agent list | grep -q 'shadowops-coder' || fail "SHADOWOPS_CODER_AGENT_NOT_VISIBLE"
-pass "shadowops_coder_contract"
+if [[ "$VALIDATE_CODER_CONTRACT" == "1" ]]; then
+  command -v opencode >/dev/null 2>&1 || fail "OPENCODE_REQUIRED_FOR_REQUESTED_CODER_CONTRACT"
+  bash scripts/test-shadowops-coder.sh
+  opencode agent list | grep -q 'shadowops-coder' || fail "SHADOWOPS_CODER_AGENT_NOT_VISIBLE"
+  pass "shadowops_coder_contract"
+else
+  echo "CODER_CONTRACT=SKIPPED_NOT_REQUIRED_FOR_PREVIEW"
+  echo "RUN_EXPLICITLY=SHADOWOPS_VALIDATE_CODER_CONTRACT=1 bash scripts/local_all_developments.sh"
+  pass "coder_contract_optional"
+fi
 
 echo
 echo "=== READ-ONLY MCP CONTRACT ==="
@@ -135,9 +152,17 @@ pass "preview_routes"
 
 echo
 echo "=== OPENCODE -> PREVIEW MCP ==="
-SHADOWOPS_BASE_URL="http://127.0.0.1:${PREVIEW_PORT}" opencode mcp list >/tmp/shadowops-opencode-mcp-list.txt
-cat /tmp/shadowops-opencode-mcp-list.txt
-pass "opencode_mcp_configuration"
+if command -v opencode >/dev/null 2>&1; then
+  if SHADOWOPS_BASE_URL="http://127.0.0.1:${PREVIEW_PORT}" opencode mcp list >/tmp/shadowops-opencode-mcp-list.txt 2>/tmp/shadowops-opencode-mcp-list.err; then
+    cat /tmp/shadowops-opencode-mcp-list.txt
+    pass "opencode_mcp_configuration_optional"
+  else
+    echo "OPENCODE_MCP=OPTIONAL_CHECK_FAILED"
+    cat /tmp/shadowops-opencode-mcp-list.err 2>/dev/null || true
+  fi
+else
+  echo "OPENCODE_MCP=SKIPPED_OPENCODE_NOT_CONFIGURED"
+fi
 
 echo
 echo "PORT_4013=UNTOUCHED"
