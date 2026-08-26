@@ -108,4 +108,31 @@ async function registerShadowOpsWebMcp() {
   }
 }
 
+function setText(node, value) {
+  if (node && node.textContent !== value) node.textContent = value
+}
+
+function decorateRemoteAIPolicy() {
+  document.documentElement.dataset.aiExecutionPolicy = "remote-only"
+
+  document.querySelectorAll('a[href="/ai"]').forEach(link => {
+    link.title = "AI Governance · remote-only coding · no local LLM runtime"
+  })
+
+  if (window.location.pathname !== "/") return
+
+  const aiCard = document.querySelector('.mc-card-link[href="/ai"] .mc-metric')
+  if (aiCard) {
+    setText(aiCard.querySelector(".mc-metric-label>span:last-child"), "AI governance")
+    setText(aiCard.querySelector(":scope>strong"), "REMOTE_ONLY")
+    setText(aiCard.querySelector(":scope>p"), "Remote coding only · local LLM runtime disabled")
+    setText(aiCard.querySelector(":scope>small"), "Source: REMOTE_AI_POLICY + CapabilityRegistry")
+  }
+
+  const agentsCard = document.querySelector('.mc-card-link[href="/agents"] .mc-metric')
+  setText(agentsCard?.querySelector(":scope>p"), "Coding agents use explicit remote providers; no local LLM fallback")
+}
+
 registerShadowOpsWebMcp()
+decorateRemoteAIPolicy()
+window.addEventListener("phx:page-loading-stop", decorateRemoteAIPolicy)
