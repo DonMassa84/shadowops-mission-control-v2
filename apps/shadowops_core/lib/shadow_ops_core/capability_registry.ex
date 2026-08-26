@@ -57,7 +57,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "opencode.execute" => %{
       id: "opencode.execute",
       executor: :opencode_runtime,
-      args: [:prompt, :project_dir]
+      args: [:prompt, :project_dir, :model]
     },
     "telegram.send" => %{
       id: "telegram.send",
