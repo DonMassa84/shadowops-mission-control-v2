@@ -1,7 +1,7 @@
 defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
   use ExUnit.Case, async: true
 
-  alias ShadowOpsCore.LocalIntegrationCandidates
+  alias ShadowOpsCore.{LocalIntegrationCandidates, RuntimeSources}
 
   setup do
     root = Path.join(System.tmp_dir!(), "shadowops_candidates_#{System.unique_integer([:positive])}")
@@ -76,5 +76,10 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
     assert factory.evidence == ["documentation-factory-watcher.service"]
     assert factory.executable == false
     assert factory.risk_level == "UNKNOWN"
+  end
+
+  test "candidate unit names are not added to the service action allowlist" do
+    assert {:error, :service_not_allowlisted} =
+             RuntimeSources.service_action("user:bot-gateway.service", "restart")
   end
 end
