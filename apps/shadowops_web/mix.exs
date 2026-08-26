@@ -26,9 +26,12 @@ defmodule ShadowOpsWeb.MixProject do
     [
       {:phoenix, "~> 1.8.9"},
       {:phoenix_live_view, "~> 1.2.7"},
+      {:phoenix_live_dashboard, "~> 0.8"},
+      {:telemetry_metrics, "~> 1.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:bandit, "~> 1.12"},
       {:jason, "~> 1.4"},
+      {:hammer, "~> 7.4"},
       {:workflow_engine, in_umbrella: true},
       {:shadowops_core, in_umbrella: true}
     ]

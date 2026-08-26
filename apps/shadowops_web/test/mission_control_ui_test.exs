@@ -22,7 +22,16 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     assert detail.status == 200
     assert detail.resp_body =~ "Execution policy"
     assert detail.resp_body =~ "L2 approval required"
+    assert detail.resp_body =~ "Run workflow"
     assert detail.resp_body =~ "Audit events"
+  end
+
+  test "service page exposes governed runtime controls" do
+    services = request(:get, "/services")
+    assert services.status == 200
+    assert services.resp_body =~ "Governed service control"
+    assert services.resp_body =~ "Execute service action"
+    assert services.resp_body =~ ~s(type="password" name="write_token")
   end
 
   test "daily digest is available through the canonical workflow lookup" do
@@ -47,7 +56,7 @@ defmodule ShadowOpsWeb.MissionControlUITest do
       File.rm_rf(root)
     end)
 
-    assert request(:get, "/runs").resp_body =~ "No real workflow execution has been requested"
+    assert request(:get, "/runs").resp_body =~ "No real execution has been requested"
     assert request(:get, "/approvals").resp_body =~ "No approval has been requested"
   end
 
@@ -260,7 +269,10 @@ defmodule ShadowOpsWeb.MissionControlUITest do
   test "Mission Control asset contains responsive and keyboard focus rules" do
     css = request(:get, "/assets/mission-control.css")
     assert css.status == 200
-    assert css.resp_body =~ "@media(max-width:760px)"
+    assert css.resp_body =~ "@media(max-width:900px)"
+    assert css.resp_body =~ ".mc-shell{display:block}"
+    assert css.resp_body =~ "@media(max-width:560px)"
+    assert css.resp_body =~ "grid-template-columns:1fr"
     assert css.resp_body =~ ":focus-visible"
     assert css.resp_body =~ "prefers-reduced-motion"
 

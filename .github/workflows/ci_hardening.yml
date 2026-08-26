@@ -1,0 +1,123 @@
+name: ShadowOps Hardening CI
+
+on:
+  push:
+    branches:
+      - "hardening/**"
+      - "feat/mission-control-v2"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  MIX_ENV: test
+  SHADOWOPS_START_PERSISTENCE: "false"
+
+jobs:
+  hardening_gate:
+    name: Format · Compile · Test · Credo · Dialyzer · Sobelow · Registry · Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Setup Elixir/OTP
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27.3"
+          elixir-version: "1.17.3"
+
+      - name: Restore deps cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: hardening-${{ runner.os }}-otp27-elixir117-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            hardening-${{ runner.os }}-otp27-elixir117-
+
+      - name: Restore Dialyzer cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            priv/plts
+            _build/test/dialyxir_*
+          key: dialyzer-${{ runner.os }}-otp27-elixir117-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            dialyzer-${{ runner.os }}-otp27-elixir117-
+
+      - name: Get deps
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Format check
+        run: mix format --check-formatted
+
+      - name: Compile (warnings as errors)
+        run: mix compile --warnings-as-errors
+
+      - name: Test suite
+        run: mix test --seed 12345
+
+      - name: Credo strict on changed hardening code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin hardening/production-ready-2026-08-25
+          mapfile -t changed < <(
+            git diff --name-only origin/hardening/production-ready-2026-08-25 HEAD -- '*.ex' '*.exs' \
+              | grep -E '^(apps|config|test)/' || true
+          )
+          if ((${#changed[@]} == 0)); then
+            echo "No changed Elixir sources to lint."
+          else
+            printf 'Credo strict changed files:\n%s\n' "${changed[*]}"
+            mix credo --strict "${changed[@]}"
+          fi
+
+      - name: Credo full repository baseline (non-blocking legacy debt report)
+        continue-on-error: true
+        run: mix credo --strict
+
+      - name: Dialyzer
+        run: mix dialyzer
+
+      - name: Sobelow security scan
+        run: mix sobelow --exit
+
+      - name: Registry validate
+        run: mix shadowops.registry validate
+
+      - name: Workflow IDs validate
+        run: mix shadowops.workflow_ids.validate
+
+      - name: Hex audit
+        run: mix hex.audit
+
+      - name: Diff check
+        run: git diff --check
+
+      - name: Production acceptance script
+        env:
+          SHADOWOPS_RUNTIME_REQUIRED: "0"
+        run: bash scripts/production_acceptance.sh
+
+      - name: Prod compile
+        env:
+          MIX_ENV: prod
+        run: mix compile --warnings-as-errors
+
+      - name: Release build (no publish or deploy)
+        env:
+          MIX_ENV: prod
+        run: mix release shadowops --overwrite

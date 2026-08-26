@@ -119,8 +119,16 @@ defmodule ShadowOpsCore.Audit do
       previous_hash: previous
     }
 
-    File.write(path(), Jason.encode!(Map.put(row, :current_hash, hash(row))) <> "\n", [:append])
+    # Hash exactly the JSON representation that is persisted. Jason converts atom keys and atom
+    # values to strings; hashing the pre-serialization Elixir term would make verification fail
+    # after a legitimate encode/decode round trip.
+    persisted_row = json_canonical(row)
+    persisted = Map.put(persisted_row, "current_hash", hash(persisted_row))
+
+    File.write(path(), Jason.encode!(persisted) <> "\n", [:append])
   end
+
+  defp json_canonical(value), do: value |> Jason.encode!() |> Jason.decode!()
 
   defp hash(data) do
     data

@@ -20,6 +20,7 @@ defmodule ShadowOpsWeb.ProjectDomains do
     community: {"Community", "SHADOWOPS_COMMUNITY_MANIFEST", "community.json"},
     social: {"Social", "SHADOWOPS_SOCIAL_MANIFEST", "social.json"},
     knowledge: {"Knowledge", "SHADOWOPS_KNOWLEDGE_MANIFEST", "knowledge.json"},
+    chatgpt: {"ChatGPT Project", "SHADOWOPS_CHATGPT_MANIFEST", "chatgpt.json"},
     housing: {"Housing", "SHADOWOPS_HOUSING_MANIFEST", "housing.json"},
     administration:
       {"Administration", "SHADOWOPS_ADMINISTRATION_MANIFEST", "administration.json"},

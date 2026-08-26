@@ -33,6 +33,12 @@ defmodule ShadowOpsWeb.SourceRegistry do
       domains: ~w(shadowops ihk infrastructure),
       secrets: ~w(GITHUB_TOKEN)
     },
+    %{
+      id: "chatgpt_project",
+      name: "ChatGPT Project",
+      domains: ~w(chatgpt knowledge shadowops),
+      secrets: []
+    },
     %{id: "whatsapp", name: "WhatsApp", domains: ~w(social community), secrets: []},
     %{
       id: "telegram",
@@ -47,12 +53,12 @@ defmodule ShadowOpsWeb.SourceRegistry do
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
 
-  def all, do: Enum.map(@sources, &snapshot/1)
+  def all, do: Enum.map(@sources, &source_snapshot/1)
 
   def snapshot(id) when is_binary(id) do
     case Enum.find(@sources, &(&1.id == id)) do
       nil -> unavailable(id, id, "UNKNOWN_SOURCE", "Unknown source")
-      source -> snapshot(source)
+      source -> source_snapshot(source)
     end
   end
 
@@ -63,7 +69,7 @@ defmodule ShadowOpsWeb.SourceRegistry do
     |> Enum.filter(&secret_configured?/1)
   end
 
-  defp snapshot(source) do
+  defp source_snapshot(source) do
     path = import_path(source.id)
     secret_state = secret_state(source.secrets)
 

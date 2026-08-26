@@ -1,6 +1,7 @@
 defmodule ShadowOpsWeb.Router do
   use Phoenix.Router
 
+  import Phoenix.LiveDashboard.Router
   import Phoenix.LiveView.Router
 
   pipeline :browser do
@@ -10,19 +11,33 @@ defmodule ShadowOpsWeb.Router do
     plug(:fetch_live_flash)
   end
 
+  pipeline :runtime_dashboard do
+    plug(ShadowOpsWeb.Plugs.RuntimeDashboardAccess)
+  end
+
   pipeline :api do
     plug(:accepts, ["json"])
     plug(ShadowOpsWeb.Plugs.Security, :require_read)
   end
 
-  pipeline :write_api do
+  pipeline :control_plane_write do
+    plug(:accepts, ["json"])
+    plug(ShadowOpsWeb.Plugs.Security)
     plug(ShadowOpsWeb.Plugs.Security, :require_write_actor)
+    plug(ShadowOpsWeb.Plugs.RateLimitPlug)
+  end
+
+  scope "/" do
+    pipe_through([:browser, :runtime_dashboard])
+    live_dashboard("/runtime", metrics: ShadowOpsWeb.Telemetry)
   end
 
   scope "/", ShadowOpsWeb do
     pipe_through(:browser)
 
     live("/", DashboardLive, :index)
+    live("/layers", LayersLive, :index)
+    live("/layers/:id", LayerDetailLive, :show)
     live("/infrastructure", InfrastructureLive, :index)
     live("/compute", ComputeLive, :index)
     live("/workflows", WorkflowsLive, :index)
@@ -47,6 +62,7 @@ defmodule ShadowOpsWeb.Router do
     live("/legal", LegalLive, :index)
     live("/settings", SettingsLive, :index)
     live("/projects", ProjectDomainsLive, :index)
+    live("/projects/federated", ProjectCatalogLive, :index)
     live("/projects/shadowops", ProjectDomainLive, :shadowops)
     live("/projects/infrastructure", ProjectDomainLive, :infrastructure)
     live("/projects/career", ProjectDomainLive, :career)
@@ -57,6 +73,7 @@ defmodule ShadowOpsWeb.Router do
     live("/projects/community", ProjectDomainLive, :community)
     live("/projects/social", ProjectDomainLive, :social)
     live("/projects/knowledge", ProjectDomainLive, :knowledge)
+    live("/projects/chatgpt", ProjectDomainLive, :chatgpt)
     live("/projects/housing", ProjectDomainLive, :housing)
     live("/projects/administration", ProjectDomainLive, :administration)
     live("/projects/health", ProjectDomainLive, :health)
@@ -78,12 +95,16 @@ defmodule ShadowOpsWeb.Router do
     get("/health", HealthController, :show)
     get("/ready", ReadinessController, :show)
     get("/system/overview", SystemOverviewController, :show)
+    get("/layers", LayersController, :index)
+    get("/layers/:id", LayersController, :show)
+    get("/projects", ProjectCatalogController, :index)
     get("/system", ModuleSourcesController, :system)
     get("/integrations", IntegrationsController, :index)
     get("/workflows", WorkflowsController, :index)
     get("/workflows/:id", WorkflowsController, :show)
     get("/runs", RunsController, :index)
     get("/runs/:id", RunsController, :show)
+    get("/runs/:id/evaluation", RunsController, :evaluation)
     get("/nodes", NodesController, :index)
     get("/nodes/:id", NodesController, :show)
     get("/services", ServicesController, :index)
@@ -115,7 +136,7 @@ defmodule ShadowOpsWeb.Router do
   end
 
   scope "/api", ShadowOpsWeb do
-    pipe_through([:api, :write_api])
+    pipe_through(:control_plane_write)
     post("/workflows/:id/run", WorkflowsController, :run)
     post("/approvals", ApprovalsController, :create)
     post("/nodes/:id/actions/healthcheck", NodesController, :healthcheck)

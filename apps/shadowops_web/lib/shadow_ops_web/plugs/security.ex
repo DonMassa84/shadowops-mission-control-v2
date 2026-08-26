@@ -58,6 +58,28 @@ defmodule ShadowOpsWeb.Plugs.Security do
     end
   end
 
+  @doc "Validates per-action credentials submitted to a local LiveView without persisting them."
+  def authorize_live_write(actor, supplied_token) do
+    expected = Application.get_env(:shadowops_web, :write_token)
+
+    cond do
+      not (is_binary(expected) and byte_size(expected) > 0) ->
+        {:error, :writes_disabled}
+
+      not valid_actor?(actor) ->
+        {:error, :valid_actor_required}
+
+      not (is_binary(supplied_token) and byte_size(supplied_token) == byte_size(expected)) ->
+        {:error, :write_authorization_required}
+
+      not Plug.Crypto.secure_compare(supplied_token, expected) ->
+        {:error, :write_authorization_required}
+
+      true ->
+        :ok
+    end
+  end
+
   def redact(value) when is_map(value),
     do:
       Map.new(value, fn {k, v} ->
