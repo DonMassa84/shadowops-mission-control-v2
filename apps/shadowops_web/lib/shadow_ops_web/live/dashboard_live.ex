@@ -115,13 +115,7 @@ defmodule ShadowOpsWeb.DashboardLive do
     overview = RuntimeOverview.snapshot()
     jobs = JobQueue.snapshot()
     integrations = IntegrationCatalog.snapshot()
-
-    focus =
-      case LearningFocus.load() do
-        {:ok, value} when is_map(value) -> value
-        _ -> %{"availability" => "UNAVAILABLE"}
-      end
-
+    {:ok, focus} = LearningFocus.load()
     mission = MissionBrief.build(overview, jobs, integrations, focus)
 
     {inventory, canonical_workflows} =
