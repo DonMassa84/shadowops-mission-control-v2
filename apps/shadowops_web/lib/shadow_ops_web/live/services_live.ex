@@ -76,7 +76,7 @@ defmodule ShadowOpsWeb.ServicesLive do
       </p>
 
       <.panel title="Service records" description="Every supported mutation is a direct button on the runtime row; no credential or approval-ID form is required.">
-        <form id="service-filters" class="mc-filter" phx-change="filter"><label>Scope<select name="scope"><option value="">All</option><option :for={v <- values(@data.services, :scope)} value={v}>{v}</option></select></label><label>State<select name="state"><option value="">All</option><option :for={v <- values(@data.services, :active_state)} value={v}>{v}</option></select></label><label>Source<select name="source"><option value="">All</option><option :for={v <- values(@data.services, :source)} value={v}>{v}</option></select></label></form>
+        <form id="service-filters" class="mc-filter" phx-change="filter"><label>Scope<select name="scope"><option value="">All</option><option :for={v <- values(@data.services, :scope)} value={v}>{v}</option></select></label><label>State<select name="state"><option value="">All</option><option :for={v <- values(@data.services, :state)} value={v}>{v}</option></select></label><label>Source<select name="source"><option value="">All</option><option :for={v <- values(@data.services, :source)} value={v}>{v}</option></select></label></form>
         <div :if={@services != []} class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Name</th><th>Scope</th><th>Active</th><th>Sub-state</th><th>Enabled</th><th>PID</th><th>Uptime</th><th>Restarts</th><th>Source</th><th>One click</th></tr></thead><tbody><tr :for={row <- @services}><td class="mc-mono">{row.name}</td><td>{row.scope}</td><td><.status_badge status={row.active_state} /></td><td>{row.sub_state}</td><td>{row.enabled || "Not measured"}</td><td>{row.pid || "—"}</td><td>{row.uptime_seconds || "—"}</td><td>{row.restart_count || "Not measured"}</td><td>{row.source}</td><td class="mc-actions"><button class="mc-button" type="button" phx-click="operate" phx-value-id={service_id(row)} phx-value-action="start" disabled={!@one_click_ready}>▶ Start</button><button class="mc-button" type="button" phx-click="operate" phx-value-id={service_id(row)} phx-value-action="restart" disabled={!@one_click_ready}>↻ Restart</button><button class="mc-button" type="button" phx-click="operate" phx-value-id={service_id(row)} phx-value-action="stop" disabled={!@one_click_ready}>■ Stop</button></td></tr></tbody></table></div><p :if={@services == []} class="mc-empty">No service records match the current filters.</p>
         <p :if={@last_run} class="mc-callout">
           Last run: <a href={"/runs/#{@last_run.id}"} class="mc-mono">{@last_run.id}</a>
@@ -85,13 +85,15 @@ defmodule ShadowOpsWeb.ServicesLive do
         </p>
       </.panel>
 
-      <.panel title="Local integration candidates" description="Fixed-path discovery only. DISCOVERED means local metadata exists; it does not grant execution authority or imply READY.">
+      <.panel title="Local integration candidates" description="Bounded local folder discovery. DISCOVERED means local metadata exists; it does not grant execution authority or imply READY.">
         <p class="mc-callout">
-          {@candidates.counts.discovered} discovered · {@candidates.counts.not_configured} not configured · actions disabled for all candidate records
+          {@candidates.counts.known_discovered}/{@candidates.counts.known_total} fixed candidates discovered ·
+          {@candidates.counts.auto_discovered} additional entrypoints auto-discovered ·
+          actions disabled for all candidate records
         </p>
         <div class="mc-table-wrap">
           <table class="mc-table">
-            <thead><tr><th>Name</th><th>Kind</th><th>Domain</th><th>Priority</th><th>Status</th><th>Source ref</th><th>Evidence</th><th>Action</th></tr></thead>
+            <thead><tr><th>Name</th><th>Kind</th><th>Domain</th><th>Priority</th><th>Status</th><th>Discovery</th><th>Source ref</th><th>Evidence</th><th>Action</th></tr></thead>
             <tbody>
               <tr :for={row <- @candidates.records}>
                 <td>{row.name}</td>
@@ -99,6 +101,7 @@ defmodule ShadowOpsWeb.ServicesLive do
                 <td>{row.domain}</td>
                 <td>{row.priority}</td>
                 <td><.status_badge status={row.status} /></td>
+                <td>{row.discovery_mode}</td>
                 <td class="mc-mono">{row.source_ref}</td>
                 <td>{Enum.join(row.evidence, ", ")}</td>
                 <td><a class="mc-button" href="/integrations">Open source</a></td>
