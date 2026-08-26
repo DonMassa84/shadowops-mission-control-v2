@@ -142,8 +142,8 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
   defp discover_folder_records(root, fixed_paths) do
     @scan_patterns
     |> Enum.flat_map(fn pattern ->
-      pattern
-      |> safe_join(root)
+      root
+      |> safe_join(pattern)
       |> Path.wildcard()
     end)
     |> Enum.uniq()
@@ -162,8 +162,8 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
         if regular_file?(path), do: [path], else: []
 
       %{relative_glob: relative_glob} ->
-        relative_glob
-        |> safe_join(root)
+        root
+        |> safe_join(relative_glob)
         |> Path.wildcard()
         |> Enum.filter(&regular_file?/1)
     end)
@@ -201,13 +201,26 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
     lower = String.downcase(relative)
 
     cond do
-      String.ends_with?(lower, ".service") -> {"SYSTEMD_SERVICE_FILE", infer_domain(lower), "MEDIUM"}
-      String.ends_with?(lower, ".timer") -> {"SYSTEMD_TIMER_FILE", infer_domain(lower), "MEDIUM"}
-      String.contains?(lower, "/.github/workflows/") -> {"EXTERNAL_CI", "ci", "LOW"}
-      String.ends_with?(lower, ".sh") -> {"WORKFLOW_SCRIPT", infer_domain(lower), "MEDIUM"}
-      String.ends_with?(lower, ".py") -> {"AUTOMATION_SCRIPT", infer_domain(lower), "MEDIUM"}
-      String.ends_with?(lower, ".exs") -> {"ELIXIR_AUTOMATION", infer_domain(lower), "LOW"}
-      true -> {"LOCAL_ARTIFACT", infer_domain(lower), "LOW"}
+      String.ends_with?(lower, ".service") ->
+        {"SYSTEMD_SERVICE_FILE", infer_domain(lower), "MEDIUM"}
+
+      String.ends_with?(lower, ".timer") ->
+        {"SYSTEMD_TIMER_FILE", infer_domain(lower), "MEDIUM"}
+
+      String.contains?(lower, "/.github/workflows/") ->
+        {"EXTERNAL_CI", "ci", "LOW"}
+
+      String.ends_with?(lower, ".sh") ->
+        {"WORKFLOW_SCRIPT", infer_domain(lower), "MEDIUM"}
+
+      String.ends_with?(lower, ".py") ->
+        {"AUTOMATION_SCRIPT", infer_domain(lower), "MEDIUM"}
+
+      String.ends_with?(lower, ".exs") ->
+        {"ELIXIR_AUTOMATION", infer_domain(lower), "LOW"}
+
+      true ->
+        {"LOCAL_ARTIFACT", infer_domain(lower), "LOW"}
     end
   end
 
@@ -291,8 +304,6 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
       _ -> false
     end
   end
-
-  defp safe_join(relative, root), do: safe_join(root, relative)
 
   defp safe_join(root, relative) do
     expanded = Path.expand(relative, root)
