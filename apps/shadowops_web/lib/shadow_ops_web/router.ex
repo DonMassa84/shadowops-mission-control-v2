@@ -20,8 +20,11 @@ defmodule ShadowOpsWeb.Router do
     plug(ShadowOpsWeb.Plugs.Security, :require_read)
   end
 
-  pipeline :write_api do
+  pipeline :control_plane_write do
+    plug(:accepts, ["json"])
+    plug(ShadowOpsWeb.Plugs.Security)
     plug(ShadowOpsWeb.Plugs.Security, :require_write_actor)
+    plug(ShadowOpsWeb.Plugs.RateLimitPlug)
   end
 
   scope "/" do
@@ -133,7 +136,7 @@ defmodule ShadowOpsWeb.Router do
   end
 
   scope "/api", ShadowOpsWeb do
-    pipe_through([:api, :write_api])
+    pipe_through(:control_plane_write)
     post("/workflows/:id/run", WorkflowsController, :run)
     post("/approvals", ApprovalsController, :create)
     post("/nodes/:id/actions/healthcheck", NodesController, :healthcheck)
