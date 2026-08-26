@@ -15,6 +15,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     ~H"""
     <div class="mc-shell">
       <link rel="stylesheet" href="/assets/mission-control.css" />
+      <link rel="stylesheet" href="/assets/mission-control-refresh.css" />
       <link rel="icon" type="image/svg+xml" href="/assets/shadowops-mark.svg" />
       <meta name="csrf-token" content={Plug.CSRFProtection.get_csrf_token()} />
       <script type="module" src="/assets/mission-control.js"></script>
@@ -26,18 +27,18 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           </span>
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
-        <nav>
+        <nav aria-label="Primary">
           <.nav_group label="Dashboard" items={[{"Overview", "/"}, {"Layer Health", "/layers"}]} active={@active} />
           <.nav_group label="Operations" items={[{"Infrastructure", "/infrastructure"}, {"Workflows", "/workflows"}, {"Runs", "/runs"}, {"Services", "/services"}, {"Nodes", "/nodes"}, {"Backups", "/backups"}]} active={@active} />
           <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Federated", "/projects/federated"}, {"ChatGPT", "/projects/chatgpt"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
-          <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
+          <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI Policy", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
           <.nav_group label="Social" items={[{"Overview", "/social"}, {"Facebook", "/social/facebook"}, {"Social Review", "/social/review"}, {"Messenger", "/social/messenger"}, {"WhatsApp", "/social/whatsapp"}, {"Telegram", "/social/telegram"}]} active={@active} />
           <.nav_group label="Governance" items={[{"Approvals", "/approvals"}, {"Security", "/security"}, {"Audit", "/audit"}, {"Evidence", "/evidence"}, {"Legal", "/legal"}, {"Logs", "/logs"}]} active={@active} />
           <.nav_group label="System" items={[{"i7 Display", "/display/i7"}, {"Health", "/health"}, {"Readiness", "/ready"}]} active={@active} />
         </nav>
         <div class="mc-sidebar-footer">
           <span class="mc-operator-avatar">SO</span>
-          <span><strong>Local operator</strong><small>Administrator</small></span>
+          <span><strong>Local operator</strong><small>Governed control plane</small></span>
         </div>
       </aside>
       <div class="mc-workspace">
@@ -48,6 +49,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
             <p :if={@subtitle} class="mc-subtitle">{@subtitle}</p>
           </div>
           <div class="mc-topbar-meta">
+            <span class="mc-policy-chip" title="AI_EXECUTION_POLICY=REMOTE_ONLY">AI · Remote only</span>
             <.status_badge status={@availability} />
             <span :if={@updated_at} class="mc-updated">Updated <time>{@updated_at}</time></span>
             <a class="mc-icon-button" href={@active} aria-label="Refresh current view" title="Refresh">↻</a>
@@ -67,7 +69,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
 
   defp nav_group(assigns) do
     ~H"""
-    <section class="mc-nav-group">
+    <section class="mc-nav-group" aria-label={@label}>
       <h2>{@label}</h2>
       <a :for={{label, path} <- @items} href={path} class={if active?(@active, path), do: "is-active"} aria-current={if active?(@active, path), do: "page"}>
         <span class="mc-nav-icon" aria-hidden="true">{nav_icon(label)}</span>
@@ -85,7 +87,9 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     assigns = assigns |> assign(:value, value) |> assign(:tone, Status.tone(value))
 
     ~H"""
-    <span class={["mc-badge", "is-#{@tone}"]}><span aria-hidden="true"></span>{@label || @value}</span>
+    <span class={["mc-badge", "is-#{@tone}"]} data-status={@value} title={@label || @value}>
+      <span aria-hidden="true"></span>{@label || @value}
+    </span>
     """
   end
 
@@ -174,6 +178,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   defp nav_icon("Community"), do: "♢"
   defp nav_icon("Agents"), do: "⌬"
   defp nav_icon("AI"), do: "✦"
+  defp nav_icon("AI Policy"), do: "✦"
   defp nav_icon("Knowledge"), do: "▥"
   defp nav_icon("Career"), do: "◈"
   defp nav_icon("Reporting"), do: "◰"
@@ -204,6 +209,10 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       "agents" -> "●"
       "ai runtimes" -> "✦"
       "ai / models" -> "✦"
+      "ai policy" -> "✦"
+      "execution policy" -> "✦"
+      "remote provider" -> "◎"
+      "local inference" -> "⊘"
       "security" -> "◇"
       "audit" -> "▧"
       "runtime" -> "◉"
