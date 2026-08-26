@@ -31,11 +31,21 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <.nav_group
             label="Operations"
             items={[
+              {"Compute", "/compute"},
               {"Workflows", "/workflows"},
               {"Runs", "/runs"},
-              {"Nodes", "/nodes"},
+              {"Jobs", "/jobs"},
               {"Services", "/services"},
               {"Backups", "/backups"}
+            ]}
+            active={@active}
+          />
+          <.nav_group
+            label="Sources"
+            items={[
+              {"Integrations", "/integrations"},
+              {"Evidence", "/evidence"},
+              {"Knowledge", "/knowledge"}
             ]}
             active={@active}
           />
@@ -50,12 +60,11 @@ defmodule ShadowOpsWeb.MissionControlComponents do
             active={@active}
           />
           <.nav_group
-            label="Intelligence"
+            label="Focus & AI"
             items={[
+              {"Focus", "/focus"},
               {"AI", "/ai"},
-              {"Agents", "/agents"},
-              {"Knowledge", "/knowledge"},
-              {"Evidence", "/evidence"}
+              {"Agents", "/agents"}
             ]}
             active={@active}
           />
@@ -184,24 +193,32 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   end
 
   defp nav_icon("Overview"), do: "⌂"
+  defp nav_icon("Compute"), do: "▦"
   defp nav_icon("Workflows"), do: "⌘"
   defp nav_icon("Runs"), do: "▷"
+  defp nav_icon("Jobs"), do: "◫"
   defp nav_icon("Services"), do: "◆"
-  defp nav_icon("Nodes"), do: "▣"
   defp nav_icon("Backups"), do: "▱"
-  defp nav_icon("Agents"), do: "⌬"
-  defp nav_icon("AI"), do: "✦"
+  defp nav_icon("Integrations"), do: "◎"
+  defp nav_icon("Evidence"), do: "▤"
   defp nav_icon("Knowledge"), do: "▥"
   defp nav_icon("Approvals"), do: "✓"
   defp nav_icon("Security"), do: "◇"
   defp nav_icon("Audit"), do: "▧"
-  defp nav_icon("Evidence"), do: "▤"
   defp nav_icon("Logs"), do: "▰"
+  defp nav_icon("Focus"), do: "◉"
+  defp nav_icon("AI"), do: "✦"
+  defp nav_icon("Agents"), do: "⌬"
   defp nav_icon(_), do: "·"
 
   defp metric_icon(label) do
     case String.downcase(to_string(label)) do
       "system" -> "◇"
+      "compute" -> "▦"
+      "physical nodes" -> "▣"
+      "reachable" -> "●"
+      "job queue" -> "◫"
+      "visible jobs" -> "◫"
       "workflows" -> "⌘"
       "runs" -> "▷"
       "pending approvals" -> "✓"
@@ -213,6 +230,8 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       "backup" -> "▱"
       "evidence" -> "▤"
       "knowledge" -> "▥"
+      "integrations" -> "◎"
+      "focus" -> "◉"
       _ -> "◆"
     end
   end
