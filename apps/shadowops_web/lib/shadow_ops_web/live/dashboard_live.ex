@@ -85,7 +85,7 @@ defmodule ShadowOpsWeb.DashboardLive do
             class="mc-command-card"
             href={action.href}
           >
-            <span class="mc-command-kicker">#{index} · {action.status}</span>
+            <span class="mc-command-kicker">{index} · {action.status}</span>
             <strong>{action.title}</strong>
             <span>{action.detail}</span>
             <small>Source: {action.source}</small>
