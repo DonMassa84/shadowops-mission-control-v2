@@ -32,6 +32,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     external =
       connectors
       |> value(:records, [])
+      |> Enum.reject(&retired_local_llm_connector?/1)
       |> Enum.map(fn payload ->
         card(value(payload, :name, value(payload, :id, "Connector")), payload, "external")
       end)
@@ -65,6 +66,19 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
   end
 
   def positive?(card), do: card.status in @positive
+
+  defp retired_local_llm_connector?(payload) do
+    payload
+    |> connector_identity()
+    |> String.contains?("ollama")
+  end
+
+  defp connector_identity(payload) do
+    [value(payload, :id), value(payload, :name), value(payload, :kind)]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map_join(" ", &to_string/1)
+    |> String.downcase()
+  end
 
   defp card(name, payload, scope) when is_map(payload) do
     %{
