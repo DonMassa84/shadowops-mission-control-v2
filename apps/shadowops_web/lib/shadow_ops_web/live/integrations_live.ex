@@ -26,13 +26,13 @@ defmodule ShadowOpsWeb.IntegrationsLive do
       updated_at={@updated_at}
     >
       <div class="mc-grid">
-        <.metric_card label="Ready" value={@catalog.positive_count} status={@catalog.status} source={@catalog.source} note="Evidence-backed positive integrations" />
-        <.metric_card label="Core" value={@catalog.core_count} status="AVAILABLE" note="ShadowOps control-plane modules" />
+        <.metric_card label="Required core" value={"#{@catalog.required_core_ready_count}/#{@catalog.required_core_count}"} status={@catalog.status} source={@catalog.source} note="Required control-plane sources determine overall integration health" />
+        <.metric_card label="Optional ready" value={"#{@catalog.optional_ready_count}/#{@catalog.optional_count}"} status={optional_status(@catalog)} note="Optional connectors and imports cannot mark required core healthy" />
         <.metric_card label="Connectors" value={@catalog.external_count} status={scope_status(@external)} note="External source adapters" />
-        <.metric_card label="Imports" value={@catalog.import_count} status={scope_status(@imports)} note="Bounded local import sources" />
+        <.metric_card label="Imports" value={@catalog.import_count} status={scope_status(@imports)} note="Bounded local import sources; truth fields fail closed" />
       </div>
 
-      <.panel title="Source catalog" description="A source is not promoted to healthy unless runtime evidence says it is real and reachable.">
+      <.panel title="Source catalog" description="A source is not promoted to healthy unless runtime evidence explicitly says it is real and reachable.">
         <div class="mc-table-wrap">
           <table class="mc-table">
             <thead><tr><th>Source</th><th>Scope</th><th>Status</th><th>Real</th><th>Reachable</th><th>Records</th><th>Source type</th><th>Evidence / error</th></tr></thead>
@@ -70,6 +70,13 @@ defmodule ShadowOpsWeb.IntegrationsLive do
 
   defp scope_status(records),
     do: if(Enum.any?(records, &IntegrationCatalog.positive?/1), do: "READY", else: "DEGRADED")
+
+  defp optional_status(%{optional_count: 0}), do: "NOT_CONFIGURED"
+
+  defp optional_status(%{optional_ready_count: ready, optional_count: total}) when ready == total,
+    do: "READY"
+
+  defp optional_status(_), do: "DEGRADED"
 
   defp yes_no(true), do: "Yes"
   defp yes_no(_), do: "No"
