@@ -23,7 +23,7 @@ const destinations = [
   ["IHK", "/projects/ihk", "ihk project"],
   ["Community", "/projects/community", "community project"],
   ["Agents", "/agents", "agent runtime evidence"],
-  ["AI Governance", "/ai", "remote only ai model policy"],
+  ["AI Governance", "/ai", "remote only coding governed local product runtime ollama"],
   ["Knowledge", "/knowledge", "knowledge retrieval"],
   ["Career", "/career", "career applications"],
   ["Reporting", "/reporting", "reports"],
@@ -164,27 +164,27 @@ function decorateDashboardPolicy() {
 
   const aiCard = document.querySelector('.mc-card-link[href="/ai"] .mc-metric')
   if (aiCard) {
-    setText(aiCard.querySelector(".mc-metric-label>span:last-child"), "AI policy")
-    setText(aiCard.querySelector(":scope>strong"), "REMOTE_ONLY")
-    setText(aiCard.querySelector(":scope>p"), "Explicit remote provider/model required · no local inference fallback")
-    setText(aiCard.querySelector(":scope>small"), "Source: docs/REMOTE_AI_POLICY.md")
-    setBadge(aiCard.querySelector(".mc-badge"), "ENFORCED", "success")
+    setText(aiCard.querySelector(".mc-metric-label>span:last-child"), "AI governance")
+    setText(aiCard.querySelector(":scope>strong"), "SPLIT POLICY")
+    setText(aiCard.querySelector(":scope>p"), "Coding REMOTE_ONLY · governed local product runtime")
+    setText(aiCard.querySelector(":scope>small"), "Source: REMOTE_AI_POLICY + CapabilityRegistry")
+    setBadge(aiCard.querySelector(".mc-badge"), "GOVERNED", "success")
   }
 
   const agentsCard = document.querySelector('.mc-card-link[href="/agents"] .mc-metric')
   setText(
     agentsCard?.querySelector(":scope>p"),
-    "Coding and automation agents are shown only when evidenced; AI execution remains remote-only"
+    "Coding agents remain remote-only; local product AI executes only through the governed runtime"
   )
 }
 
 function decorateRuntimePolicy() {
-  if (document.documentElement.dataset.aiExecutionPolicy !== "remote-only") {
-    document.documentElement.dataset.aiExecutionPolicy = "remote-only"
+  if (document.documentElement.dataset.aiExecutionPolicy !== "split-governance") {
+    document.documentElement.dataset.aiExecutionPolicy = "split-governance"
   }
   document.querySelectorAll('a[href="/ai"]').forEach(link => {
-    if (link.title !== "AI Governance · remote-only execution") {
-      link.title = "AI Governance · remote-only execution"
+    if (link.title !== "AI Governance · remote-only coding · governed local runtime") {
+      link.title = "AI Governance · remote-only coding · governed local runtime"
     }
     if (link.closest(".mc-nav-group")) {
       setText(link.querySelector("span:last-child"), "AI Governance")
