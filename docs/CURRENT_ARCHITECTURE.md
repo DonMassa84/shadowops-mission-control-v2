@@ -2,23 +2,23 @@
 
 Status date: 2026-08-26  
 Branch: `fix/functional-core-20260826`  
-Baseline head before this document: `73c91b4b7b63cb4e7e08be2d018b676b5dcb5c1f`  
 PR: #21 — `Make ShadowOps useful: WebMCP, remote-only AI and feature recovery`
 
 ## 1. Current gate
 
-The current functional core is green locally.
+The functional core was green locally before the mission/truth hardening pass.
+
+Previously observed:
 
 - `mix format --check-formatted`: PASS
 - `MIX_ENV=test mix compile --warnings-as-errors`: PASS
 - `MIX_ENV=test mix test`: PASS
 - observed umbrella test results: `shadowops_core=112`, `workflow_engine=32`, `agent_runtime=9`, `shadowops_web=89`; total observed tests: 242, failures: 0
 - PR branch push: PASS
-- PR mergeability: mergeable
-- GitHub status checks for this branch/base combination: not currently reported
-- exact live runtime verification of the final formatting-only head on `:4015`: PENDING; prior functional runtime acceptance was green before the final formatting-only commit
 
-No production-ready claim should depend on the pending live-head match.
+The current mission/truth head adds source-truth hardening and deterministic Mission/Top-3 logic. Exact-head local compile/test/runtime acceptance is PENDING until the current branch is fetched and verified on the local host.
+
+No production-ready claim should depend on the pending exact-head verification.
 
 ## 2. Product boundary
 
@@ -87,149 +87,84 @@ Primary recovered daily-use routes include:
 - `/ai`
 - `/agents`
 
-Additional routes remain available for infrastructure, layers, legal, settings, projects, social views, reporting, career and i7 display. They are not all part of the daily navigation.
+Secondary or experimental routes remain routable but are not part of the primary daily navigation, including project-domain pages, social experiments, legal, reporting, layer health and the i7 display.
 
 ### Read API
 
-The `:api` pipeline requires JSON and passes through `Security.require_read`.
+The `:api` pipeline accepts JSON and applies `Security.require_read`.
 
-Important read endpoints include:
+Important read projections include:
 
-- `/api/health`
-- `/api/ready`
-- `/api/system/overview`
-- `/api/workflows`
-- `/api/runs`
-- `/api/jobs`
-- `/api/nodes`
-- `/api/services`
-- `/api/agents`
-- `/api/ai`
-- `/api/integrations`
-- `/api/connectors`
-- `/api/evidence`
-- `/api/learning/plan`
-- `/api/approvals`
-- `/api/audit`
-- `/api/audit/verify`
-- `/api/logs/recent`
-- `/api/security/status`
+- health/readiness/system overview
+- workflows/runs/jobs
+- nodes/services/agents
+- AI status
+- security/audit/logs
+- knowledge/evidence/legal
+- learning plan
+- approvals
+- integrations/connectors/social/career/backups/reports
 
-### Write API
+### Write control plane
 
-The `:control_plane_write` pipeline applies security, actor validation and rate limiting before controller execution.
+Mutations are isolated in `:control_plane_write`, which applies:
 
-Governed write endpoints include:
+1. security authentication,
+2. write actor requirement,
+3. rate limiting.
 
-- `POST /api/workflows/:id/run`
-- `POST /api/nodes/:id/actions/healthcheck`
-- `POST /api/nodes/:id/actions/start`
-- `POST /api/nodes/:id/actions/stop`
-- `POST /api/services/:id/actions/:action`
-- `POST /api/approvals`
-- `POST /api/approvals/:id/approve`
-- `POST /api/approvals/:id/reject`
+Write routes include workflow execution, approval transitions, node actions and service actions.
 
-A route existing does not prove that the backing runtime action exists. Capability availability must be demonstrated separately.
+Route existence alone does not prove that the runtime action is implemented. The UI only promotes actions with concrete adapter evidence.
 
-## 5. Governance and execution
+## 5. Governance path
 
-The canonical mutation flow is:
+Canonical mutation path:
 
 ```text
-REQUEST
-  -> ACTOR / IDENTITY
-  -> CAPABILITY REGISTRY
-  -> POLICY / RISK
-  -> APPROVAL WHEN REQUIRED
-  -> PRIVACY GATE
-  -> EXECUTION SERVICE
-  -> ADAPTER
-  -> AUDIT
-  -> EVENTS / EVIDENCE
+Request
+  -> actor / identity
+  -> CapabilityRegistry
+  -> Policy
+  -> approval validation when required
+  -> PrivacyGate
+  -> ExecutionService
+  -> allowlisted adapter
+  -> Audit
+  -> Events
 ```
 
-Current capability classes include workflow execution, node actions, service/systemd actions, OpenCode execution, Gmail actions and GitHub data actions.
+Fail-closed behavior is deliberate. Registered capabilities with unavailable integrations use `:not_connected` and fall through the deny adapter rather than silently using another runtime.
 
-Registered-but-not-connected capabilities currently include at least:
+Current notable capability truth:
 
-- `shadowctl.run`
-- `ollama.generate`
-- `local_agent.invoke`
-- `telegram.send`
+- canonical workflow execution: connected
+- service/systemd runtime: connected through allowlisted runtime/service state
+- node status: connected where runtime evidence exists
+- i7 node start: exposed because a concrete runtime implementation exists
+- i7 node stop: not promoted in the UI until concrete implementation is proven
+- OpenCode execution: runtime adapter exists
+- Ollama generation: `:not_connected`
+- local agent invocation: `:not_connected`
+- Telegram send: `:not_connected`
+- Gmail/GitHub capabilities: registry entries exist; registry presence alone is not connection evidence
 
-Registration is metadata, not availability evidence.
+## 6. AI policy
 
-### AI policy
+Active product AI state is policy-only and remote-only:
 
-The active AI projection is policy-only and fail closed:
-
-- `coding_execution=REMOTE_ONLY`
-- `local_llm_runtime=DISABLED`
-- `local_coding_fallback=FORBIDDEN`
-- `fallback=NONE`
-- `models=[]`
-- `loaded_models=[]`
+- coding execution: `REMOTE_ONLY`
+- local LLM runtime: `DISABLED`
+- local coding fallback: `FORBIDDEN`
+- fallback: `NONE`
 - model authority: CLI `--model`
+- active local model inventory: empty
 
-`ollama.generate` remains registered as `:not_connected`. The active product surface does not expose local Ollama models.
+Retired Ollama connector rows are excluded from the active integration catalog.
 
-## 6. Runtime overview
+## 7. Source truth model
 
-`RuntimeOverview` builds a bounded concurrent snapshot with a 3.5 second probe timeout and converts source errors/timeouts into explicit unavailable projections.
-
-Current probe domains:
-
-- system
-- workflows
-- runs
-- services
-- nodes
-- agents
-- AI policy
-- approvals
-- audit
-- security
-- knowledge
-- evidence
-- connectors
-- career
-- backups
-- legal
-
-Readiness currently depends on:
-
-- workflow registry readable,
-- audit chain valid,
-- learning focus available.
-
-This is fail closed, but coupling global readiness to LearningFocus should be reviewed because a personal focus source may not belong in infrastructure readiness.
-
-## 7. Workflow model
-
-Workflow inventory deliberately separates canonical and external runtime sets.
-
-### Canonical
-
-Canonical workflows may be executable through the governed execution path when their status and backing runtime allow it.
-
-### External runtime inventory
-
-External workflows are projected as inventory evidence with:
-
-- `status=REGISTRY_ONLY`
-- `execution_status=EXTERNAL_REGISTRY_ONLY`
-- `executable=false`
-
-Nested packs are excluded from parent totals when marked as included, preventing double counting.
-
-The dashboard action list is intentionally canonical/executable-first rather than exposing every registry record as runnable.
-
-## 8. Source and integration architecture
-
-### SourceRegistry
-
-The local source registry currently knows these import classes:
+`SourceRegistry` knows these local import-evidence source IDs:
 
 - Gmail
 - Google Calendar
@@ -242,168 +177,72 @@ The local source registry currently knows these import classes:
 - Finance
 - i7 Node
 
-These are evidence manifests, not proof of live provider connections. Missing files become `NOT_CONFIGURED`; invalid JSON/schema, symlinks and unreadable files fail visibly.
+A configured source entry is not automatically healthy.
 
-Secret values are never returned. Only required/configured secret names and state are projected.
+For import JSON evidence:
 
-### IntegrationCatalog
+- missing file -> `NOT_CONFIGURED`
+- invalid/unreadable file -> fail visible
+- `real_data` defaults to `false` when omitted
+- `reachable` defaults to `false` when omitted
+- external/import sources contribute to positive health only when status is positive AND `real_data=true` AND `reachable=true`
+- secret names may be reported as configured/missing, but secret values are never projected
 
-The integration catalog combines:
+This prevents a merely present JSON file from being silently promoted to verified real data.
 
-1. core control-plane projections,
-2. external connector records,
-3. local import evidence.
+## 8. Integration health model
 
-Retired Ollama connector records are filtered from the active catalog.
+The Integration Catalog separates required control-plane health from optional source health.
 
-### Data truth fields
+Required core modules are:
 
-Current source/integration records can expose:
-
-- `status`
-- `health`
-- `source`
-- `source_type`
-- `real_data`
-- `synthetic`
-- `reachable`
-- `record_count`
-- `last_sync`
-- `secret_binding`
-- `error_code`
-- `error_message`
-
-## 9. Important truth-model gaps
-
-### GAP-1 — import `real_data` default is too permissive
-
-For a valid import JSON, `SourceRegistry` currently evaluates `real_data` with a default of `true` when the field is absent.
-
-This is incompatible with the stricter product rule:
-
-```text
-IMPLEMENTED != CONNECTED != HAS_REAL_DATA != REACHABLE != VERIFIED
-```
-
-Recommended correction: default `real_data` to `false` and require explicit evidence to promote it to true.
-
-Priority: HIGH.
-
-### GAP-2 — integration aggregate can look healthy too easily
-
-`IntegrationCatalog` currently marks the aggregate `READY/HEALTHY` when any record is positive.
-
-That can hide a large number of degraded or not-configured sources.
-
-Recommended correction: expose separate counts and derive aggregate state from required/core sources, while optional sources remain non-blocking.
-
-Priority: HIGH.
-
-### GAP-3 — route existence versus adapter evidence
-
-`node.stop` is registered and a write route exists, but the Compute UI intentionally hides Stop because no concrete i7 stop adapter was proven during feature recovery.
-
-Recommended rule: never expose a control as active from route/capability metadata alone.
-
-Priority: KEEP CURRENT FAIL-CLOSED BEHAVIOR.
-
-### GAP-4 — dead local-LLM execution code remains
-
-`ExecutionService` still contains an `:ollama_runtime` dispatch clause and imports `OllamaAdapter`, while no active capability selects that executor.
-
-This is currently unreachable through `ollama.generate` because its executor is `:not_connected`, but it is dead breadth.
-
-Recommended correction: remove only after contract/reference audit proves no active dependency.
-
-Priority: MEDIUM.
-
-### GAP-5 — CI does not currently report checks for PR #21
-
-The existing production workflow targets `main` for pull requests, while PR #21 targets `local/all-developments`.
-
-Recommended correction: add or reuse a non-mutating CI contract for the actual integration branch before declaring merge-gate automation complete.
-
-Priority: HIGH.
-
-## 10. Active information architecture
-
-Current daily navigation is intentionally grouped:
-
-### Dashboard
-
-- Overview
-
-### Operations
-
-- Compute
+- System
 - Workflows
 - Runs
-- Jobs
 - Services
-- Backups
-
-### Sources
-
-- Integrations
-- Evidence
-- Knowledge
-
-### Governance
-
+- Nodes
+- AI / Models
 - Approvals
-- Security
 - Audit
-- Logs
+- Security
 
-### Focus & AI
+Overall integration status is derived only from this required core set:
 
-- Focus
-- AI
-- Agents
+- all required core positive -> `READY`
+- some required core positive -> `DEGRADED`
+- no required core evidence -> `UNAVAILABLE`
 
-This is the current production-oriented navigation. Broader project/social/legal/settings routes remain secondary until they meet the same activation standard.
+Optional modules, external connectors and imports are reported separately and cannot make a degraded required core appear healthy.
 
-## 11. Feature / source / runtime matrix
+The UI exposes both `required_core_ready_count / required_core_count` and `optional_ready_count / optional_count`.
 
-Legend:
+## 9. Mission and Top-3 next actions
 
-- `YES` — code or route existence verified in the current branch
-- `LOCAL_PASS` — covered by the current green local suite or local request tests
-- `DYNAMIC` — depends on runtime/import evidence and must not be assumed
-- `PENDING_LIVE_HEAD` — final exact-head process on `:4015` has not been re-proven after the formatting-only commit
-- `SECONDARY` — routable but not promoted to daily navigation
+The dashboard now exposes a deterministic Mission Brief.
 
-| Feature | Code | Route/API | Source model | Test state | Real data | Current classification |
-|---|---|---|---|---|---|---|
-| Dashboard | YES | `/` | RuntimeOverview + Registry + JobQueue | LOCAL_PASS | mixed/dynamic | ACTIVE |
-| Compute | YES | `/compute`, node APIs | NodeCatalog + JobQueue + RuntimeSources | LOCAL_PASS | DYNAMIC | ACTIVE, stop hidden unless proven |
-| Jobs | YES | `/jobs`, `/api/jobs` | JobQueue / Oban projection | LOCAL_PASS | DYNAMIC | ACTIVE |
-| Workflows | YES | UI + read/write APIs | Registry + Inventory + adapters | LOCAL_PASS | registry is real local state | ACTIVE |
-| Runs | YES | UI + APIs | persisted/in-memory run source | LOCAL_PASS | DYNAMIC | ACTIVE |
-| Services | YES | UI + APIs + governed actions | RuntimeSources + SystemdAdapter | LOCAL_PASS | DYNAMIC | ACTIVE |
-| Integrations | YES | `/integrations`, `/api/integrations` | RuntimeOverview + connectors + SourceRegistry | LOCAL_PASS | DYNAMIC | ACTIVE; truth hardening required |
-| Evidence | YES | UI + API | ShadowOps evidence projection | LOCAL_PASS | DYNAMIC | ACTIVE |
-| Knowledge | YES | UI + API | ShadowOps knowledge projection | LOCAL_PASS | DYNAMIC | ACTIVE |
-| Focus | YES | `/focus`, `/api/learning/plan` | LearningFocus YAML/fallback | LOCAL_PASS | local configured state | ACTIVE |
-| Approvals | YES | UI + read/write APIs | ApprovalStore | LOCAL_PASS | real control-plane state | ACTIVE |
-| Audit | YES | UI + `/api/audit/verify` | append/verify audit chain | LOCAL_PASS | real control-plane state | ACTIVE |
-| Security | YES | UI + API | SecurityStatus / policy state | LOCAL_PASS | real policy/runtime state | ACTIVE |
-| Logs | YES | UI + APIs | bounded runtime logs | LOCAL_PASS | DYNAMIC | ACTIVE |
-| AI | YES | UI + API | policy projection | LOCAL_PASS | policy state, no local models | ACTIVE REMOTE_ONLY |
-| Agents | YES | UI + API | agent/runtime projections | LOCAL_PASS | DYNAMIC | ACTIVE surface; execution may be degraded |
-| Career | YES | UI + API | module source | LOCAL_PASS route coverage | DYNAMIC | SECONDARY |
-| Legal | YES | UI + API | legal registry/source | LOCAL_PASS route/API coverage | DYNAMIC | SECONDARY |
-| Settings | YES | `/settings` | application/runtime config projection | route exists | DYNAMIC | SECONDARY |
-| Project domains | YES | `/projects/*` | project manifests/sources | LOCAL_PASS route coverage | DYNAMIC | SECONDARY |
-| Facebook views | YES | social routes/API | Facebook source projection | LOCAL_PASS route/API coverage | DYNAMIC | SECONDARY |
-| Messenger/WhatsApp/Telegram UI shells | YES | social routes | unavailable-state views / connector evidence | LOCAL_PASS route coverage | DYNAMIC | SECONDARY / NOT_CONNECTED unless evidence exists |
-| Metrics | YES | `/metrics` | Prometheus exporter | prior acceptance + tests | runtime metrics | SYSTEM |
-| Runtime dashboard | YES | `/runtime` | Phoenix LiveDashboard | access-gated tests | runtime state | SYSTEM |
-| WebMCP | YES | browser `document.modelContext` | 16 bounded GET-only tools | LOCAL_PASS | mirrors read APIs | ACTIVE READ-ONLY |
+Mission source:
 
-## 12. WebMCP boundary
+- first choice: validated `LearningFocus` configuration
+- if no validated configured mission exists: bounded runtime-readiness fallback
+- no AI-generated mission text is used
 
-Current browser WebMCP exposes 16 bounded read-only tools:
+Next-action priority is deterministic:
+
+1. pending governed approvals,
+2. failed/degraded runtime readiness,
+3. degraded required integrations,
+4. degraded runtime services,
+5. degraded physical compute,
+6. unavailable/degraded persistent job queue,
+7. configured current focus and configured `next` items.
+
+Only the first three candidates are rendered. Each action includes its source and route. No task is invented merely to fill the list.
+
+## 10. WebMCP
+
+WebMCP uses `document.modelContext` and remains read-only.
+
+Current tools project bounded versions of:
 
 - health
 - readiness
@@ -424,43 +263,67 @@ Current browser WebMCP exposes 16 bounded read-only tools:
 
 Rules:
 
-- `document.modelContext`
-- same-origin
 - GET only
-- read-only hints
-- sensitive-key redaction
-- bounded output
+- same-origin
 - no write/governance bypass
-- protected APIs may return `AUTH_REQUIRED`
+- auth remains enforced
+- sensitive keys are redacted
+- output is bounded
 
-## 13. What should be built next
+## 11. Feature / source / runtime matrix
 
-Do not add broad new domains yet.
+| Surface | Route | Backing source | Real-data rule | Mutation | Runtime evidence state |
+|---|---|---|---|---|---|
+| Dashboard | `/` | RuntimeOverview + JobQueue + IntegrationCatalog + LearningFocus | source-backed summaries only | No | previously accepted; current mission head pending exact-head retest |
+| Mission / Top 3 | `/` | MissionBrief over verified runtime/focus state | deterministic; no invented tasks | No | contract added; local retest pending |
+| Compute | `/compute` | NodeCatalog + JobQueue | physical nodes only | Governed node actions | status/start evidence-backed; stop hidden |
+| Workflows | `/workflows` | Workflow registry | canonical and external provenance preserved | Governed run | canonical execution path proven previously |
+| Runs | `/runs` | Run store/API | persisted runtime state | No | available when store source is available |
+| Jobs | `/jobs`, `/api/jobs` | JobQueue / Oban projection | bounded job metadata | No | source-backed projection |
+| Services | `/services` | Runtime service discovery | runtime state | Governed action | Systemd adapter path exists |
+| Integrations | `/integrations` | RuntimeOverview + connectors + SourceRegistry | required core separated from optional; imports fail closed | No | contract added; local retest pending |
+| Evidence | `/evidence` | evidence source/API | privacy-safe metadata | No | route/API proven previously |
+| Knowledge | `/knowledge` | knowledge source/API | source state explicit | No | source-dependent |
+| Focus | `/focus`, `/api/learning/plan` | allowlisted YAML/fallback | validated schema | No | route/API proven previously |
+| Approvals | `/approvals` | ApprovalStore | persisted governance state | Governed transitions | transition contract previously proven |
+| Audit | `/audit` | Audit chain | hash-chain verification | No direct arbitrary mutation | verification previously proven |
+| Security | `/security` | SecurityStatus | policy/runtime projection | No | route/API proven previously |
+| Logs | `/logs` | bounded log source | bounded diagnostics | No | route/API proven previously |
+| AI | `/ai`, `/api/ai` | Remote AI policy | no local models | No local LLM execution | remote-only contract previously proven |
+| Agents | `/agents` | agent source | source state explicit | capability-dependent | source-dependent |
+| WebMCP | browser API | selected read APIs | redacted + bounded | No | contract previously proven |
+| Gmail imports | Integration catalog | `gmail.json` + secret-binding state | `real_data` and `reachable` must be explicit | No | environment/import dependent |
+| Calendar imports | Integration catalog | `calendar.json` + secret-binding state | same | No | environment/import dependent |
+| Drive imports | Integration catalog | `drive.json` + secret-binding state | same | No | environment/import dependent |
+| GitHub imports | Integration catalog | `github.json` + secret-binding state | same | No | environment/import dependent |
+| WhatsApp imports | Integration catalog | `whatsapp.json` | same | No | import dependent |
+| Telegram imports | Integration catalog | `telegram.json` + token-binding state | same | send capability remains not connected | environment/import dependent |
+| Obsidian imports | Integration catalog | `obsidian.json` | same | No | import dependent |
+| Finance imports | Integration catalog | `finance.json` | same | No | import dependent |
+| i7 import | Integration catalog | `i7.json` | same | node actions separately governed | import/runtime dependent |
 
-Recommended order:
+## 12. Remaining high-value gaps
 
-1. fix SourceRegistry `real_data` default and add regression test,
-2. improve IntegrationCatalog aggregate health semantics,
-3. add CI coverage for PRs targeting `local/all-developments`,
-4. re-run exact-head live acceptance on `:4015`,
-5. implement Mission + deterministic Top-3 Next Actions from existing verified sources,
-6. consolidate duplicate conceptual integrations,
-7. only then promote selected life domains such as IHK/Career based on source truth.
+Do not widen feature breadth until these are resolved or deliberately accepted:
 
-## 14. Production claim
+1. exact-head local format/compile/full-test/runtime acceptance for the mission/truth head,
+2. CI trigger coverage for PRs targeting `local/all-developments`,
+3. real connector/import evidence for sources that currently remain environment-dependent,
+4. removal or quarantine of dead workflow inventory entries after executable/source truth is measured,
+5. merge only after draft acceptance criteria are green.
 
-Current status:
+## 13. Next product step after acceptance
+
+After the current exact-head acceptance is green, the next useful work is workflow cleanup and source activation, not new surface area:
 
 ```text
-FUNCTIONAL_CORE=GREEN
-LOCAL_FORMAT=PASS
-LOCAL_COMPILE=PASS
-LOCAL_TESTS=PASS
-REMOTE_BRANCH_PUSHED=YES
-PR_MERGEABLE=YES
-LIVE_FINAL_HEAD_MATCH=PENDING
-DATA_TRUTH_HARDENING=OPEN
-FINAL_STATUS=NOT_YET_PRODUCTION_READY
+existing capability
+  -> route
+  -> UI
+  -> real source
+  -> runtime
+  -> test
+  -> evidence
 ```
 
-The next production claim must be evidence-based and must not be upgraded until the final head is live-verified and the high-priority truth-model gaps are closed or explicitly accepted as degraded optional behavior.
+Anything that cannot complete this chain remains secondary, `NOT_CONFIGURED`, `UNAVAILABLE` or explicitly pending.
