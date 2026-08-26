@@ -17,7 +17,7 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     assert list.resp_body =~ "finanzabgleich"
     assert list.resp_body =~ ~s(name="search")
     assert list.resp_body =~ "Clear filters"
-    assert list.resp_body =~ "Approve &amp; run"
+    assert approve_and_run?(list.resp_body)
     assert list.resp_body =~ "one_click_run"
 
     detail = request(:get, "/workflows/repository_quality")
@@ -25,7 +25,7 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     assert detail.resp_body =~ "Execution policy"
     assert detail.resp_body =~ "L2 approval required"
     assert detail.resp_body =~ "Run workflow"
-    assert detail.resp_body =~ "Approve &amp; run"
+    assert approve_and_run?(detail.resp_body)
     assert detail.resp_body =~ "Audit events"
     refute detail.resp_body =~ ~s(name="write_token")
     refute detail.resp_body =~ ~s(name="approval_id")
@@ -337,6 +337,9 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     |> Plug.Conn.put_req_header("authorization", "Bearer test-write-token")
     |> ShadowOpsWeb.Endpoint.call([])
   end
+
+  defp approve_and_run?(body),
+    do: body =~ "Approve & run" or body =~ "Approve &amp; run"
 
   defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
   defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)
