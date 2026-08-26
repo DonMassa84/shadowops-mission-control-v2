@@ -22,7 +22,7 @@ defmodule ShadowOpsWeb.FeatureRecoveryActivationTest do
     end
   end
 
-  test "compute center exposes activated node functions as one-click buttons" do
+  test "compute center exposes activated node functions as one-click buttons when runtime nodes exist" do
     response = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/compute"), [])
 
     assert response.status == 200
@@ -30,12 +30,20 @@ defmodule ShadowOpsWeb.FeatureRecoveryActivationTest do
     assert response.resp_body =~ "Physical compute"
     assert response.resp_body =~ "Persistent workload queue"
     assert response.resp_body =~ "One-click mode"
-    assert response.resp_body =~ "phx-click=\"node_action\""
-    assert response.resp_body =~ "↻ Check"
     refute response.resp_body =~ ~s(name="write_token")
     refute response.resp_body =~ ~s(name="approval_id")
     refute response.resp_body =~ "Waiting for backend evidence"
     refute response.resp_body =~ ">UNVERIFIED<"
+
+    nodes = ShadowOpsWeb.NodeCatalog.snapshot().records
+    physical_nodes = Enum.reject(nodes, &ShadowOpsCore.Node.logical?/1)
+
+    if physical_nodes != [] do
+      assert response.resp_body =~ "phx-click=\"node_action\""
+      assert response.resp_body =~ "↻ Check"
+    else
+      assert response.resp_body =~ "No physical runtime nodes were discovered"
+    end
   end
 
   test "stop is not exposed as an activated compute action without a runtime adapter" do
