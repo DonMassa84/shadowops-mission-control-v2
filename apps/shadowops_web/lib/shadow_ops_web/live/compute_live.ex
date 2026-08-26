@@ -3,8 +3,8 @@ defmodule ShadowOpsWeb.ComputeLive do
 
   import ShadowOpsWeb.MissionControlComponents
 
-  alias ShadowOpsCore.{ExecutionService, JobQueue, Node}
-  alias ShadowOpsWeb.{NodeCatalog, Plugs.Security}
+  alias ShadowOpsCore.{JobQueue, Node}
+  alias ShadowOpsWeb.{NodeCatalog, OneClick}
 
   @refresh_ms 15_000
 
@@ -18,27 +18,18 @@ defmodule ShadowOpsWeb.ComputeLive do
     {:noreply, load(socket)}
   end
 
-  def handle_event("node_action", params, socket) do
-    actor = params["actor"] || ""
-    token = params["write_token"] || ""
-    node_id = params["node_id"] || ""
-    action = params["action"] || ""
-    approval_id = blank_to_nil(params["approval_id"])
+  def handle_event("node_action", %{"id" => node_id, "action" => action}, socket) do
+    if action in allowed_actions(node_id) do
+      case OneClick.execute_node(action, node_id) do
+        {:ok, _result} ->
+          {:noreply,
+           socket |> load() |> put_flash(:info, "Node action completed: #{node_id} / #{action}")}
 
-    with :ok <- Security.authorize_live_write(actor, token),
-         true <- action in allowed_actions(node_id),
-         capability <- "node.#{action}",
-         input <- %{node_id: node_id, action: action},
-         {:ok, _result} <-
-           ExecutionService.execute(capability, actor, node_id, input, %{approval_id: approval_id}) do
-      {:noreply,
-       socket |> load() |> put_flash(:info, "Node action completed: #{node_id} / #{action}")}
+        {:error, reason} ->
+          {:noreply, put_flash(socket, :error, "Node action blocked: #{safe_reason(reason)}")}
+      end
     else
-      false ->
-        {:noreply, put_flash(socket, :error, "Node action is not activated for this runtime")}
-
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Node action blocked: #{safe_reason(reason)}")}
+      {:noreply, put_flash(socket, :error, "Node action is not activated for this runtime")}
     end
   end
 
@@ -58,10 +49,14 @@ defmodule ShadowOpsWeb.ComputeLive do
         <.metric_card label="Visible jobs" value={@jobs.record_count || 0} status={@jobs.status} note="Private job arguments are not rendered" />
       </div>
 
-      <.panel title="Physical compute" description="Only runtime-backed nodes. Controls fail closed through write authorization, governance and audit.">
+      <p class="mc-callout">
+        One-click mode: <strong>{if(@one_click_ready, do: "READY", else: "WRITE TOKEN REQUIRED")}</strong> · every activated node action is a direct button; unavailable actions stay hidden.
+      </p>
+
+      <.panel title="Physical compute" description="Only runtime-backed nodes. Controls fail closed through policy, approval when required, execution adapters and audit.">
         <div :if={@physical_nodes != []} class="mc-table-wrap">
           <table class="mc-table">
-            <thead><tr><th>Node</th><th>Status</th><th>Reachable</th><th>Load</th><th>RAM</th><th>Uptime</th><th>Source</th><th>Activated actions</th></tr></thead>
+            <thead><tr><th>Node</th><th>Status</th><th>Reachable</th><th>Load</th><th>RAM</th><th>Uptime</th><th>Source</th><th>One click</th></tr></thead>
             <tbody>
               <tr :for={node <- @physical_nodes}>
                 <td><strong>{node.name}</strong><br /><span class="mc-mono mc-muted">{Node.id(node)}</span></td>
@@ -71,32 +66,15 @@ defmodule ShadowOpsWeb.ComputeLive do
                 <td>{format_value(node[:ram])}</td>
                 <td>{node[:uptime_seconds] || "Not measured"}</td>
                 <td class="mc-mono">{node.source}</td>
-                <td>{Enum.join(allowed_actions(Node.id(node)), ", ")}</td>
+                <td class="mc-actions">
+                  <button class="mc-button" type="button" phx-click="node_action" phx-value-id={Node.id(node)} phx-value-action="status" disabled={!@one_click_ready}>↻ Check</button>
+                  <button :if={"start" in allowed_actions(Node.id(node))} class="mc-button" type="button" phx-click="node_action" phx-value-id={Node.id(node)} phx-value-action="start" disabled={!@one_click_ready}>▶ Start</button>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
         <p :if={@physical_nodes == []} class="mc-empty">No physical runtime nodes were discovered.</p>
-      </.panel>
-
-      <.panel title="Governed node action" description="Status is available for physical nodes. i7 start is exposed because a concrete runtime adapter exists. Stop remains hidden until a real stop adapter is implemented.">
-        <form id="compute-node-action" class="mc-filter" phx-submit="node_action" autocomplete="off">
-          <label>Node
-            <select name="node_id" required>
-              <option :for={node <- @physical_nodes} value={Node.id(node)}>{node.name} · {Node.id(node)}</option>
-            </select>
-          </label>
-          <label>Action
-            <select name="action" required>
-              <option value="status">Healthcheck / status</option>
-              <option value="start">Start (i7 only)</option>
-            </select>
-          </label>
-          <label>Actor<input name="actor" required maxlength="120" placeholder="operator" /></label>
-          <label>Write token<input type="password" name="write_token" required autocomplete="off" /></label>
-          <label>Approval ID<input name="approval_id" placeholder="required when policy demands approval" /></label>
-          <button class="mc-button" type="submit">Execute governed action</button>
-        </form>
       </.panel>
 
       <.panel title="Persistent workload queue" description="Oban jobs when persistence is enabled. Scheduling state remains explicit when persistence is disabled.">
@@ -118,6 +96,7 @@ defmodule ShadowOpsWeb.ComputeLive do
       nodes: nodes,
       physical_nodes: physical_nodes,
       jobs: JobQueue.snapshot(),
+      one_click_ready: OneClick.available?(),
       updated_at: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
     )
   end
@@ -143,8 +122,6 @@ defmodule ShadowOpsWeb.ComputeLive do
   defp time(nil), do: "Not scheduled"
   defp time(%DateTime{} = value), do: DateTime.to_iso8601(value)
   defp time(value), do: to_string(value)
-  defp blank_to_nil(value) when value in [nil, ""], do: nil
-  defp blank_to_nil(value), do: value
   defp safe_reason(reason) when is_atom(reason), do: Atom.to_string(reason)
   defp safe_reason({tag, _}) when is_atom(tag), do: Atom.to_string(tag)
   defp safe_reason(_), do: "action_failed"
