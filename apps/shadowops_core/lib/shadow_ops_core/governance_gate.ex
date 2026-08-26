@@ -27,9 +27,6 @@ defmodule ShadowOpsCore.GovernanceGate do
       {:error, :blocked, reason} ->
         blocked(actor, resource, capability, {:privacy_gate_blocked, reason})
 
-      {:blocked, reason} ->
-        blocked(actor, resource, capability, {:approval_blocked, reason})
-
       {:error, reason} ->
         blocked(actor, resource, capability, reason)
 
