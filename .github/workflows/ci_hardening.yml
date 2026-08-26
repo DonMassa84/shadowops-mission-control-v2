@@ -60,12 +60,6 @@ jobs:
       - name: Verify dependency lock
         run: git diff --exit-code -- mix.lock
 
-      - name: Install hardening analysis tools
-        run: |
-          mix archive.install hex credo 1.7.19 --force
-          mix archive.install hex dialyxir 1.4.7 --force
-          mix archive.install hex sobelow 0.15.0 --force
-
       - name: Format check
         run: mix format --check-formatted
 
