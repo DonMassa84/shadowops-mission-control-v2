@@ -29,7 +29,8 @@ defmodule ShadowOpsWeb.ServiceIntegrationCandidatesTest do
 
     assert response.status == 200
     assert response.resp_body =~ "Local integration candidates"
-    assert response.resp_body =~ "REFERENCE_ONLY"
+    assert response.resp_body =~ "actions disabled for all candidate records"
+    assert response.resp_body =~ "Open source"
     assert response.resp_body =~ "Bot Gateway"
     assert response.resp_body =~ "System Healer"
   end
