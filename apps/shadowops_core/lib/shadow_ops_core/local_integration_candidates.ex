@@ -96,7 +96,11 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
     records = Enum.map(@candidates, &resolve(&1, root))
 
     %{
-      status: if(Enum.any?(records, &(&1.status == "DISCOVERED")), do: "DISCOVERED", else: "NOT_CONFIGURED"),
+      status:
+        if(Enum.any?(records, &(&1.status == "DISCOVERED")),
+          do: "DISCOVERED",
+          else: "NOT_CONFIGURED"
+        ),
       source_type: "LOCAL_FIXED_PATH_DISCOVERY",
       synthetic: false,
       real_data: Enum.any?(records, & &1.real_data),
