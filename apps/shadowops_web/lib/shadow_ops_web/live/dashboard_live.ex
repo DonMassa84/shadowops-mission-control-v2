@@ -29,182 +29,52 @@ defmodule ShadowOpsWeb.DashboardLive do
     >
       <section class="mc-grid" aria-label="Daily operations overview">
         <a class="mc-card-link" href="/infrastructure">
-          <.metric_card
-            label="System"
-            value={@overview.readiness.state}
-            status={@overview.readiness.state}
-            source="runtime readiness"
-            note="Required dependencies and audit readiness"
-          />
+          <.metric_card label="System" value={@overview.readiness.state} status={@overview.readiness.state} source="runtime readiness" note="Required dependencies and audit readiness" />
         </a>
-
         <a class="mc-card-link" href="/workflows">
-          <.metric_card
-            label="Workflows"
-            value={@workflow_inventory["canonical_count"]}
-            status={workflow_inventory_status(@workflow_inventory)}
-            source="canonical workflow registry"
-            note="Executable governed automations"
-          />
+          <.metric_card label="Workflows" value={@workflow_inventory["canonical_count"]} status={workflow_inventory_status(@workflow_inventory)} source="canonical workflow registry" note="Executable governed automations" />
         </a>
-
         <a class="mc-card-link" href="/runs">
-          <.metric_card
-            label="Runs"
-            value={length(@overview.runs.records)}
-            status={@overview.runs.status}
-            source={@overview.runs.source}
-            note="Persisted workflow execution history"
-          />
+          <.metric_card label="Runs" value={length(@overview.runs.records)} status={@overview.runs.status} source={@overview.runs.source} note="Persisted workflow execution history" />
         </a>
-
         <a class="mc-card-link" href="/approvals">
-          <.metric_card
-            label="Pending approvals"
-            value={pending(@overview.approvals.records)}
-            status={approval_overall(@overview)}
-            source={@overview.approvals.source}
-            note="Actions waiting for operator decision"
-          />
+          <.metric_card label="Pending approvals" value={pending(@overview.approvals.records)} status={approval_overall(@overview)} source={@overview.approvals.source} note="Actions waiting for operator decision" />
         </a>
-
         <a class="mc-card-link" href="/nodes">
-          <.metric_card
-            label="Nodes"
-            value={node_summary(@overview)}
-            status={node_status(@overview)}
-            source={@overview.nodes.source}
-            note="Physical compute only"
-          />
+          <.metric_card label="Nodes" value={node_summary(@overview)} status={node_status(@overview)} source={@overview.nodes.source} note="Physical compute only" />
         </a>
-
         <a class="mc-card-link" href="/services">
-          <.metric_card
-            label="Services"
-            value={service_summary(@overview)}
-            status={service_status(@overview)}
-            source={@overview.services.source}
-            note="Runtime services discovered on the host"
-          />
+          <.metric_card label="Services" value={service_summary(@overview)} status={service_status(@overview)} source={@overview.services.source} note="Runtime services discovered on the host" />
         </a>
-
         <a class="mc-card-link" href="/ai">
-          <.metric_card
-            label="AI policy"
-            value={ai_policy(@overview)}
-            status={ai_policy_status(@overview)}
-            source={@overview.ai.source}
-            note="No local Ollama LLM runtime"
-          />
+          <.metric_card label="AI policy" value={ai_policy(@overview)} status={ai_policy_status(@overview)} source={@overview.ai.source} note="No local Ollama LLM runtime" />
         </a>
-
         <a class="mc-card-link" href="/security">
-          <.metric_card
-            label="Security"
-            value={@overview.security.overall}
-            status={@overview.security.overall}
-            source={@overview.security.source}
-            note="Governance and write-boundary state"
-          />
+          <.metric_card label="Security" value={@overview.security.overall} status={@overview.security.overall} source={@overview.security.source} note="Governance and write-boundary state" />
         </a>
       </section>
 
-      <.panel
-        title="Do next"
-        description="The four operational surfaces most likely to require action."
-      >
+      <.panel title="Do next" description="The four operational surfaces most likely to require action.">
         <div class="mc-command-grid">
-          <a class="mc-command-card" href="/workflows">
-            <span class="mc-command-kicker">Automate</span>
-            <strong>Workflows</strong>
-            <span>{@workflow_inventory["canonical_count"]} governed workflows</span>
-          </a>
-          <a class="mc-command-card" href="/approvals">
-            <span class="mc-command-kicker">Decide</span>
-            <strong>Approvals</strong>
-            <span>{pending(@overview.approvals.records)} pending</span>
-          </a>
-          <a class="mc-command-card" href="/nodes">
-            <span class="mc-command-kicker">Operate</span>
-            <strong>Compute</strong>
-            <span>{node_summary(@overview)}</span>
-          </a>
-          <a class="mc-command-card" href="/logs">
-            <span class="mc-command-kicker">Diagnose</span>
-            <strong>Logs</strong>
-            <span>Bounded runtime diagnostics</span>
-          </a>
+          <a class="mc-command-card" href="/workflows"><span class="mc-command-kicker">Automate</span><strong>Workflows</strong><span>{@workflow_inventory["canonical_count"]} governed workflows</span></a>
+          <a class="mc-command-card" href="/approvals"><span class="mc-command-kicker">Decide</span><strong>Approvals</strong><span>{pending(@overview.approvals.records)} pending</span></a>
+          <a class="mc-command-card" href="/nodes"><span class="mc-command-kicker">Operate</span><strong>Compute</strong><span>{node_summary(@overview)}</span></a>
+          <a class="mc-command-card" href="/logs"><span class="mc-command-kicker">Diagnose</span><strong>Logs</strong><span>Bounded runtime diagnostics</span></a>
         </div>
       </.panel>
 
-      <.panel
-        title="Operational gates"
-        description="Only evidence-backed gates are presented as healthy."
-      >
-        <div class="mc-table-wrap">
-          <table class="mc-table">
-            <thead>
-              <tr><th>Gate</th><th>Status</th><th>Evidence</th><th>Open</th></tr>
-            </thead>
-            <tbody>
-              <tr :for={{gate, state, evidence, href} <- operational_gates(@overview)}>
-                <td><strong>{gate}</strong></td>
-                <td><.status_badge status={state} /></td>
-                <td class="mc-muted">{evidence}</td>
-                <td><a class="mc-button" href={href}>Open</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <.panel title="Operational gates" description="Only evidence-backed gates are presented as healthy.">
+        <div class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Gate</th><th>Status</th><th>Evidence</th><th>Open</th></tr></thead><tbody><tr :for={{gate, state, evidence, href} <- operational_gates(@overview)}><td><strong>{gate}</strong></td><td><.status_badge status={state} /></td><td class="mc-muted">{evidence}</td><td><a class="mc-button" href={href}>Open</a></td></tr></tbody></table></div>
       </.panel>
 
-      <.panel
-        title="Recent runs"
-        description="Latest persisted workflow executions."
-      >
-        <div class="mc-table-wrap" :if={recent_runs(@overview) != []}>
-          <table class="mc-table">
-            <thead>
-              <tr><th>Run</th><th>Status</th><th>Workflow</th><th>Updated</th></tr>
-            </thead>
-            <tbody>
-              <tr :for={run <- recent_runs(@overview)}>
-                <td class="mc-mono">{record_value(run, :id, "unknown")}</td>
-                <td><.status_badge status={record_value(run, :status, "UNKNOWN")} /></td>
-                <td>{record_value(run, :workflow_id, record_value(run, :workflow, "unknown"))}</td>
-                <td>{run_timestamp(run)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <.panel title="Recent runs" description="Latest persisted workflow executions.">
+        <div class="mc-table-wrap" :if={recent_runs(@overview) != []}><table class="mc-table"><thead><tr><th>Run</th><th>Status</th><th>Workflow</th><th>Updated</th></tr></thead><tbody><tr :for={run <- recent_runs(@overview)}><td class="mc-mono">{record_value(run, :id, "unknown")}</td><td><.status_badge status={record_value(run, :status, "UNKNOWN")} /></td><td>{record_value(run, :workflow_id, record_value(run, :workflow, "unknown"))}</td><td>{run_timestamp(run)}</td></tr></tbody></table></div>
         <p :if={recent_runs(@overview) == []} class="mc-empty">No persisted workflow runs yet.</p>
       </.panel>
 
-      <.panel
-        title="Available workflows"
-        description="Canonical workflows only; external inventory-only records are hidden from the action list."
-      >
-        <div class="mc-table-wrap" :if={@canonical_workflows != []}>
-          <table class="mc-table">
-            <thead>
-              <tr><th>Workflow</th><th>Status</th><th>Risk</th><th>Action</th></tr>
-            </thead>
-            <tbody>
-              <tr :for={workflow <- Enum.take(@canonical_workflows, 10)}>
-                <td>
-                  <strong>{workflow_name(workflow)}</strong><br />
-                  <span class="mc-mono mc-muted">{workflow["id"]}</span>
-                </td>
-                <td><.status_badge status={workflow_status(workflow)} /></td>
-                <td>{workflow["risk_level"] || "Not specified"}</td>
-                <td><a class="mc-button" href={"/workflows/#{workflow["id"]}"}>Review / run</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p :if={@canonical_workflows == []} class="mc-empty">
-          No canonical executable workflow is currently available.
-        </p>
+      <.panel title="Available workflows" description="Canonical workflows only; external inventory-only records are hidden from the action list.">
+        <div class="mc-table-wrap" :if={@canonical_workflows != []}><table class="mc-table"><thead><tr><th>Workflow</th><th>Status</th><th>Risk</th><th>Action</th></tr></thead><tbody><tr :for={workflow <- Enum.take(@canonical_workflows, 10)}><td><strong>{workflow_name(workflow)}</strong><br /><span class="mc-mono mc-muted">{workflow["id"]}</span></td><td><.status_badge status={workflow_status(workflow)} /></td><td>{workflow["risk_level"] || "Not specified"}</td><td><a class="mc-button" href={"/workflows/#{workflow["id"]}"}>Review / run</a></td></tr></tbody></table></div>
+        <p :if={@canonical_workflows == []} class="mc-empty">No canonical executable workflow is currently available.</p>
       </.panel>
     </.app_shell>
     """
@@ -218,13 +88,8 @@ defmodule ShadowOpsWeb.DashboardLive do
         {:ok, registry} ->
           canonical =
             case ShadowOpsApi.list_workflows() do
-              {:ok, workflows} ->
-                workflows
-                |> Enum.filter(&executable_canonical?/1)
-                |> Enum.sort_by(& &1["id"])
-
-              {:error, _reason} ->
-                []
+              {:ok, workflows} -> workflows |> Enum.filter(&executable_canonical?/1) |> Enum.sort_by(& &1["id"])
+              {:error, _reason} -> []
             end
 
           {Inventory.summary(registry), canonical}
@@ -233,21 +98,13 @@ defmodule ShadowOpsWeb.DashboardLive do
           {empty_inventory(), []}
       end
 
-    assign(socket,
-      overview: overview,
-      workflow_inventory: inventory,
-      canonical_workflows: canonical_workflows,
-      updated_at: now()
-    )
+    assign(socket, overview: overview, workflow_inventory: inventory, canonical_workflows: canonical_workflows, updated_at: now())
   end
 
-  defp empty_inventory,
-    do: %{"total_count" => "UNAVAILABLE", "canonical_count" => 0, "external_count" => 0}
+  defp empty_inventory, do: %{"total_count" => "UNAVAILABLE", "canonical_count" => 0, "external_count" => 0}
 
-  defp executable_canonical?(workflow) do
-    workflow["source_kind"] != "external_runtime_set" and
-      workflow_status(workflow) not in ["UNAVAILABLE", "DISABLED", "NOT_CONNECTED"]
-  end
+  defp executable_canonical?(workflow),
+    do: workflow["source_kind"] != "external_runtime_set" and workflow_status(workflow) not in ["UNAVAILABLE", "DISABLED", "NOT_CONNECTED"]
 
   defp operational_gates(o),
     do: [
@@ -259,11 +116,7 @@ defmodule ShadowOpsWeb.DashboardLive do
       {"AI execution", ai_policy_status(o), ai_policy(o), "/ai"}
     ]
 
-  defp physical_nodes(o) do
-    o.nodes
-    |> Map.get(:records, [])
-    |> Enum.reject(&(get_in(&1, [:metadata, :logical]) == true))
-  end
+  defp physical_nodes(o), do: o.nodes |> Map.get(:records, []) |> Enum.reject(&(get_in(&1, [:metadata, :logical]) == true))
 
   defp node_summary(o) do
     nodes = physical_nodes(o)
@@ -274,7 +127,6 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp node_status(o) do
     nodes = physical_nodes(o)
     ready = Enum.count(nodes, &(record_value(&1, :status, "") in ["READY", "ONLINE"]))
-
     cond do
       nodes == [] -> "UNAVAILABLE"
       ready == length(nodes) -> "READY"
@@ -292,7 +144,6 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp service_status(o) do
     services = Map.get(o.services, :services, [])
     ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
-
     cond do
       services == [] -> "UNAVAILABLE"
       ready == length(services) -> "READY"
@@ -303,33 +154,15 @@ defmodule ShadowOpsWeb.DashboardLive do
 
   defp ai_policy(o), do: get_in(o, [:ai, :policy, :coding_execution]) || "UNAVAILABLE"
   defp ai_policy_status(o), do: if(ai_policy(o) == "REMOTE_ONLY", do: "READY", else: "DEGRADED")
-
-  defp workflow_inventory_status(%{"canonical_count" => total})
-       when is_integer(total) and total > 0,
-       do: "READY"
-
+  defp workflow_inventory_status(%{"canonical_count" => total}) when is_integer(total) and total > 0, do: "READY"
   defp workflow_inventory_status(_), do: "UNAVAILABLE"
-
-  defp approval_overall(o),
-    do: if(pending(o.approvals.records) > 0, do: "DEGRADED", else: o.approvals.status)
-
+  defp approval_overall(o), do: if(pending(o.approvals.records) > 0, do: "DEGRADED", else: o.approvals.status)
   defp pending(records), do: Enum.count(records, &(record_value(&1, :status, "") == "PENDING"))
   defp recent_runs(o), do: o.runs.records |> Enum.take(5)
-
-  defp record_value(record, key, default) when is_map(record),
-    do: Map.get(record, key, Map.get(record, to_string(key), default))
-
+  defp record_value(record, key, default) when is_map(record), do: Map.get(record, key, Map.get(record, to_string(key), default))
   defp record_value(_record, _key, default), do: default
-
-  defp run_timestamp(run),
-    do:
-      record_value(run, :finished_at, nil) ||
-        record_value(run, :started_at, nil) ||
-        record_value(run, :queued_at, "Not available")
-
-  defp workflow_status(workflow),
-    do: workflow["execution_status"] || workflow["status"] || "AVAILABLE"
-
+  defp run_timestamp(run), do: record_value(run, :finished_at, nil) || record_value(run, :started_at, nil) || record_value(run, :queued_at, "Not available")
+  defp workflow_status(workflow), do: workflow["execution_status"] || workflow["status"] || "AVAILABLE"
   defp workflow_name(workflow), do: workflow["display_name"] || workflow["name"] || workflow["id"]
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
 end
