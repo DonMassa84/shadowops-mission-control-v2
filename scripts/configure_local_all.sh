@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-TARGET_BRANCH="${SHADOWOPS_CONFIG_BRANCH:-hardening/production-ready-2026-08-25}"
+TARGET_BRANCH="${SHADOWOPS_CONFIG_BRANCH:-automation/opencode-work}"
 REMOTE_REF="${SHADOWOPS_CONFIG_REMOTE_REF:-origin/${TARGET_BRANCH}}"
 PORT="${SHADOWOPS_PREVIEW_PORT:-4014}"
 STATE_ROOT="${SHADOWOPS_STATE_ROOT:-${HOME}/.local/state/shadowops}"
@@ -235,6 +235,8 @@ mix shadowops.registry validate
 mix shadowops.workflow_ids.validate
 mix hex.audit
 git diff --check
+SHADOWOPS_PROJECT_CATALOG="$PROJECT_CATALOG" MIX_ENV=test mix shadowops.projects.seed
+export SHADOWOPS_PROJECT_CATALOG="$PROJECT_CATALOG"
 SHADOWOPS_RUNTIME_REQUIRED=0 bash scripts/production_acceptance.sh
 pass "quality_gate"
 

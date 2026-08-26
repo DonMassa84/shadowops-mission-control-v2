@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - hardening/production-ready-2026-08-25
+      - automation/opencode-work
   pull_request:
     branches:
       - main
