@@ -155,7 +155,6 @@ defmodule ShadowOpsCore.ExecutionService do
          :ok <- OpenCodeAdapter.validate(runtime) do
       OpenCodeAdapter.run(runtime, input, context)
     else
-      {:ok, []} -> {:error, :opencode_runtime_unavailable}
       {:error, _} = error -> error
     end
   end
