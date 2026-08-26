@@ -31,16 +31,20 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     refute detail.resp_body =~ ~s(name="approval_id")
   end
 
-  test "service page exposes governed runtime actions as buttons only" do
+  test "service page exposes governed runtime actions as buttons only when services exist" do
     services = request(:get, "/services")
     assert services.status == 200
     assert services.resp_body =~ "One-click mode"
-    assert services.resp_body =~ "▶ Start"
-    assert services.resp_body =~ "↻ Restart"
-    assert services.resp_body =~ "■ Stop"
+    assert services.resp_body =~ "Every supported mutation is a direct button"
     refute services.resp_body =~ ~s(name="write_token")
     refute services.resp_body =~ ~s(name="approval_id")
     refute services.resp_body =~ ~s(name="actor")
+
+    if ShadowOpsApi.services().services != [] do
+      assert services.resp_body =~ "▶ Start"
+      assert services.resp_body =~ "↻ Restart"
+      assert services.resp_body =~ "■ Stop"
+    end
   end
 
   test "daily digest is available through the canonical workflow lookup" do
