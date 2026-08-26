@@ -1,0 +1,48 @@
+name: Local Static Diagnostics
+
+on:
+  push:
+    branches: ["local/all-developments"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+env:
+  MIX_ENV: test
+  SHADOWOPS_START_PERSISTENCE: "false"
+
+jobs:
+  static_diagnostics:
+    name: Credo · Dialyzer · Sobelow diagnostics
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27.3"
+          elixir-version: "1.17.3"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+            priv/plts
+          key: diagnostics-${{ runner.os }}-otp27-elixir117-${{ hashFiles('mix.lock') }}
+          restore-keys: diagnostics-${{ runner.os }}-otp27-elixir117-
+      - run: mix deps.get
+      - name: Compile
+        run: mix compile --warnings-as-errors
+      - name: Credo full
+        continue-on-error: true
+        run: mix credo --strict
+      - name: Dialyzer
+        continue-on-error: true
+        run: mix dialyzer
+      - name: Sobelow
+        continue-on-error: true
+        run: mix sobelow --exit
