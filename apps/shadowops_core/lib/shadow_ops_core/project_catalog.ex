@@ -9,6 +9,7 @@ defmodule ShadowOpsCore.ProjectCatalog do
   alias ShadowOpsCore.Truthfulness
 
   @default_relative [".local", "state", "shadowops", "project_catalog.json"]
+  @domains ~w(shadowops ihk social ai knowledge career ops evidence backup reporting other)
 
   @spec default_path() :: String.t()
   def default_path, do: Path.join([System.user_home!() | @default_relative])
@@ -62,6 +63,7 @@ defmodule ShadowOpsCore.ProjectCatalog do
       %{
         id: id,
         name: name,
+        domain: safe_domain(string_value(project, "domain")),
         source_type: string_value(project, "source_type") || "UNKNOWN",
         status: status,
         visibility: string_value(project, "visibility"),
@@ -115,7 +117,11 @@ defmodule ShadowOpsCore.ProjectCatalog do
       github: Enum.count(projects, &(&1.source_type == "github_repository")),
       chatgpt: Enum.count(projects, &(&1.source_type == "chatgpt_library_project")),
       ready: Enum.count(projects, &(&1.status == "READY")),
-      not_configured: Enum.count(projects, &(&1.status == "NOT_CONFIGURED"))
+      discovered: Enum.count(projects, &(&1.status == "DISCOVERED")),
+      not_configured: Enum.count(projects, &(&1.status == "NOT_CONFIGURED")),
+      degraded: Enum.count(projects, &(&1.status == "DEGRADED")),
+      blocked: Enum.count(projects, &(&1.status == "BLOCKED")),
+      unavailable: Enum.count(projects, &(&1.status == "UNAVAILABLE"))
     }
   end
 
@@ -131,7 +137,17 @@ defmodule ShadowOpsCore.ProjectCatalog do
       synthetic: false,
       real_data: false,
       reachable: false,
-      counts: %{total: nil, github: nil, chatgpt: nil, ready: nil, not_configured: nil},
+      counts: %{
+        total: nil,
+        github: nil,
+        chatgpt: nil,
+        ready: nil,
+        discovered: nil,
+        not_configured: nil,
+        degraded: nil,
+        blocked: nil,
+        unavailable: nil
+      },
       projects: [],
       error_code: code,
       error_message: message
@@ -164,6 +180,10 @@ defmodule ShadowOpsCore.ProjectCatalog do
   end
 
   defp boolean_value(map, key), do: Map.get(map, key) == true
+
+  defp safe_domain(domain) when domain in @domains, do: domain
+  defp safe_domain(nil), do: nil
+  defp safe_domain(_), do: "other"
 
   defp safe_github_url("https://github.com/" <> _rest = url), do: url
   defp safe_github_url(_), do: nil
