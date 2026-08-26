@@ -6,6 +6,7 @@ on:
     paths:
       - "docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md"
       - "scripts/opencode-preflight.sh"
+      - "scripts/opencode-postflight.sh"
       - "scripts/shadowops-coder.sh"
       - ".opencode/agent/shadowops-coder.md"
       - ".github/workflows/opencode-handoff-contract.yml"
@@ -14,6 +15,7 @@ on:
     paths:
       - "docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md"
       - "scripts/opencode-preflight.sh"
+      - "scripts/opencode-postflight.sh"
       - "scripts/shadowops-coder.sh"
       - ".opencode/agent/shadowops-coder.md"
 
@@ -31,6 +33,7 @@ jobs:
       - name: Shell syntax
         run: |
           bash -n scripts/opencode-preflight.sh
+          bash -n scripts/opencode-postflight.sh
           bash -n scripts/shadowops-coder.sh
 
       - name: Canonical handoff markers
@@ -38,6 +41,7 @@ jobs:
           grep -Fq 'CURRENT TASK — P0: atomic single-use approval consumption' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
           grep -Fq 'PrivacyGate failure must leave an approved approval still `APPROVED`' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
           grep -Fq 'CONCURRENT_SINGLE_WINNER=' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
+          grep -Fq 'Return this block as text on stdout. Do not write it to a file.' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
           grep -Fq 'FINAL_STATUS=' docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md
 
       - name: Agent discipline markers
@@ -45,11 +49,25 @@ jobs:
           grep -Fq 'OPENCODE_NEMOTRON_EXECUTION.md' .opencode/agent/shadowops-coder.md
           grep -Fq 'Never rewrite a non-disposable existing source file wholesale' .opencode/agent/shadowops-coder.md
           grep -Fq 'after two distinct fixes, STOP' .opencode/agent/shadowops-coder.md
+          grep -Fq 'completion report is STDOUT/TEXT ONLY' .opencode/agent/shadowops-coder.md
+          grep -Fq 'Never attempt placeholder or example filesystem paths' .opencode/agent/shadowops-coder.md
 
-      - name: Launcher next mode
+      - name: Launcher bounded next mode
         run: |
           grep -Fq -- '--next' scripts/shadowops-coder.sh
           grep -Fq 'opencode-preflight.sh --repair-known-drift --sync' scripts/shadowops-coder.sh
+          grep -Fq 'timeout --foreground' scripts/shadowops-coder.sh
+          grep -Fq 'opencode-postflight.sh' scripts/shadowops-coder.sh
+          grep -Fq 'SHADOWOPS_CODER=BLOCKED_TIMEOUT' scripts/shadowops-coder.sh
+
+      - name: Postflight scope contract
+        run: |
+          grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/approval.ex' scripts/opencode-postflight.sh
+          grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/approval_store.ex' scripts/opencode-postflight.sh
+          grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/governance_gate.ex' scripts/opencode-postflight.sh
+          grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/audit.ex' scripts/opencode-postflight.sh
+          grep -Fq 'apps/shadowops_core/test/durable_governance_test.exs' scripts/opencode-postflight.sh
+          grep -Fq 'BLOCKED_UNEXPECTED_PATHS' scripts/opencode-postflight.sh
 
       - name: MCP canonical source remains syntactically valid
         run: python3 -m py_compile ops/mcp/shadowops_runtime_mcp.py
