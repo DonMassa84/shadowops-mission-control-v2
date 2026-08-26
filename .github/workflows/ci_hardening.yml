@@ -109,9 +109,15 @@ jobs:
         run: git diff --check
 
       - name: Production acceptance script
+        shell: bash
         env:
           SHADOWOPS_RUNTIME_REQUIRED: "0"
-        run: bash scripts/production_acceptance.sh
+        run: |
+          set -euo pipefail
+          export SHADOWOPS_PROJECT_CATALOG="$RUNNER_TEMP/shadowops-project-catalog.json"
+          mix shadowops.projects.seed
+          test -s "$SHADOWOPS_PROJECT_CATALOG"
+          bash scripts/production_acceptance.sh
 
       - name: Prod compile
         env:
