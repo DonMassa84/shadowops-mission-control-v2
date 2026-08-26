@@ -119,10 +119,13 @@ jobs:
       - name: Audit Hex dependencies
         run: mix hex.audit
 
+      - name: Install MCP unit-test dependencies
+        run: python3 -m pip install 'mcp>=2,<3' 'httpx>=0.28,<1'
+
       - name: Validate read-only MCP contract
         env:
           PYTHONDONTWRITEBYTECODE: "1"
-        run: python3 -m unittest -v ops.mcp.test_shadowops_runtime_mcp
+        run: python3 -m unittest discover -s ops/mcp -p 'test_*.py' -v
 
       - name: Validate remote-only AI product contract
         shell: bash
