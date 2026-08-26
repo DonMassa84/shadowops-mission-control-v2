@@ -13,7 +13,8 @@ For humans and coding agents, read these files before changing code:
 3. [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — dated status snapshot, verified facts and current priorities.
 4. [`docs/LOCAL_ALL_DEVELOPMENTS.md`](docs/LOCAL_ALL_DEVELOPMENTS.md) — local development/certification/promotion lifecycle.
 5. [`docs/PRODUCTION.md`](docs/PRODUCTION.md) and [`docs/SECURITY.md`](docs/SECURITY.md) — production and security contracts.
-6. [`docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md`](docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md) — deterministic OpenCode/Nemotron handoff.
+6. [`docs/REMOTE_AI_POLICY.md`](docs/REMOTE_AI_POLICY.md) — canonical remote-only AI execution policy.
+7. [`docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md`](docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md) — deterministic OpenCode/Nemotron handoff.
 
 Do not treat documentation as stronger evidence than the repository, CI and runtime. Re-check `git status`, branch/HEAD, tests and runtime before claiming a state is current.
 
@@ -116,18 +117,30 @@ SHADOWOPS_PROMOTE_STABLE=YES scripts/shadowops-local.sh promote
 
 Full details: [`docs/LOCAL_ALL_DEVELOPMENTS.md`](docs/LOCAL_ALL_DEVELOPMENTS.md).
 
-## Local coding agent
+## Remote coding agent
 
-ShadowOps uses a guarded local OpenCode agent with local Ollama models and a read-only ShadowOps MCP gateway.
+ShadowOps may use OpenCode as a guarded coding-agent shell, but **AI model execution is remote-only**. Local language models are not permitted for coding tasks.
+
+Canonical policy:
+
+```text
+AI_EXECUTION_POLICY=REMOTE_ONLY
+```
+
+The repository no longer configures local Ollama models or a local AI default. `scripts/shadowops-coder.sh` requires an explicit remote `provider/model` identifier and fails closed if a known local provider such as `ollama/*`, `lmstudio/*` or `llamacpp/*` is selected.
 
 Preferred entrypoint:
 
 ```bash
-scripts/opencode-preflight.sh --repair-known-drift --sync
-scripts/shadowops-coder.sh --next
+opencode models
+
+SHADOWOPS_CODER_MODEL='provider/model' \
+  scripts/shadowops-coder.sh --next
 ```
 
-The agent must not work directly on `main`/`master`, mutate stable port `4013`, run deployments, use destructive Git commands, or invent evidence. See [`AGENTS.md`](AGENTS.md).
+The agent must not work directly on `main`/`master`, mutate stable port `4013`, run deployments, use destructive Git commands, or invent evidence. The ShadowOps MCP gateway may remain local because it is a read-only runtime interface, not an AI model.
+
+See [`docs/REMOTE_AI_POLICY.md`](docs/REMOTE_AI_POLICY.md) and [`AGENTS.md`](AGENTS.md).
 
 ## Workflow governance
 
