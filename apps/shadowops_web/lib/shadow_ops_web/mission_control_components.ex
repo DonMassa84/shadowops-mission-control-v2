@@ -21,7 +21,9 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       <a class="mc-skip" href="#mission-content">Skip to content</a>
       <aside class="mc-sidebar" aria-label="Mission Control navigation">
         <a class="mc-brand" href="/" aria-label="ShadowOps dashboard">
-          <span class="mc-brand-mark">SO</span>
+          <span class="mc-brand-mark" aria-hidden="true">
+            <img src="/assets/shadowops-mark.svg" alt="" />
+          </span>
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
         <nav>
@@ -33,6 +35,10 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <.nav_group label="Governance" items={[{"Approvals", "/approvals"}, {"Security", "/security"}, {"Audit", "/audit"}, {"Evidence", "/evidence"}, {"Legal", "/legal"}, {"Logs", "/logs"}]} active={@active} />
           <.nav_group label="System" items={[{"i7 Display", "/display/i7"}, {"Health", "/health"}, {"Readiness", "/ready"}]} active={@active} />
         </nav>
+        <div class="mc-sidebar-footer">
+          <span class="mc-operator-avatar">SO</span>
+          <span><strong>Local operator</strong><small>Administrator</small></span>
+        </div>
       </aside>
       <div class="mc-workspace">
         <header class="mc-topbar">
@@ -44,6 +50,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <div class="mc-topbar-meta">
             <.status_badge status={@availability} />
             <span :if={@updated_at} class="mc-updated">Updated <time>{@updated_at}</time></span>
+            <a class="mc-icon-button" href={@active} aria-label="Refresh current view" title="Refresh">↻</a>
           </div>
         </header>
         <main id="mission-content" class="mc-main" tabindex="-1">
@@ -62,7 +69,10 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     ~H"""
     <section class="mc-nav-group">
       <h2>{@label}</h2>
-      <a :for={{label, path} <- @items} href={path} class={if active?(@active, path), do: "is-active"} aria-current={if active?(@active, path), do: "page"}>{label}</a>
+      <a :for={{label, path} <- @items} href={path} class={if active?(@active, path), do: "is-active"} aria-current={if active?(@active, path), do: "page"}>
+        <span class="mc-nav-icon" aria-hidden="true">{nav_icon(label)}</span>
+        <span>{label}</span>
+      </a>
     </section>
     """
   end
@@ -84,14 +94,24 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   attr(:status, :any, default: "AVAILABLE")
   attr(:source, :string, default: nil)
   attr(:note, :string, default: nil)
+  attr(:icon, :string, default: nil)
 
   def metric_card(assigns) do
+    assigns = assign(assigns, :resolved_icon, assigns.icon || metric_icon(assigns.label))
+
     ~H"""
     <article class="mc-metric">
-      <div class="mc-metric-head"><span>{@label}</span><.status_badge status={@status} /></div>
+      <div class="mc-metric-head">
+        <span class="mc-metric-label">
+          <span class="mc-metric-icon" aria-hidden="true">{@resolved_icon}</span>
+          <span>{@label}</span>
+        </span>
+        <.status_badge status={@status} />
+      </div>
       <strong>{@value}</strong>
       <p :if={@note}>{@note}</p>
       <small :if={@source}>Source: {@source}</small>
+      <span class="mc-metric-spark" aria-hidden="true"></span>
     </article>
     """
   end
@@ -136,6 +156,65 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       {render_slot(@inner_block)}
     </section>
     """
+  end
+
+  defp nav_icon("Overview"), do: "⌂"
+  defp nav_icon("Layer Health"), do: "◉"
+  defp nav_icon("Infrastructure"), do: "▦"
+  defp nav_icon("Workflows"), do: "⌘"
+  defp nav_icon("Runs"), do: "▷"
+  defp nav_icon("Services"), do: "◆"
+  defp nav_icon("Nodes"), do: "▣"
+  defp nav_icon("Backups"), do: "▱"
+  defp nav_icon("Federated"), do: "◎"
+  defp nav_icon("ChatGPT"), do: "◌"
+  defp nav_icon("Finance"), do: "◇"
+  defp nav_icon("Investigations"), do: "⌕"
+  defp nav_icon("IHK"), do: "▤"
+  defp nav_icon("Community"), do: "♢"
+  defp nav_icon("Agents"), do: "⌬"
+  defp nav_icon("AI"), do: "✦"
+  defp nav_icon("Knowledge"), do: "▥"
+  defp nav_icon("Career"), do: "◈"
+  defp nav_icon("Reporting"), do: "◰"
+  defp nav_icon("Facebook"), do: "f"
+  defp nav_icon("Social Review"), do: "◫"
+  defp nav_icon("Messenger"), do: "◍"
+  defp nav_icon("WhatsApp"), do: "◉"
+  defp nav_icon("Telegram"), do: "△"
+  defp nav_icon("Approvals"), do: "✓"
+  defp nav_icon("Security"), do: "◇"
+  defp nav_icon("Audit"), do: "▧"
+  defp nav_icon("Evidence"), do: "▤"
+  defp nav_icon("Legal"), do: "§"
+  defp nav_icon("Logs"), do: "▰"
+  defp nav_icon("i7 Display"), do: "▣"
+  defp nav_icon("Health"), do: "♥"
+  defp nav_icon("Readiness"), do: "●"
+  defp nav_icon(_), do: "·"
+
+  defp metric_icon(label) do
+    case String.downcase(to_string(label)) do
+      "ryzen" -> "◆"
+      "i7" -> "◇"
+      "system" -> "◇"
+      "chatgpt nodes" -> "◌"
+      "workflows" -> "⌘"
+      "workflow inventory" -> "⌘"
+      "agents" -> "●"
+      "ai runtimes" -> "✦"
+      "ai / models" -> "✦"
+      "security" -> "◇"
+      "audit" -> "▧"
+      "runtime" -> "◉"
+      "connectors" -> "◎"
+      "pending approvals" -> "✓"
+      "backup" -> "▱"
+      "career" -> "◈"
+      "evidence" -> "▤"
+      "knowledge" -> "▥"
+      _ -> "◆"
+    end
   end
 
   defp active?(active, "/"), do: active == "/"
