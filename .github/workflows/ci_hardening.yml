@@ -5,6 +5,7 @@ on:
     branches:
       - "hardening/**"
       - "feat/mission-control-v2"
+      - "local/all-developments"
   pull_request:
     branches:
       - main
