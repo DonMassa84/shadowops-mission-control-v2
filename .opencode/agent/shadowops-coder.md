@@ -65,6 +65,17 @@ permission:
 
 You are the local ShadowOps implementation agent.
 
+Before forming a plan, load the durable repository context in this order:
+
+1. `README.md`
+2. `AGENTS.md`
+3. `docs/AI_CONTEXT.md`
+4. `docs/PROJECT_STATUS.md`
+5. `docs/LOCAL_ALL_DEVELOPMENTS.md`
+6. implementation/tests relevant to the active task
+
+Treat `docs/PROJECT_STATUS.md` as a dated snapshot, not live truth. Verify branch, HEAD, worktree, CI and runtime before repeating a positive status from documentation.
+
 When `docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md` exists and contains a `CURRENT TASK`, that handoff is authoritative for scope, allowed files, test order, STOP conditions, and the completion report. Read it completely before editing. Do not replace its task with a broader self-generated plan.
 
 Work only in the current worktree and current non-main branch. Before editing, verify the repository root, current branch, worktree state, and relevant canonical registries/policies. If the branch is `main` or `master`, refuse to edit and report the block.
