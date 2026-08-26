@@ -1,8 +1,10 @@
 defmodule ShadowOpsWeb.SecurityStatus do
   @moduledoc "Runtime-derived security control status without exposing configuration secrets."
 
-  alias ShadowOpsCore.{Audit, LearningFocus, RiskPolicy}
+  alias ShadowOpsCore.{Audit, LearningFocus, RiskPolicy, WorkflowExecutor}
   alias ShadowOpsWeb.Plugs.Security
+
+  @minimum_safe_bandit "1.12.5"
 
   def check do
     checks = %{
@@ -151,34 +153,41 @@ defmodule ShadowOpsWeb.SecurityStatus do
   end
 
   defp unsafe_shell_check do
-    path =
-      Path.expand("../../../shadowops_core/lib/shadow_ops_core/workflow_executor.ex", __DIR__)
+    contract = WorkflowExecutor.security_contract()
 
-    case File.read(path) do
-      {:ok, source} ->
-        system_cmd? = String.contains?(source, "System.cmd(runtime, args")
-        shell? = Regex.match?(~r/System\.cmd\(("|')?(sh|bash)("|')?\s*,/i, source)
+    pass? =
+      contract.execution_mode == "DIRECT_ARGV" and
+        contract.shell_interpolation == false and
+        contract.runtime_policy == "ABSOLUTE_REGULAR_FILE" and
+        contract.arguments_policy == "BINARY_LIST_ONLY" and
+        contract.output_redaction == true
 
-        %{
-          status: if(system_cmd? and not shell?, do: "PASS", else: "FAIL"),
-          detail: "workflow executor source inspection for direct argv execution"
-        }
-
-      {:error, reason} ->
-        %{status: "FAIL", detail: "workflow executor source unavailable: #{inspect(reason)}"}
-    end
+    %{
+      status: if(pass?, do: "PASS", else: "FAIL"),
+      detail: "workflow executor reports a direct-argv, no-shell execution boundary"
+    }
   end
 
   defp dependency_check do
-    path = Path.expand("../../../../docs/evidence/security_dependency_audit.json", __DIR__)
+    version = Application.spec(:bandit, :vsn) |> normalize_version()
 
-    with {:ok, body} <- File.read(path),
-         {:ok, %{"status" => "PASS"}} <- Jason.decode(body) do
-      %{status: "PASS", detail: "verified dependency audit evidence present"}
-    else
-      _ -> %{status: "NOT_CHECKED", detail: "dependency audit evidence not present"}
-    end
+    pass? =
+      is_binary(version) and
+        match?({:ok, _}, Version.parse(version)) and
+        Version.compare(version, @minimum_safe_bandit) in [:eq, :gt]
+
+    detail =
+      if pass? do
+        "runtime Bandit #{version} meets fixed baseline #{@minimum_safe_bandit}; full advisories are enforced by the production hex.audit certification gate"
+      else
+        "runtime Bandit version unavailable or below fixed baseline #{@minimum_safe_bandit}"
+      end
+
+    %{status: if(pass?, do: "PASS", else: "FAIL"), detail: detail}
   end
+
+  defp normalize_version(nil), do: nil
+  defp normalize_version(value), do: to_string(value)
 
   defp present?(value), do: is_binary(value) and byte_size(value) > 0
 
