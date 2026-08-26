@@ -41,8 +41,10 @@ jobs:
 
       - name: No remote UI dependency injection
         run: |
-          ! grep -E 'https?://.*\.(js|css)' apps/shadowops_web/priv/static/assets/mission-control-v4.js
-          ! grep -E '@import[[:space:]]+url\(["'"']?https?://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
+          ! grep -F 'http://' apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          ! grep -F 'https://' apps/shadowops_web/priv/static/assets/mission-control-v4.js
+          ! grep -F 'http://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
+          ! grep -F 'https://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
 
       - name: Diff hygiene
         run: git diff --check HEAD^ HEAD
