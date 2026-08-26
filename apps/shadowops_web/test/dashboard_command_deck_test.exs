@@ -22,26 +22,29 @@ defmodule ShadowOpsWeb.DashboardCommandDeckTest do
     assert response.resp_body =~ "Security"
   end
 
-  test "primary navigation excludes secondary and experimental surfaces" do
+  test "primary navigation exposes recovered daily-use surfaces and hides secondary experiments" do
     conn = Plug.Test.conn(:get, "/")
     response = ShadowOpsWeb.Endpoint.call(conn, [])
 
     assert response.status == 200
 
     for path <- [
+          "/compute",
           "/workflows",
           "/runs",
-          "/nodes",
+          "/jobs",
           "/services",
           "/backups",
+          "/integrations",
+          "/evidence",
+          "/knowledge",
           "/approvals",
           "/security",
           "/audit",
           "/logs",
+          "/focus",
           "/ai",
-          "/agents",
-          "/knowledge",
-          "/evidence"
+          "/agents"
         ] do
       assert response.resp_body =~ "href=\"#{path}\""
     end
