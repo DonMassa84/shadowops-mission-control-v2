@@ -103,12 +103,8 @@ defmodule ShadowOpsWeb.RuntimeOverview do
   defp readiness_status do
     registry = match?({:ok, _}, Registry.summary())
     audit = match?({:ok, %{valid: true}}, Audit.verify())
-
-    learning =
-      case LearningFocus.load() do
-        {:ok, value} -> value["availability"]
-        _ -> "UNAVAILABLE"
-      end
+    {:ok, learning_focus} = LearningFocus.load()
+    learning = learning_focus["availability"]
 
     ready = registry and audit and learning == "AVAILABLE"
 
