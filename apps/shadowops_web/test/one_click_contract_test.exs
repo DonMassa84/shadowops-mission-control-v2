@@ -5,7 +5,9 @@ defmodule ShadowOpsWeb.OneClickContractTest do
   alias ShadowOpsWeb.OneClick
 
   setup do
-    root = Path.join(System.tmp_dir!(), "shadowops-one-click-#{System.unique_integer([:positive])}")
+    root =
+      Path.join(System.tmp_dir!(), "shadowops-one-click-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(root)
 
     previous = %{
