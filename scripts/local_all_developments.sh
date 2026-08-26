@@ -9,8 +9,6 @@ REMOTE_REF="${SHADOWOPS_ALL_REMOTE_REF:-origin/${TARGET_BRANCH}}"
 PREVIEW_PORT="${SHADOWOPS_ALL_PREVIEW_PORT:-4014}"
 STATE_ROOT="${SHADOWOPS_STATE_ROOT:-${HOME}/.local/state/shadowops}"
 PROJECT_CATALOG="${SHADOWOPS_PROJECT_CATALOG:-${STATE_ROOT}/project_catalog.json}"
-PRIMARY_MODEL="${SHADOWOPS_CODER_PRIMARY_MODEL:-qwen2.5-coder:14b}"
-SMALL_MODEL="${SHADOWOPS_CODER_SMALL_MODEL:-qwen2.5-coder:7b}"
 
 FINAL_STATUS="LOCAL_ALL_DEVELOPMENTS_FAILED"
 FAIL_REASON="UNKNOWN"
@@ -25,8 +23,7 @@ final_report() {
   echo "REMOTE_REF=$REMOTE_REF"
   echo "PREVIEW_PORT=$PREVIEW_PORT"
   echo "PROJECT_CATALOG=$PROJECT_CATALOG"
-  echo "PRIMARY_MODEL=$PRIMARY_MODEL"
-  echo "SMALL_MODEL=$SMALL_MODEL"
+  echo "AI_EXECUTION_POLICY=REMOTE_ONLY"
   echo "FAIL_REASON=${FAIL_REASON:-NONE}"
   echo "FINAL_STATUS=$FINAL_STATUS"
   exit "$rc"
@@ -47,7 +44,7 @@ require_cmd() {
   command -v "$1" >/dev/null 2>&1 || fail "MISSING_COMMAND_$1"
 }
 
-for cmd in git mix elixir erl curl ss systemctl openssl sha256sum opencode ollama python3; do
+for cmd in git mix elixir erl curl ss systemctl openssl sha256sum opencode python3; do
   require_cmd "$cmd"
 done
 
@@ -68,17 +65,12 @@ REMOTE_HEAD="$(git rev-parse "$REMOTE_REF")"
 pass "source_parity"
 
 echo
-echo "=== LOCAL AI ==="
-if ! curl -fsS --max-time 3 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
-  fail "OLLAMA_NOT_REACHABLE"
-fi
-for model in "$PRIMARY_MODEL" "$SMALL_MODEL"; do
-  ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -Fxq "$model" || fail "OLLAMA_MODEL_MISSING_${model}"
-done
+echo "=== AI EXECUTION POLICY ==="
 OPENCODE_VERSION="$(opencode --version 2>/dev/null | head -1 || true)"
 [[ -n "$OPENCODE_VERSION" ]] || fail "OPENCODE_VERSION_UNAVAILABLE"
 echo "OPENCODE_VERSION=$OPENCODE_VERSION"
-pass "ollama_and_opencode"
+echo "AI_EXECUTION_POLICY=REMOTE_ONLY"
+pass "remote_only_ai_policy"
 
 echo
 echo "=== DEPENDENCIES + PROJECT CATALOG ==="
@@ -91,7 +83,7 @@ mix shadowops.projects.seed
 pass "project_catalog_seed"
 
 echo
-echo "=== LOCAL CODER CONTRACT ==="
+echo "=== CODER CONTRACT ==="
 bash scripts/test-shadowops-coder.sh
 opencode agent list | grep -q 'shadowops-coder' || fail "SHADOWOPS_CODER_AGENT_NOT_VISIBLE"
 pass "shadowops_coder_contract"
@@ -99,10 +91,10 @@ pass "shadowops_coder_contract"
 echo
 echo "=== READ-ONLY MCP CONTRACT ==="
 if command -v uv >/dev/null 2>&1; then
-  uv run --with 'mcp>=2,<3' --with 'httpx>=0.28,<1' \
-    python -m unittest discover -s ops/mcp -p 'test_*.py' -v
-elif python3 -c 'import mcp, httpx' >/dev/null 2>&1; then
-  python3 -m unittest discover -s ops/mcp -p 'test_*.py' -v
+  PYTHONDONTWRITEBYTECODE=1 uv run --with 'mcp>=2,<3' --with 'httpx>=0.28,<1' \
+    python -B -m unittest discover -s ops/mcp -p 'test_*.py' -v
+elif PYTHONDONTWRITEBYTECODE=1 python3 -B -c 'import mcp, httpx' >/dev/null 2>&1; then
+  PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s ops/mcp -p 'test_*.py' -v
 else
   fail "MCP_DEPENDENCIES_MISSING_INSTALL_UV_OR_PYTHON_MCP_HTTPX"
 fi
