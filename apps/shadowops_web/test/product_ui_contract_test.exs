@@ -16,7 +16,11 @@ defmodule ShadowOpsWeb.ProductUIContractTest do
 
   test "Mission Control ships an accessible command palette and keyboard navigation" do
     js = File.read!(Path.join(@root, "apps/shadowops_web/priv/static/assets/mission-control.js"))
-    css = File.read!(Path.join(@root, "apps/shadowops_web/priv/static/assets/mission-control-command.css"))
+
+    css =
+      File.read!(
+        Path.join(@root, "apps/shadowops_web/priv/static/assets/mission-control-command.css")
+      )
 
     assert js =~ "mc-command-palette"
     assert js =~ "Ctrl K"
