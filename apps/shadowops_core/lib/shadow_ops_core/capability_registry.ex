@@ -46,7 +46,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "shadowctl.run" => %{id: "shadowctl.run", executor: :not_connected, args: [:workflow_id]},
     "ollama.generate" => %{
       id: "ollama.generate",
-      executor: :ollama_runtime,
+      executor: :not_connected,
       args: [:model, :prompt]
     },
     "local_agent.invoke" => %{
