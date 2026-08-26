@@ -4,7 +4,9 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
   alias ShadowOpsCore.{LocalIntegrationCandidates, RuntimeSources}
 
   setup do
-    root = Path.join(System.tmp_dir!(), "shadowops_candidates_#{System.unique_integer([:positive])}")
+    root =
+      Path.join(System.tmp_dir!(), "shadowops_candidates_#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(root)
     on_exit(fn -> File.rm_rf!(root) end)
     %{root: root}
@@ -34,7 +36,9 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
       Path.join(root, "DokumentenSystem/09_BOT_GATEWAY/scripts/bot-gateway.service")
 
     healer = Path.join(root, "DokumentenSystem/07_AUTOMATION/system_healer.sh")
-    voice = Path.join(root, "DokumentenSystem/07_AUTOMATION/voice_agent/systemd/voice-agent.service")
+
+    voice =
+      Path.join(root, "DokumentenSystem/07_AUTOMATION/voice_agent/systemd/voice-agent.service")
 
     Enum.each([service, healer, voice], fn path ->
       File.mkdir_p!(Path.dirname(path))
@@ -58,7 +62,9 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
     end
   end
 
-  test "child services are evidence only and never become top-level executable actions", %{root: root} do
+  test "child services are evidence only and never become top-level executable actions", %{
+    root: root
+  } do
     child =
       Path.join(
         root,
