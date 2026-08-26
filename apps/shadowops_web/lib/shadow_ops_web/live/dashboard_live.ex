@@ -22,7 +22,7 @@ defmodule ShadowOpsWeb.DashboardLive do
     ~H"""
     <.app_shell
       title="Mission Control"
-      subtitle="Production operations · physical compute · governed AI · project federation"
+      subtitle="Production operations · physical compute · remote-only AI · governed actions · project federation"
       active="/"
       availability={@overview.readiness.state}
       updated_at={@updated_at}
@@ -70,16 +70,16 @@ defmodule ShadowOpsWeb.DashboardLive do
             value={agent_summary(@overview)}
             status={agent_status(@overview)}
             source={@overview.agents.source}
-            note="OpenCode, Codex and local agents only when evidenced"
+            note="Automation agents only when evidenced · AI execution remains remote-only"
           />
         </a>
         <a class="mc-card-link" href="/ai">
           <.metric_card
-            label="AI runtimes"
-            value={ai_summary(@overview)}
-            status={@overview.ai.availability}
-            source={@overview.ai.source}
-            note="Local model/runtime evidence"
+            label="AI policy"
+            value="REMOTE ONLY"
+            status="PASS"
+            source="docs/REMOTE_AI_POLICY.md"
+            note="Explicit remote provider/model required · no local inference or fallback"
           />
         </a>
         <a class="mc-card-link" href="/security">
@@ -378,7 +378,7 @@ defmodule ShadowOpsWeb.DashboardLive do
           <a class="mc-button" href="/services">Services</a>
           <a class="mc-button" href="/nodes">Nodes</a>
           <a class="mc-button" href="/agents">Agents</a>
-          <a class="mc-button" href="/ai">AI</a>
+          <a class="mc-button" href="/ai">AI policy</a>
           <a class="mc-button" href="/security">Security</a>
           <a class="mc-button" href="/audit">Audit</a>
           <a class="mc-button" href="/evidence">Evidence</a>
@@ -534,12 +534,6 @@ defmodule ShadowOpsWeb.DashboardLive do
     end
   end
 
-  defp ai_summary(o) do
-    models = Map.get(o.ai, :models, [])
-    runtimes = Map.get(o.ai, :records, [])
-    "#{length(models)} models / #{length(runtimes)} runtimes"
-  end
-
   defp workflow_inventory_status(%{"total_count" => total}) when is_integer(total) and total > 0,
     do: "READY"
 
@@ -586,7 +580,9 @@ defmodule ShadowOpsWeb.DashboardLive do
       {"Evidence", o.evidence.availability, o.evidence.source},
       {"Nodes", o.nodes.status, o.nodes.source},
       {"Agents", o.agents.status, o.agents.source},
-      {"AI / Models", o.ai.availability, o.ai.source},
+      {"AI execution policy", "PASS", "REMOTE_ONLY · docs/REMOTE_AI_POLICY.md"},
+      {"Local AI inventory", o.ai.availability,
+       "#{length(Map.get(o.ai, :models, []))} discovered model records · execution blocked"},
       {"Career", o.career.status, o.career.error_message || o.career.source},
       {"Backups", o.backups.status, o.backups.error_message || o.backups.source}
       | Enum.map(o.connectors.records, fn connector ->
