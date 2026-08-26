@@ -29,23 +29,9 @@ defmodule WorkflowEngine.AgentContract do
   @spec validate_registry(map()) :: :ok | {:error, Error.t()}
   def validate_registry(%{"workflows" => workflows, "agent_contracts" => contracts})
       when is_map(workflows) and is_map(contracts) do
-    workflow_ids = workflows |> Map.keys() |> Enum.sort()
-    contract_ids = contracts |> Map.keys() |> Enum.sort()
-
-    if workflow_ids == contract_ids do
-      Enum.reduce_while(workflows, :ok, fn {workflow_id, workflow}, :ok ->
-        workflow_with_contract = Map.put(workflow, "agent_contract", contracts[workflow_id])
-
-        case validate(workflow_with_contract, ["workflows", workflow_id]) do
-          :ok -> {:cont, :ok}
-          {:error, %Error{}} = validation_error -> {:halt, validation_error}
-        end
-      end)
-    else
-      error(:agent_contract_workflow_set_mismatch, ["agent_contracts"], %{
-        missing_contracts: workflow_ids -- contract_ids,
-        unknown_contracts: contract_ids -- workflow_ids
-      })
+    case validate_contract_set(workflows, contracts) do
+      :ok -> validate_workflow_contracts(workflows, contracts)
+      {:error, %Error{}} = validation_error -> validation_error
     end
   end
 
@@ -70,6 +56,31 @@ defmodule WorkflowEngine.AgentContract do
     end
   end
 
+  defp validate_contract_set(workflows, contracts) do
+    workflow_ids = workflows |> Map.keys() |> Enum.sort()
+    contract_ids = contracts |> Map.keys() |> Enum.sort()
+
+    if workflow_ids == contract_ids do
+      :ok
+    else
+      error(:agent_contract_workflow_set_mismatch, ["agent_contracts"], %{
+        missing_contracts: workflow_ids -- contract_ids,
+        unknown_contracts: contract_ids -- workflow_ids
+      })
+    end
+  end
+
+  defp validate_workflow_contracts(workflows, contracts) do
+    Enum.reduce_while(workflows, :ok, fn {workflow_id, workflow}, :ok ->
+      workflow_with_contract = Map.put(workflow, "agent_contract", contracts[workflow_id])
+
+      case validate(workflow_with_contract, ["workflows", workflow_id]) do
+        :ok -> {:cont, :ok}
+        {:error, %Error{}} = validation_error -> {:halt, validation_error}
+      end
+    end)
+  end
+
   defp validate_contract(contract, workflow, base) do
     with :ok <- require_keys(contract, base),
          :ok <- validate_version(contract, base),
@@ -87,9 +98,8 @@ defmodule WorkflowEngine.AgentContract do
              base ++ ["agent_spec"]
            ),
          :ok <-
-           validate_human_review(contract["human_review_policy"], contract["agent_spec"], base),
-         :ok <- validate_evidence_policy(contract["evidence_policy"], base ++ ["evidence_policy"]) do
-      :ok
+           validate_human_review(contract["human_review_policy"], contract["agent_spec"], base) do
+      validate_evidence_policy(contract["evidence_policy"], base ++ ["evidence_policy"])
     end
   end
 
@@ -119,9 +129,8 @@ defmodule WorkflowEngine.AgentContract do
          :ok <- require_boolean(spec, "approval_required", base),
          :ok <- validate_capability(spec, contract, base),
          :ok <- validate_risk(spec, base),
-         :ok <- validate_runtime_binding(spec, workflow, base),
-         :ok <- validate_approval(spec, base) do
-      :ok
+         :ok <- validate_runtime_binding(spec, workflow, base) do
+      validate_approval(spec, base)
     end
   end
 
