@@ -162,7 +162,14 @@ defmodule ShadowOpsCore.RuntimeSources do
             detail -> Map.merge(row, detail)
           end
 
-        Map.merge(row, service_contract(row.active_state, row.sub_state, row.last_error))
+        row =
+          Map.merge(row, service_contract(row.active_state, row.sub_state, row.last_error))
+
+        Map.merge(row, %{
+          fragment_path: Map.get(row, :fragment_path, nil),
+          source_path: Map.get(row, :source_path, nil),
+          runtime_verified: not is_nil(Map.get(row, :fragment_path, nil))
+        })
       end)
     end)
   end
@@ -171,7 +178,7 @@ defmodule ShadowOpsCore.RuntimeSources do
 
   defp service_details(scope, names) do
     properties =
-      "Id,ActiveState,SubState,UnitFileState,MainPID,NRestarts,Result,ExecMainStatus,ActiveEnterTimestampMonotonic"
+      "Id,ActiveState,SubState,UnitFileState,MainPID,NRestarts,Result,ExecMainStatus,ActiveEnterTimestampMonotonic,FragmentPath,SourcePath"
 
     args =
       if scope == "user",
@@ -210,10 +217,16 @@ defmodule ShadowOpsCore.RuntimeSources do
         pid: integer(values["MainPID"]),
         uptime_seconds: service_uptime(values["ActiveEnterTimestampMonotonic"]),
         restart_count: integer(values["NRestarts"]),
-        last_error: service_error(values["Result"], values["ExecMainStatus"])
+        last_error: service_error(values["Result"], values["ExecMainStatus"]),
+        fragment_path: fragment_or_nil(values["FragmentPath"]),
+        source_path: fragment_or_nil(values["SourcePath"])
       }
     end
   end
+
+  defp fragment_or_nil(nil), do: nil
+  defp fragment_or_nil(""), do: nil
+  defp fragment_or_nil(value) when is_binary(value), do: value
 
   defp service_uptime(value) do
     with entered when is_integer(entered) and entered > 0 <- integer(value),

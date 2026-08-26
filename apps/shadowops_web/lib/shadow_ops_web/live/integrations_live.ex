@@ -2,6 +2,7 @@ defmodule ShadowOpsWeb.IntegrationsLive do
   use Phoenix.LiveView
 
   import ShadowOpsWeb.MissionControlComponents
+  alias ShadowOpsCore.{RuntimeSources, ServiceClassificationProjection}
   alias ShadowOpsWeb.IntegrationCatalog
 
   @refresh_ms 15_000
@@ -76,7 +77,7 @@ defmodule ShadowOpsWeb.IntegrationsLive do
         </div>
       </.panel>
 
-      <.panel title="Local function inventory" description="Bounded folder scan of known local automation entrypoints. DISCOVERED proves a real local file exists; execution remains disabled until runtime and governance mapping are proven.">
+      <.panel title="Local function inventory" description="Bounded folder scan of known local automation entrypoints. Runtime classification uses the same canonical ServiceRuntimeCorrelation as /api/services.">
         <p class="mc-callout">
           {@catalog.local_discovery.counts.known_discovered}/{@catalog.local_discovery.counts.known_total} fixed candidates discovered ·
           {@catalog.local_discovery.counts.auto_discovered} additional entrypoints auto-discovered ·
@@ -84,15 +85,17 @@ defmodule ShadowOpsWeb.IntegrationsLive do
         </p>
         <div class="mc-table-wrap">
           <table class="mc-table">
-            <thead><tr><th>Name</th><th>Kind</th><th>Domain</th><th>Status</th><th>Discovery</th><th>Source ref</th><th>Governance</th></tr></thead>
+            <thead><tr><th>Name</th><th>Kind</th><th>Domain</th><th>Stage</th><th>Runtime</th><th>Live</th><th>Connected</th><th>Data</th><th>Governance</th></tr></thead>
             <tbody>
               <tr :for={record <- @catalog.local_discovery.records}>
                 <td><strong>{record.name}</strong><br /><span class="mc-mono mc-muted">{record.id}</span></td>
                 <td class="mc-mono">{record.kind}</td>
                 <td>{record.domain}</td>
-                <td><.status_badge status={record.status} /></td>
-                <td>{record.discovery_mode}</td>
-                <td class="mc-mono">{record.source_ref}</td>
+                <td><.classification_badge stage={record[:classification_stage] || record.status} /></td>
+                <td class="mc-mono">{record[:runtime_identity] || "—"}</td>
+                <td>{yes_no(record[:live])}</td>
+                <td>{yes_no(record[:connected])}</td>
+                <td>{yes_no(record[:real_data])}</td>
                 <td>{if(record.governance_mapped, do: "Mapped", else: "Reference only")}</td>
               </tr>
             </tbody>
@@ -105,13 +108,63 @@ defmodule ShadowOpsWeb.IntegrationsLive do
 
   defp load(socket) do
     catalog = IntegrationCatalog.snapshot()
+    runtime_snapshot = RuntimeSources.services().services
+
+    classified_local =
+      Enum.map(catalog.local_discovery.records, fn record ->
+        ServiceClassificationProjection.classify_service(record, runtime_snapshot)
+      end)
+
+    local_discovery = %{catalog.local_discovery | records: classified_local}
 
     assign(socket,
-      catalog: catalog,
+      catalog: %{catalog | local_discovery: local_discovery},
       external: Enum.filter(catalog.records, &(&1.scope == "external")),
       imports: Enum.filter(catalog.records, &(&1.scope == "import")),
       updated_at: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
     )
+  end
+
+  defp classification_badge(%{stage: "READY"} = assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--green">READY</span>
+    """
+  end
+
+  defp classification_badge(%{stage: "RUNTIME_VERIFIED"} = assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--blue">RUNTIME_VERIFIED</span>
+    """
+  end
+
+  defp classification_badge(%{stage: "LIVE"} = assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--yellow">LIVE</span>
+    """
+  end
+
+  defp classification_badge(%{stage: "CONNECTED"} = assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--yellow">CONNECTED</span>
+    """
+  end
+
+  defp classification_badge(%{stage: "REAL_DATA"} = assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--yellow">REAL_DATA</span>
+    """
+  end
+
+  defp classification_badge(%{stage: "DISCOVERED"} = assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--gray">DISCOVERED</span>
+    """
+  end
+
+  defp classification_badge(assigns) do
+    ~H"""
+    <span class="mc-badge mc-badge--gray">{@stage || "UNKNOWN"}</span>
+    """
   end
 
   defp scope_status([]), do: "NOT_CONFIGURED"

@@ -2,11 +2,22 @@ defmodule ShadowOpsWeb.ServicesController do
   use Phoenix.Controller, formats: [:json]
 
   alias ShadowOpsApi
-  alias ShadowOpsCore.{ExecutionTracker, LocalIntegrationCandidates}
+
+  alias ShadowOpsCore.{
+    ExecutionTracker,
+    LocalIntegrationCandidates,
+    ServiceClassificationProjection
+  }
 
   def index(conn, _params) do
     data = ShadowOpsApi.services()
-    json(conn, Map.put(data, :integration_candidates, LocalIntegrationCandidates.snapshot()))
+    runtime_snapshot = data.services
+    classified = ServiceClassificationProjection.project(data, runtime_snapshot)
+
+    json(
+      conn,
+      Map.put(classified, :integration_candidates, LocalIntegrationCandidates.snapshot())
+    )
   end
 
   def show(conn, %{"id" => id}) do
