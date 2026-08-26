@@ -1,8 +1,8 @@
 defmodule ShadowOpsCore.RuntimeAdapterContractTest do
   use ExUnit.Case, async: false
 
-  alias ShadowOpsCore.{CapabilityRegistry, RiskPolicy}
   alias ShadowOpsCore.Adapters.{OllamaAdapter, OpenCodeAdapter}
+  alias ShadowOpsCore.{CapabilityRegistry, RiskPolicy}
 
   setup do
     previous = %{

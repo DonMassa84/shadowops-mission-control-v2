@@ -80,9 +80,8 @@ defmodule WorkflowEngine.WorkflowIds do
          :ok <- require_map(data, "external_runtime_sets"),
          :ok <- validate_workflow_entries(data),
          :ok <- validate_external_sets(data),
-         :ok <- validate_unique_ids(data),
-         :ok <- validate_registry_coverage(data) do
-      :ok
+         :ok <- validate_unique_ids(data) do
+      validate_registry_coverage(data)
     end
   end
 
@@ -96,31 +95,37 @@ defmodule WorkflowEngine.WorkflowIds do
     [data["canonical_workflows"], data["federation_workflows"]]
     |> Enum.flat_map(&Map.to_list/1)
     |> Enum.reduce_while(:ok, fn {key, entry}, :ok ->
-      case entry do
-        %{"id" => id} when is_binary(key) and is_binary(id) ->
-          if String.starts_with?(id, @workflow_prefix),
-            do: {:cont, :ok},
-            else: {:halt, {:error, {:invalid_workflow_id, key, id}}}
-
-        _ ->
-          {:halt, {:error, {:invalid_workflow_entry, key}}}
+      case validate_workflow_entry(key, entry) do
+        :ok -> {:cont, :ok}
+        {:error, _reason} = error -> {:halt, error}
       end
     end)
   end
+
+  defp validate_workflow_entry(key, %{"id" => id}) when is_binary(key) and is_binary(id) do
+    if String.starts_with?(id, @workflow_prefix),
+      do: :ok,
+      else: {:error, {:invalid_workflow_id, key, id}}
+  end
+
+  defp validate_workflow_entry(key, _entry), do: {:error, {:invalid_workflow_entry, key}}
 
   defp validate_external_sets(data) do
     Enum.reduce_while(data["external_runtime_sets"], :ok, fn {key, entry}, :ok ->
-      case entry do
-        %{"set_id" => id} when is_binary(key) and is_binary(id) ->
-          if String.starts_with?(id, @set_prefix),
-            do: {:cont, :ok},
-            else: {:halt, {:error, {:invalid_workflow_set_id, key, id}}}
-
-        _ ->
-          {:halt, {:error, {:invalid_external_set, key}}}
+      case validate_external_set(key, entry) do
+        :ok -> {:cont, :ok}
+        {:error, _reason} = error -> {:halt, error}
       end
     end)
   end
+
+  defp validate_external_set(key, %{"set_id" => id}) when is_binary(key) and is_binary(id) do
+    if String.starts_with?(id, @set_prefix),
+      do: :ok,
+      else: {:error, {:invalid_workflow_set_id, key, id}}
+  end
+
+  defp validate_external_set(key, _entry), do: {:error, {:invalid_external_set, key}}
 
   defp validate_unique_ids(data) do
     ids =

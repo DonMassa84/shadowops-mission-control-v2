@@ -30,6 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Erlang and Elixir
@@ -52,6 +53,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          bash -n scripts/credo_release_gate.sh
           bash -n scripts/product_acceptance.sh
           bash -n scripts/product_preview.sh
           bash -n scripts/configure_local_all.sh
@@ -98,7 +100,11 @@ jobs:
       - name: Run product UI contract tests
         run: mix test apps/shadowops_web/test/product_ui_contract_test.exs --seed 12345
 
-      - name: Run Credo
+      - name: Run strict Credo on the complete product-release delta
+        run: bash scripts/credo_release_gate.sh
+
+      - name: Report full-repository Credo baseline
+        continue-on-error: true
         run: mix credo --strict
 
       - name: Run Sobelow

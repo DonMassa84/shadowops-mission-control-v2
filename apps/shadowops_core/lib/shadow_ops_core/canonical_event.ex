@@ -65,6 +65,13 @@ defmodule ShadowOpsCore.CanonicalEvent do
   def new(_), do: {:error, :event_must_be_a_map}
 
   def validate(%__MODULE__{} = event) do
+    with :ok <- validate_identity(event),
+         :ok <- validate_context(event) do
+      validate_metadata(event)
+    end
+  end
+
+  defp validate_identity(event) do
     cond do
       not (is_binary(event.id) and event.id != "") ->
         {:error, {:invalid_field, :id}}
@@ -78,6 +85,13 @@ defmodule ShadowOpsCore.CanonicalEvent do
       not (is_binary(event.resource_id) and event.resource_id != "") ->
         {:error, {:invalid_field, :resource_id}}
 
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_context(event) do
+    cond do
       not timestamp?(event.occurred_at) ->
         {:error, {:invalid_field, :occurred_at}}
 
@@ -90,6 +104,13 @@ defmodule ShadowOpsCore.CanonicalEvent do
       not is_boolean(event.synthetic) ->
         {:error, {:invalid_field, :synthetic}}
 
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_metadata(event) do
+    cond do
       not is_map(event.metadata) ->
         {:error, {:invalid_field, :metadata}}
 

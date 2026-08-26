@@ -38,9 +38,8 @@ defmodule WorkflowEngine.Registry do
          :ok <- validate_registry_name(registry),
          :ok <- validate_collection_types(registry),
          :ok <- validate_workflows(registry["workflows"]),
-         :ok <- validate_workflow_runs(registry["workflow_runs"], registry["workflows"]),
-         :ok <- validate_external_runtime_sets(registry["external_runtime_sets"]) do
-      :ok
+         :ok <- validate_workflow_runs(registry["workflow_runs"], registry["workflows"]) do
+      validate_external_runtime_sets(registry["external_runtime_sets"])
     end
   end
 
@@ -120,9 +119,8 @@ defmodule WorkflowEngine.Registry do
          :ok <- validate_workflow_type(workflow, base),
          :ok <- validate_workflow_runtime_contract(workflow, base),
          :ok <- validate_registry_argv(workflow, base),
-         :ok <- validate_optional_configuration_contract(workflow, base),
-         :ok <- validate_verified_runtime_contract(workflow, base) do
-      :ok
+         :ok <- validate_optional_configuration_contract(workflow, base) do
+      validate_verified_runtime_contract(workflow, base)
     end
   end
 
@@ -140,9 +138,8 @@ defmodule WorkflowEngine.Registry do
   end
 
   defp validate_workflow_runtime_contract(%{"type" => "system"} = workflow, base) do
-    with :ok <- require_string(workflow, "runtime", base),
-         :ok <- require_string(workflow, "definition", base) do
-      :ok
+    with :ok <- require_string(workflow, "runtime", base) do
+      require_string(workflow, "definition", base)
     end
   end
 
@@ -235,9 +232,8 @@ defmodule WorkflowEngine.Registry do
          :ok <- require_string(run, "type", base),
          :ok <- require_string(run, "status", base),
          :ok <- require_string(run, "input", base),
-         :ok <- validate_run_type(run, base),
-         :ok <- validate_run_reference(run, workflows, base) do
-      :ok
+         :ok <- validate_run_type(run, base) do
+      validate_run_reference(run, workflows, base)
     end
   end
 
@@ -277,9 +273,8 @@ defmodule WorkflowEngine.Registry do
 
     with :ok <- validate_optional_workflow_count(set, base),
          :ok <- validate_risk_distribution(set, base),
-         :ok <- validate_blocker_distribution(set, base),
-         :ok <- validate_whatsapp_pack(set_id, set, base) do
-      :ok
+         :ok <- validate_blocker_distribution(set, base) do
+      validate_whatsapp_pack(set_id, set, base)
     end
   end
 
@@ -305,10 +300,9 @@ defmodule WorkflowEngine.Registry do
          base
        )
        when is_integer(total) and total >= 0 and is_map(distribution) do
-    with :ok <- validate_risk_values(distribution, base),
-         actual <- Enum.sum(Enum.map(@risk_levels, &Map.fetch!(distribution, &1))),
-         :ok <- compare_total(total, actual, base ++ ["risk_distribution"], :risk_total_mismatch) do
-      :ok
+    with :ok <- validate_risk_values(distribution, base) do
+      actual = Enum.sum(Enum.map(@risk_levels, &Map.fetch!(distribution, &1)))
+      compare_total(total, actual, base ++ ["risk_distribution"], :risk_total_mismatch)
     end
   end
 
@@ -368,9 +362,8 @@ defmodule WorkflowEngine.Registry do
              length(workflows),
              base ++ ["risk_groups"],
              :workflow_count_mismatch
-           ),
-         :ok <- validate_unique_workflows(workflows, base) do
-      :ok
+           ) do
+      validate_unique_workflows(workflows, base)
     end
   end
 

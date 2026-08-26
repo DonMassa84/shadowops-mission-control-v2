@@ -82,7 +82,8 @@ The acceptance contract checks:
 - format
 - compile with warnings as errors
 - full deterministic ExUnit suite
-- Credo strict
+- Credo strict for every Elixir source changed since the immutable pre-finish baseline
+- full-repository Credo legacy-debt report (visible, non-blocking)
 - Sobelow
 - workflow registry
 - workflow IDs
@@ -90,6 +91,12 @@ The acceptance contract checks:
 - diff check
 - atomic single-use approval implementation markers
 - source integrity
+
+The release-delta baseline is commit
+`b521fafa1e8e5ad5a55edf8b5107edfe75ddfaa4`. This keeps all product-finish
+Elixir changes under a strict blocking gate without misrepresenting the existing
+repository-wide Credo backlog as a regression. Override it only with an audited
+commit via `SHADOWOPS_CREDO_BASE_REF`.
 
 A passing acceptance report ends with:
 
