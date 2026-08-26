@@ -212,8 +212,6 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
     end
   end
 
-  defp remote_model(_), do: {:error, :remote_model_required}
-
   defp local_model?(model) do
     normalized = String.downcase(model)
     Enum.any?(@forbidden_local_model_prefixes, &String.starts_with?(normalized, &1))
