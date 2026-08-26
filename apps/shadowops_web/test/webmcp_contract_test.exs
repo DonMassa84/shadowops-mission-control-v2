@@ -21,7 +21,7 @@ defmodule ShadowOpsWeb.WebMCPContractTest do
     refute js =~ "navigator.modelContext"
   end
 
-  test "WebMCP exports only read-only API tools" do
+  test "WebMCP exports only bounded read-only API tools" do
     js = File.read!(@asset)
 
     for tool <- [
@@ -30,14 +30,23 @@ defmodule ShadowOpsWeb.WebMCPContractTest do
           "shadowops_overview",
           "shadowops_workflows",
           "shadowops_runs",
+          "shadowops_jobs",
           "shadowops_nodes",
           "shadowops_services",
+          "shadowops_integrations",
+          "shadowops_connectors",
+          "shadowops_evidence",
+          "shadowops_focus",
           "shadowops_approvals",
           "shadowops_audit",
           "shadowops_logs",
           "shadowops_security"
         ] do
       assert js =~ tool
+    end
+
+    for endpoint <- ["/api/jobs", "/api/integrations", "/api/connectors", "/api/evidence", "/api/learning/plan"] do
+      assert js =~ endpoint
     end
 
     assert js =~ "readOnlyHint: true"
