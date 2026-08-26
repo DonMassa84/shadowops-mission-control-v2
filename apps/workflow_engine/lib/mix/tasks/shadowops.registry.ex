@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Shadowops.Registry do
+  @moduledoc false
+
   use Mix.Task
 
   alias WorkflowEngine.{AgentContract, Registry}
