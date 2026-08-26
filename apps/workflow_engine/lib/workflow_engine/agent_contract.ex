@@ -224,7 +224,8 @@ defmodule WorkflowEngine.AgentContract do
     end
   end
 
-  defp validate_human_review(policy, agent_spec, base) when is_map(policy) and is_map(agent_spec) do
+  defp validate_human_review(policy, agent_spec, base)
+       when is_map(policy) and is_map(agent_spec) do
     review_base = base ++ ["human_review_policy"]
 
     with :ok <- require_boolean(policy, "required", review_base),
