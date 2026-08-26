@@ -62,6 +62,7 @@ defmodule ShadowOpsWeb.Router do
     live("/backups", ModuleLive, :backups)
     live("/reporting", ModuleLive, :reporting)
     live("/evidence", EvidenceLive, :index)
+    live("/control", HighValueWorkflowsLive, :index)
     live("/legal", LegalLive, :index)
     live("/settings", SettingsLive, :index)
     live("/projects", ProjectDomainsLive, :index)
@@ -90,6 +91,7 @@ defmodule ShadowOpsWeb.Router do
     live("/social/telegram", SocialUnavailableLive, :telegram)
     head("/display/i7", I7ProbeController, :head)
     live("/display/i7", I7DisplayLive, :index)
+    live("/daily-control", DailyControlLive, :index)
   end
 
   scope "/api", ShadowOpsWeb do
@@ -136,7 +138,10 @@ defmodule ShadowOpsWeb.Router do
     get("/social/facebook/balance", FacebookBalanceController, :index)
     get("/career", ModuleSourcesController, :career)
     get("/backups", ModuleSourcesController, :backups)
+    get("/control", HighValueWorkflowsController, :index)
+    get("/control/:workflow", HighValueWorkflowsController, :show)
     get("/reports", ModuleSourcesController, :reporting)
+    get("/daily-control", DailyControlController, :show)
   end
 
   scope "/api", ShadowOpsWeb do

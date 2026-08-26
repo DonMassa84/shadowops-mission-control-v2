@@ -3,11 +3,12 @@ defmodule ShadowOpsWeb.DashboardLive do
   import ShadowOpsWeb.MissionControlComponents
 
   alias ShadowOpsApi
-  alias ShadowOpsCore.{JobQueue, LearningFocus}
-  alias ShadowOpsWeb.{IntegrationCatalog, MissionBrief, RuntimeOverview}
-  alias WorkflowEngine.{Inventory, Registry}
+  alias ShadowOpsCore.{DailyControl, JobQueue, LearningFocus, Status}
+  alias ShadowOpsWeb.{IntegrationCatalog, MissionBrief, ProjectDomains, RuntimeOverview}
 
   @refresh_ms 15_000
+
+  @source_order ~w(system security audit ihk evidence career knowledge services social)
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: Process.send_after(self(), :refresh, @refresh_ms)
@@ -23,39 +24,13 @@ defmodule ShadowOpsWeb.DashboardLive do
     ~H"""
     <.app_shell
       title="Mission Control"
-      subtitle="Systemstatus · Workflows · Quellen · Fokus · Freigaben"
+      subtitle="Source Truth · Current Mission · Attention Required · Next Actions"
       active="/"
       availability={@overview.readiness.state}
       updated_at={@updated_at}
     >
-      <section class="mc-grid" aria-label="Daily operations overview">
-        <a class="mc-card-link" href="/infrastructure">
-          <.metric_card label="System" value={@overview.readiness.state} status={@overview.readiness.state} source="runtime readiness" note="Required dependencies and audit readiness" />
-        </a>
-        <a class="mc-card-link" href="/workflows">
-          <.metric_card label="Workflows" value={@workflow_inventory["canonical_count"]} status={workflow_inventory_status(@workflow_inventory)} source="canonical workflow registry" note="Executable governed automations" />
-        </a>
-        <a class="mc-card-link" href="/runs">
-          <.metric_card label="Runs" value={length(@overview.runs.records)} status={@overview.runs.status} source={@overview.runs.source} note="Persisted workflow execution history" />
-        </a>
-        <a class="mc-card-link" href="/jobs">
-          <.metric_card label="Job queue" value={job_summary(@jobs)} status={@jobs.status} source={@jobs.source} note={@jobs.error_message || "Persistent scheduled workload"} />
-        </a>
-        <a class="mc-card-link" href="/approvals">
-          <.metric_card label="Pending approvals" value={pending(@overview.approvals.records)} status={approval_overall(@overview)} source={@overview.approvals.source} note="Actions waiting for operator decision" />
-        </a>
-        <a class="mc-card-link" href="/compute">
-          <.metric_card label="Compute" value={node_summary(@overview)} status={node_status(@overview)} source={@overview.nodes.source} note="Physical compute and workload control" />
-        </a>
-        <a class="mc-card-link" href="/services">
-          <.metric_card label="Services" value={service_summary(@overview)} status={service_status(@overview)} source={@overview.services.source} note="Runtime services discovered on the host" />
-        </a>
-        <a class="mc-card-link" href="/ai">
-          <.metric_card label="AI policy" value={ai_policy(@overview)} status={ai_policy_status(@overview)} source={@overview.ai.source} note="No local Ollama LLM runtime" />
-        </a>
-        <a class="mc-card-link" href="/security">
-          <.metric_card label="Security" value={@overview.security.overall} status={@overview.security.overall} source={@overview.security.source} note="Governance and write-boundary state" />
-        </a>
+      <section class="mc-grid" aria-label="Source truth overview">
+        <.source_card :for={card <- @source_cards} card={card} />
       </section>
 
       <.panel title="Current mission" description="Configured mission source; never synthesized from an AI guess.">
@@ -78,8 +53,44 @@ defmodule ShadowOpsWeb.DashboardLive do
         </div>
       </.panel>
 
+      <.panel
+        :if={@attention_items != []}
+        title="Attention required"
+        description="Sources requiring operator awareness. Color-coded by severity."
+      >
+        <div class="mc-table-wrap">
+          <table class="mc-table">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={item <- @attention_items}>
+                <td><strong>{item.label}</strong></td>
+                <td><.status_badge status={item.status} /></td>
+                <td class="mc-muted">{item.detail}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </.panel>
+
       <.panel title="Top 3 next actions" description="Deterministic priority: governance and runtime blockers first, configured focus second. No invented tasks.">
-        <div class="mc-command-grid" :if={@mission.actions != []}>
+        <div class="mc-command-grid" :if={@daily.top_actions != []}>
+          <article
+            :for={{action, index} <- Enum.with_index(@daily.top_actions, 1)}
+            class="mc-command-card"
+          >
+            <span class="mc-command-kicker">{index} · {action.severity}</span>
+            <strong>{action.title}</strong>
+            <span>{action.reason}</span>
+            <small>Domain: {action.domain}</small>
+          </article>
+        </div>
+        <div class="mc-command-grid" :if={@daily.top_actions == [] and @mission.actions != []}>
           <a
             :for={{action, index} <- Enum.with_index(@mission.actions, 1)}
             class="mc-command-card"
@@ -91,23 +102,53 @@ defmodule ShadowOpsWeb.DashboardLive do
             <small>Source: {action.source}</small>
           </a>
         </div>
-        <p :if={@mission.actions == []} class="mc-empty">No evidence-backed next action is currently available.</p>
+        <p :if={@daily.top_actions == [] and @mission.actions == []} class="mc-empty">No evidence-backed next action is currently available.</p>
       </.panel>
 
-      <.panel title="Operational gates" description="Only evidence-backed gates are presented as healthy.">
-        <div class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Gate</th><th>Status</th><th>Evidence</th><th>Open</th></tr></thead><tbody><tr :for={{gate, state, evidence, href} <- operational_gates(@overview)}><td><strong>{gate}</strong></td><td><.status_badge status={state} /></td><td class="mc-muted">{evidence}</td><td><a class="mc-button" href={href}>Open</a></td></tr></tbody></table></div>
-      </.panel>
-
-      <.panel title="Recent runs" description="Latest persisted workflow executions.">
-        <div class="mc-table-wrap" :if={recent_runs(@overview) != []}><table class="mc-table"><thead><tr><th>Run</th><th>Status</th><th>Workflow</th><th>Updated</th></tr></thead><tbody><tr :for={run <- recent_runs(@overview)}><td class="mc-mono">{record_value(run, :id, "unknown")}</td><td><.status_badge status={record_value(run, :status, "UNKNOWN")} /></td><td>{record_value(run, :workflow_id, record_value(run, :workflow, "unknown"))}</td><td>{run_timestamp(run)}</td></tr></tbody></table></div>
-        <p :if={recent_runs(@overview) == []} class="mc-empty">No persisted workflow runs yet.</p>
-      </.panel>
-
-      <.panel title="Available workflows" description="Canonical workflows only; external inventory-only records are hidden from the action list.">
-        <div class="mc-table-wrap" :if={@canonical_workflows != []}><table class="mc-table"><thead><tr><th>Workflow</th><th>Status</th><th>Risk</th><th>Action</th></tr></thead><tbody><tr :for={workflow <- Enum.take(@canonical_workflows, 10)}><td><strong>{workflow_name(workflow)}</strong><br /><span class="mc-mono mc-muted">{workflow["id"]}</span></td><td><.status_badge status={workflow_status(workflow)} /></td><td>{workflow["risk_level"] || "Not specified"}</td><td><a class="mc-button" href={"/workflows/#{workflow["id"]}"}>Review / run</a></td></tr></tbody></table></div>
-        <p :if={@canonical_workflows == []} class="mc-empty">No canonical executable workflow is currently available.</p>
+      <.panel title="Daily control" description="One-click workflows for daily operations.">
+        <div class="mc-command-grid">
+          <a class="mc-command-card" href="/daily-control">
+            <span class="mc-command-kicker">Control</span>
+            <strong>Daily Control</strong>
+            <span>Full system status overview and prioritized actions</span>
+          </a>
+          <a class="mc-command-card" href="/workflows/so:wf:v1:system-doctor">
+            <span class="mc-command-kicker">Diagnostic</span>
+            <strong>System Doctor</strong>
+            <span>Health check and automated remediation</span>
+          </a>
+          <a class="mc-command-card" href="/workflows/so:wf:v1:release-acceptance">
+            <span class="mc-command-kicker">Release</span>
+            <strong>Release Acceptance</strong>
+            <span>Pre-deployment verification and quality gate</span>
+          </a>
+          <a class="mc-command-card" href="/projects/ihk">
+            <span class="mc-command-kicker">IHK</span>
+            <strong>IHK Evidence Gate</strong>
+            <span>Verify and archive project evidence artifacts</span>
+          </a>
+          <a class="mc-command-card" href="/career">
+            <span class="mc-command-kicker">Career</span>
+            <strong>Career Control</strong>
+            <span>Career pipeline status and next steps</span>
+          </a>
+        </div>
       </.panel>
     </.app_shell>
+    """
+  end
+
+  defp source_card(assigns) do
+    ~H"""
+    <a class="mc-card-link" href={@card.href}>
+      <.metric_card
+        label={@card.label}
+        value={@card.value}
+        status={@card.status}
+        source={@card.source}
+        note={@card.note}
+      />
+    </a>
     """
   end
 
@@ -118,124 +159,214 @@ defmodule ShadowOpsWeb.DashboardLive do
     {:ok, focus} = LearningFocus.load()
     mission = MissionBrief.build(overview, jobs, integrations, focus)
 
-    {inventory, canonical_workflows} =
-      case Registry.load() do
-        {:ok, registry} ->
-          canonical =
-            case ShadowOpsApi.list_workflows() do
-              {:ok, workflows} ->
-                workflows |> Enum.filter(&executable_canonical?/1) |> Enum.sort_by(& &1["id"])
+    ihk = ProjectDomains.snapshot(:ihk)
 
-              {:error, _reason} ->
-                []
-            end
-
-          {Inventory.summary(registry), canonical}
-
-        {:error, _reason} ->
-          {empty_inventory(), []}
-      end
+    source_cards = build_source_cards(overview, ihk)
+    daily = build_daily_control(overview, ihk)
+    attention_items = build_attention_items(source_cards, daily)
 
     assign(socket,
       overview: overview,
-      jobs: jobs,
-      integrations: integrations,
+      source_cards: source_cards,
+      attention_items: attention_items,
       mission: mission,
-      workflow_inventory: inventory,
-      canonical_workflows: canonical_workflows,
+      daily: daily,
       updated_at: now()
     )
   end
 
-  defp empty_inventory,
-    do: %{"total_count" => "UNAVAILABLE", "canonical_count" => 0, "external_count" => 0}
+  defp build_daily_control(overview, ihk) do
+    normalized =
+      overview
+      |> Map.update(:approvals, [], fn
+        %{records: records} when is_list(records) -> records
+        records when is_list(records) -> records
+        _ -> []
+      end)
+      |> Map.update(:runs, [], fn
+        %{records: records} when is_list(records) -> records
+        records when is_list(records) -> records
+        _ -> []
+      end)
 
-  defp executable_canonical?(workflow),
-    do:
-      workflow["source_kind"] != "external_runtime_set" and
-        workflow_status(workflow) not in ["UNAVAILABLE", "DISABLED", "NOT_CONNECTED"]
-
-  defp operational_gates(o),
-    do: [
-      {"Runtime readiness", o.readiness.state, "Required dependency checks", "/infrastructure"},
-      {"Security", o.security.overall, o.security.source, "/security"},
-      {"Audit chain", o.audit.state, o.audit.source, "/audit"},
-      {"Backups", o.backups.status, o.backups.error_message || o.backups.source, "/backups"},
-      {"Approvals", approval_overall(o), "#{pending(o.approvals.records)} pending", "/approvals"},
-      {"AI execution", ai_policy_status(o), ai_policy(o), "/ai"}
-    ]
-
-  defp physical_nodes(o),
-    do:
-      o.nodes
-      |> Map.get(:records, [])
-      |> Enum.reject(&(get_in(&1, [:metadata, :logical]) == true))
-
-  defp node_summary(o) do
-    nodes = physical_nodes(o)
-    ready = Enum.count(nodes, &(record_value(&1, :status, "") in ["READY", "ONLINE"]))
-    "#{ready}/#{length(nodes)} ready"
+    DailyControl.build(normalized, ihk)
   end
 
-  defp node_status(o) do
-    nodes = physical_nodes(o)
-    ready = Enum.count(nodes, &(record_value(&1, :status, "") in ["READY", "ONLINE"]))
+  defp build_source_cards(overview, ihk) do
+    cards =
+      [
+        source_card_data("system", "System", overview.readiness.state, "runtime readiness",
+          note: "Required dependencies and audit readiness",
+          href: "/infrastructure"
+        ),
+        source_card_data(
+          "security",
+          "Security",
+          overview.security.overall,
+          overview.security.source,
+          note: "Governance and write-boundary state",
+          href: "/security"
+        ),
+        source_card_data("audit", "Audit", overview.audit.state, overview.audit.source,
+          note: "Chain integrity and verification",
+          href: "/audit"
+        ),
+        source_card_data("ihk", "IHK", ihk.status, "project domains",
+          note: ihk.summary || "Zero Trust project source truth",
+          href: "/projects/ihk"
+        ),
+        source_card_data(
+          "evidence",
+          "Evidence",
+          source_value(Map.get(overview, :evidence, %{}), :status, "UNKNOWN"),
+          "local filesystem",
+          note: "#{source_value(Map.get(overview, :evidence, %{}), :record_count, 0)} artifacts",
+          href: "/evidence"
+        ),
+        source_card_data(
+          "career",
+          "Career",
+          source_value(Map.get(overview, :career, %{}), :status, "UNKNOWN"),
+          "career source",
+          note: "#{source_value(Map.get(overview, :career, %{}), :record_count, 0)} records",
+          href: "/career"
+        ),
+        source_card_data(
+          "knowledge",
+          "Knowledge",
+          source_value(Map.get(overview, :knowledge, %{}), :status, "UNKNOWN"),
+          source_value(Map.get(overview, :knowledge, %{}), :source, "knowledge source"),
+          note: knowledge_note(Map.get(overview, :knowledge, %{})),
+          href: "/knowledge"
+        ),
+        source_card_data(
+          "services",
+          "Services",
+          service_overall_status(overview),
+          source_value(Map.get(overview, :services, %{}), :source, "runtime services"),
+          note: service_note(overview),
+          href: "/services"
+        ),
+        source_card_data(
+          "social",
+          "Social",
+          social_status(Map.get(overview, :social, %{})),
+          Map.get(Map.get(overview, :social, %{}), :source, "social sources"),
+          note: social_note(Map.get(overview, :social, %{})),
+          href: "/social"
+        )
+      ]
+
+    Enum.sort_by(cards, fn card ->
+      Enum.find_index(@source_order, &(&1 == card.id)) || 99
+    end)
+  end
+
+  defp source_card_data(id, label, status, source, opts) do
+    %{
+      id: id,
+      label: label,
+      value: Status.normalize(status),
+      status: status,
+      source: source,
+      note: opts[:note],
+      href: opts[:href]
+    }
+  end
+
+  defp build_attention_items(cards, daily) do
+    card_items =
+      cards
+      |> Enum.filter(&attention_needed?/1)
+      |> Enum.map(fn card ->
+        %{
+          label: card.label,
+          status: card.status,
+          detail: card.note || "#{card.label} source requires attention"
+        }
+      end)
+
+    daily_items =
+      daily.checks
+      |> Enum.reject(&(&1.status == "GREEN"))
+      |> Enum.map(fn check ->
+        %{
+          label: check.domain,
+          status: check.status,
+          detail: check.summary
+        }
+      end)
+
+    merged =
+      (card_items ++ daily_items)
+      |> Enum.uniq_by(&{&1.label, &1.status})
+      |> Enum.sort_by(fn item -> severity_sort_key(item.status) end)
+
+    Enum.take(merged, 6)
+  end
+
+  defp attention_needed?(%{status: status}) when status in ["READY", "HEALTHY", "VERIFIED"],
+    do: false
+
+  defp attention_needed?(%{status: "NOT_CONFIGURED"}), do: false
+  defp attention_needed?(_), do: true
+
+  defp severity_sort_key("BLOCKED"), do: 0
+  defp severity_sort_key("UNAVAILABLE"), do: 1
+  defp severity_sort_key("DEGRADED"), do: 2
+  defp severity_sort_key("ATTENTION"), do: 3
+  defp severity_sort_key("GREEN"), do: 99
+  defp severity_sort_key(_), do: 50
+
+  defp knowledge_note(knowledge) do
+    count = source_value(knowledge, :record_count, 0)
+    availability = source_value(knowledge, :availability, "UNKNOWN")
 
     cond do
-      nodes == [] -> "UNAVAILABLE"
-      ready == length(nodes) -> "READY"
-      ready > 0 -> "DEGRADED"
-      true -> "UNAVAILABLE"
+      is_integer(count) and count > 0 -> "#{count} sources, #{availability}"
+      availability == "AVAILABLE" -> "Connected, count unavailable"
+      true -> "Source #{String.downcase(availability)}"
     end
   end
 
-  defp service_summary(o) do
-    services = Map.get(o.services, :services, [])
-    ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
-    "#{ready}/#{length(services)} ready"
-  end
-
-  defp service_status(o) do
-    services = Map.get(o.services, :services, [])
+  defp service_overall_status(overview) do
+    services = Map.get(overview.services, :services, [])
     ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
 
     cond do
       services == [] -> "UNAVAILABLE"
       ready == length(services) -> "READY"
-      ready > 0 -> "DEGRADED"
+      ready > 0 -> "MIXED"
       true -> "UNAVAILABLE"
     end
   end
 
-  defp job_summary(%{record_count: count}) when is_integer(count), do: count
-  defp job_summary(_), do: "Not configured"
-  defp ai_policy(o), do: get_in(o, [:ai, :policy, :coding_execution]) || "UNAVAILABLE"
-  defp ai_policy_status(o), do: if(ai_policy(o) == "REMOTE_ONLY", do: "READY", else: "DEGRADED")
+  defp service_note(overview) do
+    services = Map.get(overview.services, :services, [])
+    ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
+    "#{ready}/#{length(services)} ready"
+  end
 
-  defp workflow_inventory_status(%{"canonical_count" => total})
-       when is_integer(total) and total > 0, do: "READY"
+  defp social_status(%{status: status}), do: status
+  defp social_status(_), do: "UNAVAILABLE"
 
-  defp workflow_inventory_status(_), do: "UNAVAILABLE"
+  defp social_note(%{source: source}) when is_binary(source), do: source
+  defp social_note(%{error_message: msg}) when is_binary(msg), do: msg
+  defp social_note(_), do: "Social source"
 
-  defp approval_overall(o),
-    do: if(pending(o.approvals.records) > 0, do: "DEGRADED", else: o.approvals.status)
+  defp source_value(%_{} = struct, key, default) when is_atom(key),
+    do: Map.get(struct, key, default)
 
-  defp pending(records), do: Enum.count(records, &(record_value(&1, :status, "") == "PENDING"))
-  defp recent_runs(o), do: o.runs.records |> Enum.take(5)
+  defp source_value(source, key, default) when is_map(source) and is_atom(key) do
+    Map.get(source, key, Map.get(source, Atom.to_string(key), default))
+  end
+
+  defp source_value(_source, _key, default), do: default
 
   defp record_value(record, key, default) when is_map(record),
     do: Map.get(record, key, Map.get(record, to_string(key), default))
 
   defp record_value(_record, _key, default), do: default
 
-  defp run_timestamp(run),
-    do:
-      record_value(run, :finished_at, nil) || record_value(run, :started_at, nil) ||
-        record_value(run, :queued_at, "Not available")
-
-  defp workflow_status(workflow),
-    do: workflow["execution_status"] || workflow["status"] || "AVAILABLE"
-
-  defp workflow_name(workflow), do: workflow["display_name"] || workflow["name"] || workflow["id"]
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
 end

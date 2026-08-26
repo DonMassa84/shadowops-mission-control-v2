@@ -151,6 +151,16 @@ workflows:
     argv: []
     definition: /home/schattenmacher/.config/systemd/user/shadow-system-overnight-audit.service
 
+  daily_control:
+    type: business
+    domain: operations
+    status: active
+    target_runtime: elixir
+    risk_level: L0
+    approval_required: false
+    read_only: true
+    workflow_id: shadowops.daily_control
+
 agent_contracts:
   finanzabgleich:
     version: 1
@@ -441,6 +451,35 @@ agent_contracts:
         - status
         - result
         - audit_ref
+
+  daily_control:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.read
+      risk_level: L0
+      runtime_binding: elixir
+      approval_required: false
+    capabilities:
+      - workflow.read
+    required_inputs: []
+    produced_outputs:
+      - daily_control_snapshot
+    permissions:
+      - local_read
+    timeout_seconds: 30
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: false
+      triggers: []
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
 
 workflow_runs:
   career_wave_07:

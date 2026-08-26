@@ -85,16 +85,20 @@ defmodule ShadowOpsCore.RuntimeSources do
 
   def service_action(_id, _action), do: {:error, :action_not_allowed}
 
+  @doc false
+  def knowledge_sources do
+    Enum.map(
+      [
+        "/home/schattenmacher/ProofFlow-Obsidian-Vault",
+        "/home/schattenmacher/shadowops-knowledge",
+        "/home/schattenmacher/workflow-knowledge"
+      ],
+      &metadata/1
+    )
+  end
+
   def knowledge do
-    sources =
-      Enum.map(
-        [
-          "/home/schattenmacher/ProofFlow-Obsidian-Vault",
-          "/home/schattenmacher/shadowops-knowledge",
-          "/home/schattenmacher/workflow-knowledge"
-        ],
-        &metadata/1
-      )
+    sources = knowledge_sources()
 
     OperationalSources.knowledge(sources)
     |> Map.put(:availability, aggregate_availability(sources))
@@ -103,15 +107,59 @@ defmodule ShadowOpsCore.RuntimeSources do
 
   def evidence do
     path = Path.expand("../../../../docs/evidence", __DIR__)
-    sources = [metadata(path)]
+    evidence_snapshot(path)
+  end
 
-    %{
-      availability: aggregate_availability(sources),
+  @doc false
+  def evidence_snapshot(path) when is_binary(path) do
+    sources = [metadata(path)]
+    artifacts = evidence_artifacts(path)
+
+    availability = aggregate_availability(sources)
+    reachable = availability == "AVAILABLE"
+    has_artifacts = artifacts != []
+
+    {status, health, real_data, error_code, error_message} =
+      cond do
+        reachable and has_artifacts ->
+          {"READY", "HEALTHY", true, nil, nil}
+
+        reachable ->
+          {"DEGRADED", "DEGRADED", false, "EVIDENCE_EMPTY",
+           "Evidence source is available but contains no artifacts"}
+
+        true ->
+          {"UNAVAILABLE", "UNAVAILABLE", false, "SOURCE_MISSING",
+           "Project evidence directory is unavailable"}
+      end
+
+    ConnectorState.build(%{
+      id: "evidence",
+      name: "Evidence",
+      kind: "evidence",
+      status: status,
+      health: health,
       source: "project evidence directory",
+      source_type: "LOCAL_FILESYSTEM",
+      real_data: real_data,
+      synthetic: false,
+      enabled: true,
+      reachable: reachable,
+      last_success_at: if(reachable, do: now(), else: nil),
+      record_count: if(reachable, do: length(artifacts), else: nil),
+      error_code: error_code,
+      error_message: error_message,
+      metadata: %{
+        verification_semantics: "AVAILABLE_ONLY",
+        verified_claims_implied: false
+      }
+    })
+    |> ConnectorState.attach(%{
+      availability: availability,
       updated_at: now(),
       sources: sources,
-      artifacts: evidence_artifacts(path)
-    }
+      artifacts: artifacts
+    })
   end
 
   defp service_scope({scope, args}) do

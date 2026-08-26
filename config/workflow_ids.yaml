@@ -31,6 +31,9 @@ canonical_workflows:
   shadow_system_overnight_audit:
     id: so:wf:v1:shadow-system-overnight-audit
     domain: security
+  daily_control:
+    id: so:wf:v1:daily-control
+    domain: operations
 
 federation_workflows:
   project_federation_sync:

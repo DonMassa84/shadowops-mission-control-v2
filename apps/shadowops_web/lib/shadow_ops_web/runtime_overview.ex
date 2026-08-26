@@ -1,7 +1,7 @@
 defmodule ShadowOpsWeb.RuntimeOverview do
   @moduledoc "Bounded, fail-closed projection of real ShadowOps runtime sources."
 
-  alias ShadowOpsCore.{Audit, LearningFocus}
+  alias ShadowOpsCore.{Audit, LearningFocus, RuntimeSources}
   alias ShadowOpsWeb.{AIStatus, NodeCatalog, RuntimeSnapshotCache, SecurityStatus}
   alias WorkflowEngine.Registry
 
@@ -67,9 +67,21 @@ defmodule ShadowOpsWeb.RuntimeOverview do
   end
 
   defp probe_result(_key, {:ok, {:ok, payload}}) when is_map(payload), do: payload
-  defp probe_result(key, {:ok, {:error, reason}}), do: unavailable(key, "SOURCE_ERROR", reason)
-  defp probe_result(key, {:exit, reason}), do: unavailable(key, "SOURCE_TIMEOUT", reason)
-  defp probe_result(key, other), do: unavailable(key, "SOURCE_INVALID", other)
+
+  defp probe_result(:knowledge, {:ok, {:error, reason}}),
+    do: knowledge_unavailable("SOURCE_ERROR", reason)
+
+  defp probe_result(:knowledge, {:exit, reason}),
+    do: knowledge_unavailable("SOURCE_TIMEOUT", reason)
+
+  defp probe_result(key, {:ok, {:error, reason}}),
+    do: unavailable(key, "SOURCE_ERROR", reason)
+
+  defp probe_result(key, {:exit, reason}),
+    do: unavailable(key, "SOURCE_TIMEOUT", reason)
+
+  defp probe_result(key, other),
+    do: unavailable(key, "SOURCE_INVALID", other)
 
   defp workflow_overview do
     case ShadowOpsApi.list_workflows() do
@@ -120,6 +132,20 @@ defmodule ShadowOpsWeb.RuntimeOverview do
         state: "FAIL",
         detail: %{registry: false, audit_chain: false, learning_focus: "UNAVAILABLE"}
       }
+  end
+
+  defp knowledge_unavailable(code, reason) do
+    sources = RuntimeSources.knowledge_sources()
+
+    unavailable(:knowledge, code, reason)
+    |> Map.put(:sources, sources)
+    |> Map.put(
+      :source_documents_count,
+      Enum.sum(Enum.map(sources, &Map.get(&1, :document_count, 0)))
+    )
+    |> Map.put(:source, "measured local knowledge paths; RAG probe unavailable")
+  rescue
+    _ -> unavailable(:knowledge, code, reason)
   end
 
   defp unavailable(key, code, reason) do

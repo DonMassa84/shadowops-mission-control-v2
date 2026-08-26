@@ -7,9 +7,16 @@ defmodule ShadowOpsWeb.ProjectCatalog do
   """
 
   alias ShadowOpsCore.ProjectCatalog, as: CoreProjectCatalog
+  alias ShadowOpsWeb.ProjectDomains
 
   def snapshot do
     path = System.get_env("SHADOWOPS_PROJECT_CATALOG") || CoreProjectCatalog.default_path()
-    CoreProjectCatalog.snapshot(path)
+
+    path
+    |> CoreProjectCatalog.snapshot()
+    |> CoreProjectCatalog.correlate_project(
+      "ihk:zero-trust-project",
+      ProjectDomains.snapshot(:ihk)
+    )
   end
 end

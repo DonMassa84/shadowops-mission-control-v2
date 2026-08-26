@@ -59,12 +59,9 @@ defmodule ShadowOpsCore.Adapters.ScriptAdapter do
       "status" => manifest.metadata.registry_status
     }
 
-    workflow =
-      if manifest.metadata.trusted_argv?,
-        do: Map.put(workflow, "argv", manifest.metadata.trusted_argv),
-        else: workflow
-
-    WorkflowExecutor.execute(workflow, stringify(input))
+    with {:ok, workflow} <- attach_trusted_argv(workflow, manifest) do
+      WorkflowExecutor.execute(workflow, stringify(input))
+    end
   end
 
   def run(_, _, _), do: {:error, :policy_decision_required}
@@ -95,6 +92,60 @@ defmodule ShadowOpsCore.Adapters.ScriptAdapter do
       "canonical workflow registry plus File.stat"
     )
   end
+
+  defp attach_trusted_argv(
+         workflow,
+         %{metadata: %{trusted_argv?: true, trusted_argv: argv}}
+       )
+       when is_list(argv) do
+    with {:ok, resolved} <- resolve_trusted_argv(argv) do
+      {:ok, Map.put(workflow, "argv", resolved)}
+    end
+  end
+
+  defp attach_trusted_argv(workflow, _manifest), do: {:ok, workflow}
+
+  defp resolve_trusted_argv(argv) do
+    Enum.reduce_while(argv, {:ok, []}, fn arg, {:ok, acc} ->
+      case resolve_trusted_arg(arg) do
+        {:ok, resolved} -> {:cont, {:ok, acc ++ [resolved]}}
+        {:error, _} = error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp resolve_trusted_arg("repo:" <> relative) do
+    registry_path =
+      Application.fetch_env!(:workflow_engine, :registry_path)
+      |> Path.expand()
+
+    root =
+      registry_path
+      |> Path.dirname()
+      |> Path.dirname()
+
+    candidate = Path.expand(relative, root)
+    rel = Path.relative_to(candidate, root)
+
+    cond do
+      relative == "" ->
+        {:error, :trusted_repo_path_empty}
+
+      rel == ".." or String.starts_with?(rel, "../") ->
+        {:error, :trusted_repo_path_escape}
+
+      not File.regular?(candidate) ->
+        {:error, :trusted_repo_path_unavailable}
+
+      true ->
+        {:ok, candidate}
+    end
+  rescue
+    _ -> {:error, :trusted_repo_path_unavailable}
+  end
+
+  defp resolve_trusted_arg(arg) when is_binary(arg), do: {:ok, arg}
+  defp resolve_trusted_arg(_), do: {:error, :invalid_arguments}
 
   defp stringify(map), do: Map.new(map, fn {key, value} -> {to_string(key), value} end)
   defp pass(true), do: "PASS"

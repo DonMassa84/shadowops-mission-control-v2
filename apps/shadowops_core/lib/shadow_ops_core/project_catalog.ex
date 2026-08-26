@@ -40,6 +40,33 @@ defmodule ShadowOpsCore.ProjectCatalog do
     |> Enum.sort_by(&{&1.source_type, &1.id})
   end
 
+  @doc """
+  Correlates one existing catalog record with bounded source-truth metadata.
+
+  The project identity and provider metadata are preserved. Private local
+  paths and arbitrary manifest fields are never projected into the catalog.
+  """
+  @spec correlate_project(map(), String.t(), map()) :: map()
+  def correlate_project(%{projects: projects} = catalog, project_id, source_truth)
+      when is_list(projects) and is_binary(project_id) and is_map(source_truth) do
+    if catalog.status in ["NOT_CONFIGURED", "UNAVAILABLE"] do
+      catalog
+    else
+      projects =
+        Enum.map(projects, fn
+          %{id: ^project_id} = project ->
+            correlate_project_record(project, source_truth)
+
+          project ->
+            project
+        end)
+
+      %{catalog | projects: projects, counts: counts(projects)}
+    end
+  end
+
+  def correlate_project(catalog, _project_id, _source_truth), do: catalog
+
   @spec normalize_project(map()) :: map() | nil
   def normalize_project(project) when is_map(project) do
     id = string_value(project, "id")
@@ -80,6 +107,45 @@ defmodule ShadowOpsCore.ProjectCatalog do
   end
 
   def normalize_project(_), do: nil
+
+  defp correlate_project_record(project, source_truth) do
+    candidate = %{
+      status: catalog_status(project_truth_value(source_truth, :status)),
+      real_data: project_truth_value(source_truth, :real_data) == true,
+      synthetic: project_truth_value(source_truth, :synthetic) == true,
+      reachable: project_truth_value(source_truth, :reachable) == true
+    }
+
+    status =
+      if candidate.status == "READY",
+        do: Truthfulness.normalize_ready_state(candidate),
+        else: candidate.status
+
+    project
+    |> Map.put(:status, status)
+    |> Map.put(:real_data, candidate.real_data)
+    |> Map.put(:synthetic, candidate.synthetic)
+    |> Map.put(:reachable, candidate.reachable)
+    |> Map.put(:integration_mode, "LOCAL_MANIFEST_CORRELATED")
+  end
+
+  defp catalog_status(status)
+       when status in [
+              "READY",
+              "DISCOVERED",
+              "DEGRADED",
+              "BLOCKED",
+              "UNAVAILABLE",
+              "NOT_CONFIGURED"
+            ],
+       do: status
+
+  # Domain-specific lifecycle values such as ACTIVE prove presence, but not
+  # catalog readiness. They therefore collapse safely to DISCOVERED.
+  defp catalog_status(_status), do: "DISCOVERED"
+
+  defp project_truth_value(map, key),
+    do: Map.get(map, key, Map.get(map, to_string(key)))
 
   defp decode(path, body) do
     case Jason.decode(body) do

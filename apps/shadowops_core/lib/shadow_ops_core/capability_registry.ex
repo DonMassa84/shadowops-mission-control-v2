@@ -65,6 +65,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
       args: [:chat_id, :message]
     },
     "workflow.run" => %{id: "workflow.run", executor: :canonical_workflow, args: [:workflow_id]},
+    "workflow.read" => %{id: "workflow.read", executor: :canonical_workflow, args: [:workflow_id]},
     "gmail.read" => %{id: "gmail.read", executor: :gmail, args: []},
     "gmail.classify" => %{id: "gmail.classify", executor: :gmail, args: [:metadata]},
     "gmail.label" => %{id: "gmail.label", executor: :gmail, args: [:thread_ref, :label]},

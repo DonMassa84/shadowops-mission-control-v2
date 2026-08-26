@@ -48,4 +48,114 @@ defmodule ShadowOpsCore.ProjectCatalogTest do
 
     assert project.url == nil
   end
+
+  test "IHK domain truth correlates the existing catalog project" do
+    ihk =
+      ProjectCatalog.normalize_project(%{
+        "id" => "ihk:zero-trust-project",
+        "name" => "IHK Zero Trust",
+        "domain" => "ihk",
+        "source_type" => "local_project",
+        "status" => "DISCOVERED",
+        "real_data" => false,
+        "synthetic" => false,
+        "reachable" => false
+      })
+
+    other =
+      ProjectCatalog.normalize_project(%{
+        "id" => "shadowops:mission-control-v2",
+        "name" => "ShadowOps",
+        "domain" => "shadowops",
+        "source_type" => "local_project",
+        "status" => "DISCOVERED",
+        "real_data" => false,
+        "synthetic" => false,
+        "reachable" => false
+      })
+
+    catalog = %{
+      status: "READY",
+      projects: [ihk, other],
+      counts: %{}
+    }
+
+    source_truth = %{
+      status: "READY",
+      health: "HEALTHY",
+      real_data: true,
+      synthetic: false,
+      reachable: true,
+      source: "/private/local/ihk.json",
+      source_paths: %{
+        project_root: "/private/local/project"
+      }
+    }
+
+    result =
+      ProjectCatalog.correlate_project(
+        catalog,
+        "ihk:zero-trust-project",
+        source_truth
+      )
+
+    correlated =
+      Enum.find(result.projects, &(&1.id == "ihk:zero-trust-project"))
+
+    untouched =
+      Enum.find(result.projects, &(&1.id == "shadowops:mission-control-v2"))
+
+    assert correlated.status == "READY"
+    assert correlated.real_data == true
+    assert correlated.synthetic == false
+    assert correlated.reachable == true
+    assert correlated.integration_mode == "LOCAL_MANIFEST_CORRELATED"
+
+    # Private paths must not escape into the federated project catalog.
+    refute Map.has_key?(correlated, :source)
+    refute Map.has_key?(correlated, :source_paths)
+
+    assert untouched.status == "DISCOVERED"
+    assert untouched.real_data == false
+
+    assert result.counts.ready == 1
+    assert result.counts.discovered == 1
+  end
+
+  test "unproven READY domain truth remains fail-closed" do
+    project =
+      ProjectCatalog.normalize_project(%{
+        "id" => "ihk:zero-trust-project",
+        "name" => "IHK Zero Trust",
+        "domain" => "ihk",
+        "source_type" => "local_project",
+        "status" => "DISCOVERED",
+        "real_data" => false,
+        "synthetic" => false,
+        "reachable" => false
+      })
+
+    catalog = %{
+      status: "READY",
+      projects: [project],
+      counts: %{}
+    }
+
+    result =
+      ProjectCatalog.correlate_project(
+        catalog,
+        "ihk:zero-trust-project",
+        %{
+          status: "READY",
+          real_data: false,
+          synthetic: false,
+          reachable: false
+        }
+      )
+
+    correlated = hd(result.projects)
+
+    refute correlated.status == "READY"
+    assert correlated.real_data == false
+  end
 end

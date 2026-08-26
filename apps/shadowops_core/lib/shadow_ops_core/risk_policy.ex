@@ -49,6 +49,7 @@ defmodule ShadowOpsCore.RiskPolicy do
     "telegram.send" => "L2",
     "workflow.run" => "L2",
     "workflow.execute" => "L2",
+    "workflow.read" => "L0",
     "github.export" => "L1",
     "github.sync" => "L2",
     "whatsapp.ingest" => "L0",

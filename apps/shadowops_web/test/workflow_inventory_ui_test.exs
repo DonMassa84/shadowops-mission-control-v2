@@ -1,27 +1,18 @@
 defmodule ShadowOpsWeb.WorkflowInventoryUITest do
   use ExUnit.Case, async: false
 
-  test "Mission Control exposes focused daily operations and complete workflow inventory" do
+  test "Mission Control V2 keeps workflow inventory in workflow drill-down" do
     dashboard = request("/")
-    assert dashboard.status == 200
-    assert dashboard.resp_body =~ "Daily operations overview"
-    assert dashboard.resp_body =~ "Current mission"
-    assert dashboard.resp_body =~ "Top 3 next actions"
-    assert dashboard.resp_body =~ "Operational gates"
-    assert dashboard.resp_body =~ "Available workflows"
-    assert dashboard.resp_body =~ "Job queue"
-    assert dashboard.resp_body =~ "Compute"
-    assert dashboard.resp_body =~ "AI policy"
-    assert dashboard.resp_body =~ "Approvals"
-    assert dashboard.resp_body =~ "Security"
-    assert dashboard.resp_body =~ "Source:"
-    assert dashboard.resp_body =~ "href=\"/focus\""
-    assert dashboard.resp_body =~ "href=\"/integrations\""
 
-    refute dashboard.resp_body =~ "Career pipeline"
-    refute dashboard.resp_body =~ "9 canonical / 61 external"
+    assert dashboard.status == 200
+    assert dashboard.resp_body =~ "Mission Control"
+    assert dashboard.resp_body =~ ~r/current mission/i
+    assert dashboard.resp_body =~ ~r/attention required/i
+    assert dashboard.resp_body =~ ~r/source truth/i
+    assert dashboard.resp_body =~ ~s(href="/workflows")
 
     workflows = request("/workflows")
+
     assert workflows.status == 200
     assert workflows.resp_body =~ "Total workflow slots"
     assert workflows.resp_body =~ "External runtime coverage"

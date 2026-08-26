@@ -27,7 +27,15 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
         <nav>
-          <.nav_group label="Dashboard" items={[{"Overview", "/"}]} active={@active} />
+          <.nav_group
+            label="Command"
+            items={[
+              {"Overview", "/"},
+              {"Daily Control", "/daily-control"}
+            ]}
+            active={@active}
+          />
+
           <.nav_group
             label="Operations"
             items={[
@@ -40,15 +48,18 @@ defmodule ShadowOpsWeb.MissionControlComponents do
             ]}
             active={@active}
           />
+
           <.nav_group
-            label="Sources"
+            label="Intelligence"
             items={[
-              {"Integrations", "/integrations"},
+              {"Knowledge", "/knowledge"},
               {"Evidence", "/evidence"},
-              {"Knowledge", "/knowledge"}
+              {"AI", "/ai"},
+              {"Agents", "/agents"}
             ]}
             active={@active}
           />
+
           <.nav_group
             label="Governance"
             items={[
@@ -59,12 +70,21 @@ defmodule ShadowOpsWeb.MissionControlComponents do
             ]}
             active={@active}
           />
+
           <.nav_group
-            label="Focus & AI"
+            label="Domains"
             items={[
-              {"Focus", "/focus"},
-              {"AI", "/ai"},
-              {"Agents", "/agents"}
+              {"Career", "/career"},
+              {"IHK", "/projects/ihk"}
+            ]}
+            active={@active}
+          />
+
+          <.nav_group
+            label="Data"
+            items={[
+              {"Integrations", "/integrations"},
+              {"Projects", "/projects/federated"}
             ]}
             active={@active}
           />
@@ -209,6 +229,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   defp nav_icon("Focus"), do: "◉"
   defp nav_icon("AI"), do: "✦"
   defp nav_icon("Agents"), do: "⌬"
+  defp nav_icon("Daily Control"), do: "▶"
   defp nav_icon(_), do: "·"
 
   defp metric_icon(label) do
