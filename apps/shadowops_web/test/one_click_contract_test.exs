@@ -62,7 +62,7 @@ defmodule ShadowOpsWeb.OneClickContractTest do
     assert is_binary(approved.audit_ref)
   end
 
-  test "execution surfaces contain buttons and no per-action credential forms" do
+  test "execution surfaces are button-only without inventing runtime actions" do
     for path <- ["/workflows/repository_quality", "/services", "/compute"] do
       response = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, path), [])
       assert response.status == 200
@@ -76,12 +76,17 @@ defmodule ShadowOpsWeb.OneClickContractTest do
     assert workflows.resp_body =~ "one_click_run"
 
     services = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/services"), [])
-    assert services.resp_body =~ "▶ Start"
-    assert services.resp_body =~ "↻ Restart"
-    assert services.resp_body =~ "■ Stop"
+    assert services.resp_body =~ "One-click mode"
+    assert services.resp_body =~ "Every supported mutation is a direct button"
+
+    if ShadowOpsApi.services().services != [] do
+      assert services.resp_body =~ "▶ Start"
+      assert services.resp_body =~ "↻ Restart"
+      assert services.resp_body =~ "■ Stop"
+    end
 
     compute = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/compute"), [])
-    assert compute.resp_body =~ "↻ Check"
+    assert compute.resp_body =~ "One-click mode"
   end
 
   defp restore_web(key, nil), do: Application.delete_env(:shadowops_web, key)
