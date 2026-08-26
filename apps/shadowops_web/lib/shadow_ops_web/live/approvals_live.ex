@@ -32,8 +32,7 @@ defmodule ShadowOpsWeb.ApprovalsLive do
          |> put_flash(:info, "#{approval.id}: #{approval.status}")}
 
       {:error, reason} ->
-        {:noreply,
-         put_flash(socket, :error, "Approval decision failed: #{safe_reason(reason)}")}
+        {:noreply, put_flash(socket, :error, "Approval decision failed: #{safe_reason(reason)}")}
     end
   end
 
