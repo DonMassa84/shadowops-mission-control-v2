@@ -52,16 +52,32 @@ jobs:
           grep -Fq 'completion report is STDOUT/TEXT ONLY' .opencode/agent/shadowops-coder.md
           grep -Fq 'Never attempt placeholder or example filesystem paths' .opencode/agent/shadowops-coder.md
 
-      - name: Launcher bounded next mode
+      - name: Preflight does not create Python bytecode
+        run: |
+          grep -Fq 'PYTHONDONTWRITEBYTECODE=1' scripts/opencode-preflight.sh
+          grep -Fq 'compile(p.read_text' scripts/opencode-preflight.sh
+          if grep -Fq 'python3 -m py_compile' scripts/opencode-preflight.sh; then
+            echo 'preflight must not use py_compile because it writes .pyc' >&2
+            exit 1
+          fi
+
+      - name: Launcher bounded next mode and verified model
         run: |
           grep -Fq -- '--next' scripts/shadowops-coder.sh
           grep -Fq 'opencode-preflight.sh --repair-known-drift --sync' scripts/shadowops-coder.sh
+          grep -Fq 'opencode models' scripts/shadowops-coder.sh
+          grep -Fq 'MODEL_AUTHORITY=CLI_--model' scripts/shadowops-coder.sh
+          grep -Fq 'BLOCKED_DIRTY_AFTER_PREFLIGHT' scripts/shadowops-coder.sh
+          grep -Fq 'BASELINE_FILE=' scripts/shadowops-coder.sh
           grep -Fq 'timeout --foreground' scripts/shadowops-coder.sh
-          grep -Fq 'opencode-postflight.sh' scripts/shadowops-coder.sh
+          grep -Fq 'opencode-postflight.sh "$BASELINE_FILE"' scripts/shadowops-coder.sh
           grep -Fq 'SHADOWOPS_CODER=BLOCKED_TIMEOUT' scripts/shadowops-coder.sh
 
-      - name: Postflight scope contract
+      - name: Postflight baseline and scope contract
         run: |
+          grep -Fq 'BASELINE_HEAD=' scripts/opencode-postflight.sh
+          grep -Fq 'git merge-base --is-ancestor' scripts/opencode-postflight.sh
+          grep -Fq 'git diff --name-only "$BASELINE_HEAD"..HEAD' scripts/opencode-postflight.sh
           grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/approval.ex' scripts/opencode-postflight.sh
           grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/approval_store.ex' scripts/opencode-postflight.sh
           grep -Fq 'apps/shadowops_core/lib/shadow_ops_core/governance_gate.ex' scripts/opencode-postflight.sh
@@ -69,5 +85,6 @@ jobs:
           grep -Fq 'apps/shadowops_core/test/durable_governance_test.exs' scripts/opencode-postflight.sh
           grep -Fq 'BLOCKED_UNEXPECTED_PATHS' scripts/opencode-postflight.sh
 
-      - name: MCP canonical source remains syntactically valid
-        run: python3 -m py_compile ops/mcp/shadowops_runtime_mcp.py
+      - name: MCP canonical source syntax without bytecode
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 -B -c 'from pathlib import Path; p=Path("ops/mcp/shadowops_runtime_mcp.py"); compile(p.read_text(encoding="utf-8"), str(p), "exec")'
