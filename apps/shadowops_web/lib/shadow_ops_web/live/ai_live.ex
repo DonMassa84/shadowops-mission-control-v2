@@ -9,36 +9,36 @@ defmodule ShadowOpsWeb.AILive do
     ~H"""
     <.app_shell
       title="AI Governance"
-      subtitle="Remote-only coding agent · governed local product runtime"
+      subtitle="Remote-only AI execution · no local Ollama LLM runtime"
       active="/ai"
-      availability={@data[:availability] || "UNKNOWN"}
+      availability="AVAILABLE"
       updated_at={@data[:updated_at]}
     >
       <.source_meta
-        source="docs/REMOTE_AI_POLICY.md + CapabilityRegistry + runtime inventory"
+        source="docs/REMOTE_AI_POLICY.md"
         updated_at={@data[:updated_at]}
-        availability={@data[:availability] || "UNKNOWN"}
+        availability="AVAILABLE"
       />
 
       <.panel
-        title="Coding agent"
-        description="The development-plane AI contract remains remote-only and fail-closed. Local Ollama is never a coding-agent fallback."
+        title="Execution policy"
+        description="ShadowOps coding and AI-assisted execution use explicitly selected remote models only. Local Ollama LLM execution is disabled."
       >
         <div class="mc-policy-grid">
           <div class="mc-policy-cell">
-            <small>Policy</small>
+            <small>AI execution</small>
             <strong>REMOTE_ONLY</strong>
-            <span>ShadowOps coding uses an explicit remote provider/model.</span>
+            <span>No local LLM inference fallback.</span>
           </div>
           <div class="mc-policy-cell">
             <small>Model authority</small>
             <strong>CLI --model</strong>
-            <span>The exact OpenCode provider/model identifier is authoritative.</span>
+            <span>The explicit OpenCode provider/model identifier is authoritative.</span>
           </div>
           <div class="mc-policy-cell">
-            <small>Local coding fallback</small>
-            <strong>FORBIDDEN</strong>
-            <span>Ollama, LM Studio and llama.cpp are not coding-agent providers.</span>
+            <small>Local LLM runtime</small>
+            <strong>DISABLED</strong>
+            <span>Ollama-hosted LLMs are not part of the ShadowOps dashboard or execution path.</span>
           </div>
           <div class="mc-policy-cell">
             <small>Fallback</small>
@@ -49,61 +49,12 @@ defmodule ShadowOpsWeb.AILive do
       </.panel>
 
       <.panel
-        title="Product AI runtime"
-        description="Local Ollama is a separate product-runtime executor. Requests still pass through ShadowOps governance before adapter execution."
+        title="Runtime contract"
+        description="The dashboard reports policy and remote execution authority only; local LLM inventory is intentionally not surfaced."
       >
-        <div class="mc-policy-grid">
-          <div class="mc-policy-cell">
-            <small>Provider</small>
-            <strong>OLLAMA LOCAL</strong>
-            <span>Runtime inventory is read from the local Ollama source.</span>
-          </div>
-          <div class="mc-policy-cell">
-            <small>Execution</small>
-            <strong>GOVERNED</strong>
-            <span>Capability: ollama.generate · executor: ollama_runtime.</span>
-          </div>
-          <div class="mc-policy-cell">
-            <small>Runtime availability</small>
-            <strong>{@data[:availability] || "UNKNOWN"}</strong>
-            <span>{length(@data.models)} discovered model record(s).</span>
-          </div>
-          <div class="mc-policy-cell">
-            <small>Control path</small>
-            <strong>POLICY + AUDIT</strong>
-            <span>Policy decision is required by the adapter; governed execution remains auditable.</span>
-          </div>
-        </div>
-
         <p class="mc-policy-warning">
-          <strong>Inventory is not certification.</strong>
-          A discovered local model is an available runtime resource, not proof that the model passed ShadowOps production-quality gates.
-        </p>
-      </.panel>
-
-      <.panel
-        title="Local runtime inventory"
-        description="Evidence-backed discovery for product AI runtimes. These records do not authorize coding-agent use."
-      >
-        <div :if={@data.models != []} class="mc-table-wrap">
-          <table class="mc-table">
-            <thead>
-              <tr><th>Model</th><th>Node</th><th>Details</th><th>Source</th><th>Product runtime</th></tr>
-            </thead>
-            <tbody>
-              <tr :for={model <- @data.models}>
-                <td class="mc-mono">{model.name}</td>
-                <td>{model.node}</td>
-                <td>{model.details}</td>
-                <td>{model.source}</td>
-                <td><span class="mc-inventory-forbidden">GOVERNED</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <p :if={@data.models == []} class="mc-empty">
-          No local model inventory was reported. Product AI runtime is unavailable until a governed Ollama resource is discoverable; coding remains remote-only regardless.
+          <strong>Local LLM inventory disabled.</strong>
+          ShadowOps does not list, select, benchmark, or execute Ollama-hosted LLMs from this control surface.
         </p>
       </.panel>
     </.app_shell>
