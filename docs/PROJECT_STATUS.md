@@ -187,7 +187,9 @@ The ShadowOps runtime requires its own authorized adapter/configuration/evidence
 
 ## P0 — Governance correctness
 
-`IMPLEMENTED_PENDING_CURRENT_HEAD_CI` on the product-release line.
+`VERIFIED_CURRENT` for product-release commit
+`9c6834a1f3893b888298549e1f6ab0ba98dde15a` by GitHub Actions run
+[`32970883675`](https://github.com/DonMassa84/shadowops-mission-control-v2/actions/runs/32970883675).
 
 `ApprovalStore.consume/5`, `Approval.consume/2` and the canonical event/audit path now implement terminal `APPROVED -> CONSUMED` semantics. Focused tests cover:
 
@@ -205,20 +207,28 @@ approval_consumed is audited
 audit chain remains valid
 ```
 
-The implementation must still be treated as unverified on any new HEAD until the focused approval suite and the full quality gate pass for that exact commit.
+That exact candidate passed formatting, warnings-as-errors compilation, the
+hermetic full suite, focused UI coverage, the strict product-release Credo
+delta, Sobelow, registry and ID validation, Hex audit, read-only MCP tests,
+remote-only AI checks, production release build and isolated `4015` smoke.
+Treat the evidence as historical for any later code-changing HEAD until its
+full product gate passes.
 
-## P0/P1 — Production proof still required
+## P0/P1 — Remaining stable-production proof
 
-Before claiming `PRODUCTION_READY=YES`, obtain current evidence for:
+Current evidence status:
 
-1. governance/single-use approval correctness;
-2. complete `scripts/shadowops-local.sh certify` success;
-3. successful 4015 release smoke for the exact candidate;
-4. certified artifact + SHA256 creation;
-5. deliberate rollback drill or equivalent verified rollback evidence;
-6. at least one real authorized source end-to-end;
-7. one complete Source -> Entity/Timeline -> Signal -> Decision -> Approval -> Action -> Audit use case;
-8. controlled promotion to 4013 only after certification.
+1. `VERIFIED_CURRENT` — governance/single-use approval correctness;
+2. `OPEN` — complete operator-host `scripts/shadowops-local.sh certify` success;
+3. `VERIFIED_CURRENT` — isolated CI `4015` release smoke for the exact candidate;
+4. `OPEN` — operator-host certified artifact + SHA256 creation;
+5. `OPEN` — deliberate rollback drill or equivalent verified rollback evidence;
+6. `OPEN` — at least one real authorized source end-to-end;
+7. `OPEN` — one complete Source -> Entity/Timeline -> Signal -> Decision -> Approval -> Action -> Audit use case;
+8. `OPEN` — controlled promotion to `4013`, only after certification and explicit operator request.
+
+The product-release code is a CI-verified `RELEASE_CANDIDATE`. It is not
+`STABLE`, and the CI run did not mutate the operator-host `4013` runtime.
 
 ## Recommended first real E2E source
 

@@ -240,7 +240,7 @@ Governance principles:
 
 ### Governance review status
 
-The product-release line implements atomic single-use consumption (`APPROVED -> CONSUMED`) with persisted consumer/timestamp fields, replay protection, privacy-before-consumption ordering, audit evidence and concurrency tests. Treat this as closed only on a HEAD whose focused and full tests pass; inspect the current code and CI evidence before relying on it.
+The product-release line implements atomic single-use consumption (`APPROVED -> CONSUMED`) with persisted consumer/timestamp fields, replay protection, privacy-before-consumption ordering, audit evidence and concurrency tests. Product-release commit `9c6834a1f3893b888298549e1f6ab0ba98dde15a` passed the full product gate in GitHub Actions run `32970883675`; treat that proof as historical for later code changes until their exact HEAD passes again.
 
 ## 8. Audit and correlation
 
@@ -364,7 +364,8 @@ Expected gates include, where applicable:
 mix format --check-formatted
 mix compile --warnings-as-errors
 MIX_ENV=test mix test
-mix credo --strict
+bash scripts/credo_release_gate.sh
+mix credo --strict # visible full-repository legacy-debt report
 Dialyzer
 Sobelow
 Workflow Registry validation

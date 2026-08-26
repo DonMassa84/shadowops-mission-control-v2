@@ -104,7 +104,8 @@ It first requires the 4014 preview to be healthy and then runs the full producti
 FORMAT
 COMPILE --warnings-as-errors
 FULL TESTS
-CREDO --strict
+CREDO --strict on the audited release delta
+CREDO full-repository legacy-debt report
 DIALYZER
 SOBELOW --exit
 WORKFLOW REGISTRY
@@ -149,7 +150,7 @@ The promotion script requires:
 - local HEAD == remote HEAD;
 - clean worktree;
 - matching certification file for the exact HEAD;
-- PASS for Credo, Dialyzer, Sobelow, registry, IDs, audits, production handoff, MCP and coder contracts;
+- PASS for the strict Credo release delta, Dialyzer, Sobelow, registry, IDs, audits, production handoff, MCP and coder contracts;
 - matching SHA256 of the certified release artifact;
 - the 4014 candidate still healthy;
 - current 4013 stable service healthy before mutation.
