@@ -31,7 +31,7 @@
       "command": ["bash", "scripts/run-shadowops-mcp.sh"],
       "enabled": true,
       "environment": {
-        "SHADOWOPS_BASE_URL": "http://127.0.0.1:4013"
+        "SHADOWOPS_BASE_URL": "http://127.0.0.1:4014"
       }
     }
   },
