@@ -8,6 +8,7 @@ window.liveSocket = liveSocket
 
 const WEBMCP_MAX_OUTPUT = 1400
 const WEBMCP_SENSITIVE_KEY = /(secret|token|password|passwd|cookie|authorization|credential|private[_-]?key|session)/i
+const webMcpRegistrationController = new AbortController()
 
 const emptyInputSchema = {
   type: "object",
@@ -172,7 +173,7 @@ async function registerShadowOpsWebMcp() {
   const modelContext = document.modelContext
 
   if (!modelContext || typeof modelContext.registerTool !== "function") {
-    window.ShadowOpsWebMCP = {status: "UNSUPPORTED", registered: 0, expected: webMcpTools.length, readOnly: true}
+    window.ShadowOpsWebMCP = {status: "UNSUPPORTED", registered: 0, expected: webMcpTools.length, readOnly: true, lifecycleBound: false}
     return
   }
 
@@ -192,7 +193,7 @@ async function registerShadowOpsWebMcp() {
           if (tool.kind === "check") return runShadowOpsWebMcpCheck(context.signal)
           return readShadowOpsEndpoint(resolveWebMcpEndpoint(tool, input), context.signal)
         }
-      })
+      }, {signal: webMcpRegistrationController.signal})
       registered += 1
     } catch (_error) {
       // WebMCP is progressive enhancement. Security/permission failures remain fail-closed.
@@ -208,7 +209,8 @@ async function registerShadowOpsWebMcp() {
     expected: webMcpTools.length,
     staticReadTools: staticCount,
     detailReadTools: detailCount,
-    readOnly: true
+    readOnly: true,
+    lifecycleBound: true
   }
 }
 
@@ -239,4 +241,5 @@ function decorateRemoteAIPolicy() {
 
 registerShadowOpsWebMcp()
 decorateRemoteAIPolicy()
+window.addEventListener("pagehide", () => webMcpRegistrationController.abort(), {once: true})
 window.addEventListener("phx:page-loading-stop", decorateRemoteAIPolicy)
