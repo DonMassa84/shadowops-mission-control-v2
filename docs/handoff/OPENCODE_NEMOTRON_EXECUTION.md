@@ -17,6 +17,8 @@ Finish ShadowOps production hardening in small, evidence-backed steps. Do not re
 - The runtime MCP is read-only evidence infrastructure.
 - Missing evidence stays `NOT_CONFIGURED`, `UNAVAILABLE`, `DEGRADED`, or `UNKNOWN`; never invent `READY`.
 - Never expose secrets, tokens, message bodies, raw private data, browser cookies, or implicit sessions.
+- Never write outside the current repository worktree through edit/write tools.
+- Never create report/plan/scratch/example files during this task. The completion report is text on stdout only.
 
 ## Editing discipline for Nemotron
 
@@ -27,6 +29,9 @@ Finish ShadowOps production hardening in small, evidence-backed steps. Do not re
 5. If a test fails twice for different reasons after your own edits, STOP, restore only your last touched file from the pre-edit backup or Git diff, and report the failure. Do not enter a rewrite loop.
 6. Never change a passing subsystem to make an unrelated failing test green.
 7. Do not refactor while fixing a security gate. Fix only the verified defect.
+8. Do not create `execution_report.md`, `report.md`, `notes.md`, `plan.md`, `handoff/*`, or equivalent artifacts.
+9. Do not attempt placeholder/example paths such as `/path/to/your/...`, `/home/user/...`, or `/tmp/example/...`.
+10. If an edit/write tool requests external-directory permission, reject that write and continue only inside the allowed repository files. Do not ask for a broader permission.
 
 ## Canonical truths already proven
 
@@ -103,9 +108,9 @@ Inspect first; modify only where required:
 - `apps/shadowops_core/lib/shadow_ops_core/governance_gate.ex`
 - `apps/shadowops_core/lib/shadow_ops_core/audit.ex`
 - `apps/shadowops_core/test/durable_governance_test.exs`
-- optionally one new focused test file under `apps/shadowops_core/test/` if that keeps concurrency/replay tests clearer
+- optionally one new focused test file under `apps/shadowops_core/test/` whose filename contains `approval` and ends in `_test.exs`
 
-Do not change unrelated adapters, UI, MCP, workflow registry, Project Catalog, source registry, release scripts, or systemd integration for this task.
+Do not change unrelated adapters, UI, MCP, workflow registry, Project Catalog, source registry, release scripts, systemd integration, docs, handoff files, or reports for this task.
 
 ## Intended implementation shape
 
@@ -234,11 +239,13 @@ STOP immediately and report without further editing if any of these occurs:
 - the same focused test still fails after two distinct fixes;
 - `mix.lock` changes unexpectedly;
 - any secret/private raw data appears in output or diff;
-- runtime/systemd mutation would be required.
+- runtime/systemd mutation would be required;
+- an external-directory write permission is requested;
+- a report/scratch/example file would be needed.
 
 ## Completion report — exact format
 
-Do not write prose before this block:
+Return this block as text on stdout. Do not write it to a file. Do not write prose before this block.
 
 ```text
 OPENCODE_P0_APPROVAL_SINGLE_USE_RESULT
