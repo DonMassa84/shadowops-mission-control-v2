@@ -4,6 +4,17 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
   alias ShadowOpsWeb.{RuntimeOverview, SourceRegistry}
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
+  @required_core_names MapSet.new([
+                         "System",
+                         "Workflows",
+                         "Runs",
+                         "Services",
+                         "Nodes",
+                         "AI / Models",
+                         "Approvals",
+                         "Audit",
+                         "Security"
+                       ])
 
   def snapshot do
     overview = RuntimeOverview.snapshot()
@@ -44,28 +55,61 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       end)
 
     records = core ++ external ++ imports
+    health = health_summary(records)
 
     %{
       id: "integrations",
       kind: "integration_catalog",
-      status: if(Enum.any?(records, &positive?/1), do: "READY", else: "DEGRADED"),
-      health: if(Enum.any?(records, &positive?/1), do: "HEALTHY", else: "DEGRADED"),
+      status: health.status,
+      health: health.health,
       source:
         "bounded cached runtime overview + canonical connector adapters + local import evidence",
       source_type: "CONTROL_PLANE_PROJECTION",
       real_data: Enum.any?(records, & &1.real_data),
       synthetic: false,
-      reachable: true,
+      reachable: health.required_ready == health.required_total and health.required_total > 0,
       record_count: length(records),
       core_count: length(core),
       external_count: length(external),
       import_count: length(imports),
       positive_count: Enum.count(records, &positive?/1),
+      required_core_count: health.required_total,
+      required_core_ready_count: health.required_ready,
+      optional_count: health.optional_total,
+      optional_ready_count: health.optional_ready,
       records: records
     }
   end
 
   def positive?(card), do: card.status in @positive
+
+  @doc false
+  def health_summary(records) when is_list(records) do
+    {required, optional} = Enum.split_with(records, &required_core?/1)
+    required_ready = Enum.count(required, &positive?/1)
+    optional_ready = Enum.count(optional, &positive?/1)
+    required_total = length(required)
+
+    status =
+      cond do
+        required_total == 0 -> "UNAVAILABLE"
+        required_ready == required_total -> "READY"
+        required_ready > 0 -> "DEGRADED"
+        true -> "UNAVAILABLE"
+      end
+
+    %{
+      status: status,
+      health: if(status == "READY", do: "HEALTHY", else: status),
+      required_total: required_total,
+      required_ready: required_ready,
+      optional_total: length(optional),
+      optional_ready: optional_ready
+    }
+  end
+
+  defp required_core?(%{scope: "core", name: name}), do: MapSet.member?(@required_core_names, name)
+  defp required_core?(_), do: false
 
   defp retired_local_llm_connector?(payload) do
     payload
