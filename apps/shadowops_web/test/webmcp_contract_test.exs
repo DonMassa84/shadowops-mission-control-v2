@@ -13,11 +13,16 @@ defmodule ShadowOpsWeb.WebMCPContractTest do
     assert Plug.Conn.get_resp_header(conn, "permissions-policy") == ["tools=(self)"]
   end
 
-  test "WebMCP uses the current document.modelContext API" do
+  test "WebMCP uses the current document.modelContext API with lifecycle-bound registration" do
     js = File.read!(@asset)
 
     assert js =~ "document.modelContext"
     assert js =~ "registerTool"
+    assert js =~ "new AbortController()"
+    assert js =~ "{signal: webMcpRegistrationController.signal}"
+    assert js =~ "pagehide"
+    assert js =~ "webMcpRegistrationController.abort()"
+    assert js =~ "lifecycleBound: true"
     refute js =~ "navigator.modelContext"
   end
 
