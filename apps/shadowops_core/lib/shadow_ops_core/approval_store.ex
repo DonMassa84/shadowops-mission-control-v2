@@ -58,7 +58,33 @@ defmodule ShadowOpsCore.ApprovalStore do
         do: {:ok, approval}
       )
 
-  def consume(id), do: get(id)
+  def consume(id, action, resource, risk_level, actor)
+      when is_binary(actor) and actor != "" do
+    transact(fn ->
+      with {:ok, current} <- get(id),
+           :allowed <- Approval.evaluate(current, action, resource, risk_level),
+           {:ok, consumed} <- Approval.consume(current, actor),
+           {:ok, audit} <-
+             Audit.record(:approval_consumed, actor, current.resource, :success, %{
+               approval_id: id,
+               action: current.action,
+               risk: current.risk,
+               correlation_id: current.correlation_id,
+               evidence_ref: current.evidence_ref
+             }),
+           record = %{consumed | audit_ref: audit.id},
+           :ok <- append(record),
+           :ok <- publish("approval.consumed", record) do
+        {:ok, record}
+      else
+        {:blocked, reason} -> {:blocked, reason}
+        error -> error
+      end
+    end)
+  end
+
+  def consume(_id, _action, _resource, _risk_level, _actor),
+    do: {:error, :valid_actor_required}
 
   defp decide(id, decision, actor) do
     transact(fn ->
@@ -145,7 +171,8 @@ defmodule ShadowOpsCore.ApprovalStore do
   end
 
   defp decode_time(key, value)
-       when key in ["requested_at", "decision_at", "expires_at"] and is_binary(value),
+       when key in ["requested_at", "decision_at", "consumed_at", "expires_at"] and
+              is_binary(value),
        do: elem(DateTime.from_iso8601(value), 1)
 
   defp decode_time(_key, value), do: value
