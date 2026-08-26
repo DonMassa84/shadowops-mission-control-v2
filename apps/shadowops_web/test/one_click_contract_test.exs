@@ -74,7 +74,7 @@ defmodule ShadowOpsWeb.OneClickContractTest do
     end
 
     workflows = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/workflows"), [])
-    assert workflows.resp_body =~ "Approve &amp; run"
+    assert approve_and_run?(workflows.resp_body)
     assert workflows.resp_body =~ "one_click_run"
 
     services = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/services"), [])
@@ -90,6 +90,9 @@ defmodule ShadowOpsWeb.OneClickContractTest do
     compute = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/compute"), [])
     assert compute.resp_body =~ "One-click mode"
   end
+
+  defp approve_and_run?(body),
+    do: body =~ "Approve & run" or body =~ "Approve &amp; run"
 
   defp restore_web(key, nil), do: Application.delete_env(:shadowops_web, key)
   defp restore_web(key, value), do: Application.put_env(:shadowops_web, key, value)
