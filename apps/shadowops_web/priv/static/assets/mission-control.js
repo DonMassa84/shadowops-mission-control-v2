@@ -116,7 +116,7 @@ function buildCommandPalette() {
   input.addEventListener("keydown", event => {
     if (event.key === "ArrowDown") {
       event.preventDefault()
-      selected = Math.min(selected + 1, filtered.length - 1)
+      selected = Math.min(selected + 1, Math.max(filtered.length - 1, 0))
       render()
       results.querySelector(".is-selected")?.scrollIntoView({block: "nearest"})
     } else if (event.key === "ArrowUp") {
@@ -146,11 +146,43 @@ function installCommandTrigger() {
   meta.prepend(button)
 }
 
+function setBadge(badge, label, tone = "success") {
+  if (!badge) return
+  badge.className = `mc-badge is-${tone}`
+  badge.innerHTML = `<span aria-hidden="true"></span>${label}`
+}
+
+function decorateDashboardPolicy() {
+  if (window.location.pathname !== "/") return
+
+  const aiCard = document.querySelector('.mc-card-link[href="/ai"] .mc-metric')
+  if (aiCard) {
+    const label = aiCard.querySelector(".mc-metric-label>span:last-child")
+    const value = aiCard.querySelector(":scope>strong")
+    const note = aiCard.querySelector(":scope>p")
+    const source = aiCard.querySelector(":scope>small")
+    if (label) label.textContent = "AI policy"
+    if (value) value.textContent = "REMOTE_ONLY"
+    if (note) note.textContent = "Explicit remote provider/model required · no local inference fallback"
+    if (source) source.textContent = "Source: docs/REMOTE_AI_POLICY.md"
+    setBadge(aiCard.querySelector(".mc-badge"), "ENFORCED", "success")
+  }
+
+  const agentsCard = document.querySelector('.mc-card-link[href="/agents"] .mc-metric')
+  const agentsNote = agentsCard?.querySelector(":scope>p")
+  if (agentsNote) agentsNote.textContent = "Coding and automation agents are shown only when evidenced; AI execution remains remote-only"
+}
+
 function decorateRuntimePolicy() {
   document.documentElement.dataset.aiExecutionPolicy = "remote-only"
   document.querySelectorAll('a[href="/ai"]').forEach(link => {
     link.title = "AI Governance · remote-only execution"
+    if (link.closest(".mc-nav-group")) {
+      const label = link.querySelector("span:last-child")
+      if (label) label.textContent = "AI Governance"
+    }
   })
+  decorateDashboardPolicy()
 }
 
 function installKeyboardShortcuts() {
@@ -184,6 +216,18 @@ function bootMissionControlUI() {
   decorateRuntimePolicy()
 }
 
+let decorationQueued = false
+const observer = new MutationObserver(() => {
+  if (decorationQueued) return
+  decorationQueued = true
+  requestAnimationFrame(() => {
+    decorationQueued = false
+    installCommandTrigger()
+    decorateRuntimePolicy()
+  })
+})
+
 bootMissionControlUI()
 installKeyboardShortcuts()
+observer.observe(document.documentElement, {subtree: true, childList: true})
 window.addEventListener("phx:page-loading-stop", bootMissionControlUI)
