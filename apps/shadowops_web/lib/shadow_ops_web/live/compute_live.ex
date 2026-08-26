@@ -29,11 +29,16 @@ defmodule ShadowOpsWeb.ComputeLive do
          true <- action in allowed_actions(node_id),
          capability <- "node.#{action}",
          input <- %{node_id: node_id, action: action},
-         {:ok, _result} <- ExecutionService.execute(capability, actor, node_id, input, %{approval_id: approval_id}) do
-      {:noreply, socket |> load() |> put_flash(:info, "Node action completed: #{node_id} / #{action}")}
+         {:ok, _result} <-
+           ExecutionService.execute(capability, actor, node_id, input, %{approval_id: approval_id}) do
+      {:noreply,
+       socket |> load() |> put_flash(:info, "Node action completed: #{node_id} / #{action}")}
     else
-      false -> {:noreply, put_flash(socket, :error, "Node action is not activated for this runtime")}
-      {:error, reason} -> {:noreply, put_flash(socket, :error, "Node action blocked: #{safe_reason(reason)}")}
+      false ->
+        {:noreply, put_flash(socket, :error, "Node action is not activated for this runtime")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Node action blocked: #{safe_reason(reason)}")}
     end
   end
 
@@ -121,8 +126,10 @@ defmodule ShadowOpsWeb.ComputeLive do
   defp allowed_actions(_), do: ["status"]
 
   defp node_status([]), do: "UNAVAILABLE"
+
   defp node_status(nodes) do
     ready = Enum.count(nodes, &(&1.status in ["READY", "ONLINE"]))
+
     cond do
       ready == length(nodes) -> "READY"
       ready > 0 -> "DEGRADED"

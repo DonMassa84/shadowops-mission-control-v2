@@ -94,8 +94,11 @@ defmodule ShadowOpsWeb.DashboardLive do
         {:ok, registry} ->
           canonical =
             case ShadowOpsApi.list_workflows() do
-              {:ok, workflows} -> workflows |> Enum.filter(&executable_canonical?/1) |> Enum.sort_by(& &1["id"])
-              {:error, _reason} -> []
+              {:ok, workflows} ->
+                workflows |> Enum.filter(&executable_canonical?/1) |> Enum.sort_by(& &1["id"])
+
+              {:error, _reason} ->
+                []
             end
 
           {Inventory.summary(registry), canonical}
@@ -113,10 +116,13 @@ defmodule ShadowOpsWeb.DashboardLive do
     )
   end
 
-  defp empty_inventory, do: %{"total_count" => "UNAVAILABLE", "canonical_count" => 0, "external_count" => 0}
+  defp empty_inventory,
+    do: %{"total_count" => "UNAVAILABLE", "canonical_count" => 0, "external_count" => 0}
 
   defp executable_canonical?(workflow),
-    do: workflow["source_kind"] != "external_runtime_set" and workflow_status(workflow) not in ["UNAVAILABLE", "DISABLED", "NOT_CONNECTED"]
+    do:
+      workflow["source_kind"] != "external_runtime_set" and
+        workflow_status(workflow) not in ["UNAVAILABLE", "DISABLED", "NOT_CONNECTED"]
 
   defp operational_gates(o),
     do: [
@@ -128,7 +134,11 @@ defmodule ShadowOpsWeb.DashboardLive do
       {"AI execution", ai_policy_status(o), ai_policy(o), "/ai"}
     ]
 
-  defp physical_nodes(o), do: o.nodes |> Map.get(:records, []) |> Enum.reject(&(get_in(&1, [:metadata, :logical]) == true))
+  defp physical_nodes(o),
+    do:
+      o.nodes
+      |> Map.get(:records, [])
+      |> Enum.reject(&(get_in(&1, [:metadata, :logical]) == true))
 
   defp node_summary(o) do
     nodes = physical_nodes(o)
@@ -139,6 +149,7 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp node_status(o) do
     nodes = physical_nodes(o)
     ready = Enum.count(nodes, &(record_value(&1, :status, "") in ["READY", "ONLINE"]))
+
     cond do
       nodes == [] -> "UNAVAILABLE"
       ready == length(nodes) -> "READY"
@@ -156,6 +167,7 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp service_status(o) do
     services = Map.get(o.services, :services, [])
     ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
+
     cond do
       services == [] -> "UNAVAILABLE"
       ready == length(services) -> "READY"
@@ -168,15 +180,31 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp job_summary(_), do: "Not configured"
   defp ai_policy(o), do: get_in(o, [:ai, :policy, :coding_execution]) || "UNAVAILABLE"
   defp ai_policy_status(o), do: if(ai_policy(o) == "REMOTE_ONLY", do: "READY", else: "DEGRADED")
-  defp workflow_inventory_status(%{"canonical_count" => total}) when is_integer(total) and total > 0, do: "READY"
+
+  defp workflow_inventory_status(%{"canonical_count" => total})
+       when is_integer(total) and total > 0, do: "READY"
+
   defp workflow_inventory_status(_), do: "UNAVAILABLE"
-  defp approval_overall(o), do: if(pending(o.approvals.records) > 0, do: "DEGRADED", else: o.approvals.status)
+
+  defp approval_overall(o),
+    do: if(pending(o.approvals.records) > 0, do: "DEGRADED", else: o.approvals.status)
+
   defp pending(records), do: Enum.count(records, &(record_value(&1, :status, "") == "PENDING"))
   defp recent_runs(o), do: o.runs.records |> Enum.take(5)
-  defp record_value(record, key, default) when is_map(record), do: Map.get(record, key, Map.get(record, to_string(key), default))
+
+  defp record_value(record, key, default) when is_map(record),
+    do: Map.get(record, key, Map.get(record, to_string(key), default))
+
   defp record_value(_record, _key, default), do: default
-  defp run_timestamp(run), do: record_value(run, :finished_at, nil) || record_value(run, :started_at, nil) || record_value(run, :queued_at, "Not available")
-  defp workflow_status(workflow), do: workflow["execution_status"] || workflow["status"] || "AVAILABLE"
+
+  defp run_timestamp(run),
+    do:
+      record_value(run, :finished_at, nil) || record_value(run, :started_at, nil) ||
+        record_value(run, :queued_at, "Not available")
+
+  defp workflow_status(workflow),
+    do: workflow["execution_status"] || workflow["status"] || "AVAILABLE"
+
   defp workflow_name(workflow), do: workflow["display_name"] || workflow["name"] || workflow["id"]
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
 end

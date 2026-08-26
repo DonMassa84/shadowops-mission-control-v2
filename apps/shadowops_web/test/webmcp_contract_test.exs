@@ -45,7 +45,13 @@ defmodule ShadowOpsWeb.WebMCPContractTest do
       assert js =~ tool
     end
 
-    for endpoint <- ["/api/jobs", "/api/integrations", "/api/connectors", "/api/evidence", "/api/learning/plan"] do
+    for endpoint <- [
+          "/api/jobs",
+          "/api/integrations",
+          "/api/connectors",
+          "/api/evidence",
+          "/api/learning/plan"
+        ] do
       assert js =~ endpoint
     end
 

@@ -67,7 +67,10 @@ defmodule ShadowOpsWeb.IntegrationsLive do
   end
 
   defp scope_status([]), do: "NOT_CONFIGURED"
-  defp scope_status(records), do: if(Enum.any?(records, &IntegrationCatalog.positive?/1), do: "READY", else: "DEGRADED")
+
+  defp scope_status(records),
+    do: if(Enum.any?(records, &IntegrationCatalog.positive?/1), do: "READY", else: "DEGRADED")
+
   defp yes_no(true), do: "Yes"
   defp yes_no(_), do: "No"
 end
