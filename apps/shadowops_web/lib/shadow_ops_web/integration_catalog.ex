@@ -21,6 +21,8 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     overview = RuntimeOverview.snapshot()
     connectors = value(overview, :connectors, %{})
     local_discovery = LocalIntegrationCandidates.snapshot()
+    knowledge = value(overview, :knowledge, %{})
+    knowledge_sources = knowledge_sources(knowledge)
 
     core =
       [
@@ -34,7 +36,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
         {"Approvals", value(overview, :approvals)},
         {"Audit", value(overview, :audit)},
         {"Security", value(overview, :security)},
-        {"Knowledge", value(overview, :knowledge)},
+        {"Knowledge", knowledge},
         {"Evidence", value(overview, :evidence)},
         {"Career", value(overview, :career)},
         {"Backups", value(overview, :backups)},
@@ -67,7 +69,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       status: health.status,
       health: health.health,
       source:
-        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery",
+        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery + measured local knowledge sources",
       source_type: "CONTROL_PLANE_PROJECTION",
       real_data: Enum.any?(records, & &1.real_data),
       synthetic: false,
@@ -79,6 +81,12 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       local_count: length(local),
       local_discovered_count: local_discovery.counts.discovered,
       local_auto_discovered_count: local_discovery.counts.auto_discovered,
+      knowledge_source_count: length(knowledge_sources),
+      knowledge_available_source_count:
+        Enum.count(knowledge_sources, &(&1.availability == "AVAILABLE")),
+      knowledge_document_count: Enum.sum(Enum.map(knowledge_sources, & &1.document_count)),
+      knowledge_indexed_document_count: value(knowledge, :indexed_documents_count),
+      knowledge_sources: knowledge_sources,
       positive_count: Enum.count(records, &positive?/1),
       required_core_count: health.required_total,
       required_core_ready_count: health.required_ready,
@@ -145,6 +153,32 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       error_message: nil
     }
   end
+
+  defp knowledge_sources(knowledge) do
+    knowledge
+    |> value(:sources, [])
+    |> Enum.map(fn source ->
+      name = to_string(value(source, :source, "Knowledge source"))
+
+      %{
+        id: slug(name),
+        name: name,
+        availability: normalize_status(value(source, :availability, "UNKNOWN")),
+        document_count: integer_or_zero(value(source, :document_count)),
+        last_update: value(source, :last_update),
+        source_type: knowledge_source_type(name),
+        synthetic: false
+      }
+    end)
+  end
+
+  defp knowledge_source_type("ProofFlow-Obsidian-Vault"), do: "LOCAL_KNOWLEDGE_VAULT"
+  defp knowledge_source_type("shadowops-knowledge"), do: "LOCAL_KNOWLEDGE_STORE"
+  defp knowledge_source_type("workflow-knowledge"), do: "WORKFLOW_KNOWLEDGE_STORE"
+  defp knowledge_source_type(_), do: "LOCAL_KNOWLEDGE_SOURCE"
+
+  defp integer_or_zero(value) when is_integer(value) and value >= 0, do: value
+  defp integer_or_zero(_), do: 0
 
   defp required_core?(%{scope: "core", name: name}),
     do: MapSet.member?(@required_core_names, name)
