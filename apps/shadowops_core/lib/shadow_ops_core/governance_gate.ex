@@ -40,16 +40,14 @@ defmodule ShadowOpsCore.GovernanceGate do
   defp approval(%{approval_required: true, risk_level: risk}, capability, resource, context) do
     approval_id = value(context, :approval_id)
 
-    cond do
-      not (is_binary(approval_id) and approval_id != "") ->
-        {:error, :approval_required}
-
-      true ->
-        case ApprovalStore.validate(approval_id, capability, resource, risk) do
-          {:ok, _approval} -> :ok
-          {:blocked, reason} -> {:error, {:approval_blocked, reason}}
-          {:error, reason} -> {:error, {:approval_invalid, reason}}
-        end
+    if is_binary(approval_id) and approval_id != "" do
+      case ApprovalStore.validate(approval_id, capability, resource, risk) do
+        {:ok, _approval} -> :ok
+        {:blocked, reason} -> {:error, {:approval_blocked, reason}}
+        {:error, reason} -> {:error, {:approval_invalid, reason}}
+      end
+    else
+      {:error, :approval_required}
     end
   end
 
