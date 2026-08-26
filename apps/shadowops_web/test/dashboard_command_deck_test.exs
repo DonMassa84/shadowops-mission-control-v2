@@ -15,11 +15,14 @@ defmodule ShadowOpsWeb.DashboardCommandDeckTest do
     assert response.resp_body =~ "System"
     assert response.resp_body =~ "Workflows"
     assert response.resp_body =~ "Runs"
+    assert response.resp_body =~ "Job queue"
     assert response.resp_body =~ "Pending approvals"
-    assert response.resp_body =~ "Nodes"
+    assert response.resp_body =~ "Compute"
     assert response.resp_body =~ "Services"
     assert response.resp_body =~ "AI policy"
     assert response.resp_body =~ "Security"
+    assert response.resp_body =~ "Next actions"
+    assert response.resp_body =~ "Integrations"
   end
 
   test "primary navigation exposes recovered daily-use surfaces and hides secondary experiments" do
