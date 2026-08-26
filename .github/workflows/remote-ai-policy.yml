@@ -1,0 +1,68 @@
+name: Remote AI Policy
+
+on:
+  push:
+    branches: ["local/all-developments"]
+    paths:
+      - "opencode.jsonc"
+      - "scripts/shadowops-coder.sh"
+      - "README.md"
+      - "AGENTS.md"
+      - "docs/AI_CONTEXT.md"
+      - "docs/REMOTE_AI_POLICY.md"
+      - ".github/workflows/remote-ai-policy.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "opencode.jsonc"
+      - "scripts/shadowops-coder.sh"
+      - "README.md"
+      - "AGENTS.md"
+      - "docs/AI_CONTEXT.md"
+      - "docs/REMOTE_AI_POLICY.md"
+      - ".github/workflows/remote-ai-policy.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  remote-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Shell syntax
+        run: bash -n scripts/shadowops-coder.sh
+
+      - name: No repository local AI provider
+        run: |
+          if grep -Eiq '"model"[[:space:]]*:[[:space:]]*"(ollama|local|lmstudio|llamacpp|llama\.cpp)/' opencode.jsonc; then
+            echo "Local AI model default is forbidden" >&2
+            exit 1
+          fi
+          if grep -Eiq '"(ollama|lmstudio|llamacpp|llama\.cpp)"[[:space:]]*:' opencode.jsonc; then
+            echo "Repository-local AI provider is forbidden" >&2
+            exit 1
+          fi
+
+      - name: Launcher is remote-only and fail-closed
+        run: |
+          grep -Fq 'AI_EXECUTION_POLICY=REMOTE_ONLY' scripts/shadowops-coder.sh
+          grep -Fq 'BLOCKED_REMOTE_MODEL_REQUIRED' scripts/shadowops-coder.sh
+          grep -Fq 'BLOCKED_LOCAL_AI_FORBIDDEN' scripts/shadowops-coder.sh
+          grep -Fq "MODEL=\"\${SHADOWOPS_CODER_MODEL:-}\"" scripts/shadowops-coder.sh
+          grep -Fq 'opencode models' scripts/shadowops-coder.sh
+          if grep -Fq 'ollama/qwen' scripts/shadowops-coder.sh; then
+            echo "Local Ollama default reintroduced" >&2
+            exit 1
+          fi
+
+      - name: Durable policy documentation
+        run: |
+          grep -Fq 'AI_EXECUTION_POLICY=REMOTE_ONLY' docs/REMOTE_AI_POLICY.md
+          grep -Fq 'AI_EXECUTION_POLICY=REMOTE_ONLY' AGENTS.md
+          grep -Fq 'AI_EXECUTION_POLICY=REMOTE_ONLY' docs/AI_CONTEXT.md
+          grep -Fq 'AI_EXECUTION_POLICY=REMOTE_ONLY' README.md
+          grep -Fq 'Do not reintroduce' docs/REMOTE_AI_POLICY.md
