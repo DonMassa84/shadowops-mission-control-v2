@@ -51,8 +51,7 @@ end
 one_click_default = if runtime_env == :prod, do: "false", else: "true"
 
 config :shadowops_web,
-  one_click_enabled:
-    truthy?.(System.get_env("SHADOWOPS_ONE_CLICK_ENABLED", one_click_default)),
+  one_click_enabled: truthy?.(System.get_env("SHADOWOPS_ONE_CLICK_ENABLED", one_click_default)),
   one_click_actor: System.get_env("SHADOWOPS_ONE_CLICK_ACTOR", "local-operator")
 
 start_persistence = truthy?.(System.get_env("SHADOWOPS_START_PERSISTENCE", "false"))
