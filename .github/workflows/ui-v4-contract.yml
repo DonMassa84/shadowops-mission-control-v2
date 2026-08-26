@@ -18,7 +18,7 @@ jobs:
   ui-contract:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: JavaScript syntax
         run: |
@@ -46,5 +46,5 @@ jobs:
           ! grep -F 'http://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
           ! grep -F 'https://' apps/shadowops_web/priv/static/assets/mission-control-v4.css
 
-      - name: Diff hygiene
-        run: git diff --check HEAD^ HEAD
+      - name: Commit hygiene
+        run: git show --check --oneline HEAD
