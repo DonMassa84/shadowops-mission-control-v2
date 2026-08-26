@@ -2,6 +2,8 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   @moduledoc "Reusable, accessible Mission Control UI components."
   use Phoenix.Component
 
+  alias ShadowOpsCore.Status
+
   attr(:title, :string, required: true)
   attr(:subtitle, :string, default: nil)
   attr(:active, :string, required: true)
@@ -19,18 +21,24 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       <a class="mc-skip" href="#mission-content">Skip to content</a>
       <aside class="mc-sidebar" aria-label="Mission Control navigation">
         <a class="mc-brand" href="/" aria-label="ShadowOps dashboard">
-          <span class="mc-brand-mark">SO</span>
+          <span class="mc-brand-mark" aria-hidden="true">
+            <img src="/assets/shadowops-mark.svg" alt="" />
+          </span>
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
         <nav>
-          <.nav_group label="Dashboard" items={[{"Overview", "/"}]} active={@active} />
+          <.nav_group label="Dashboard" items={[{"Overview", "/"}, {"Layer Health", "/layers"}]} active={@active} />
           <.nav_group label="Operations" items={[{"Infrastructure", "/infrastructure"}, {"Workflows", "/workflows"}, {"Runs", "/runs"}, {"Services", "/services"}, {"Nodes", "/nodes"}, {"Backups", "/backups"}]} active={@active} />
-          <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
+          <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Federated", "/projects/federated"}, {"ChatGPT", "/projects/chatgpt"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
           <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
           <.nav_group label="Social" items={[{"Overview", "/social"}, {"Facebook", "/social/facebook"}, {"Social Review", "/social/review"}, {"Messenger", "/social/messenger"}, {"WhatsApp", "/social/whatsapp"}, {"Telegram", "/social/telegram"}]} active={@active} />
           <.nav_group label="Governance" items={[{"Approvals", "/approvals"}, {"Security", "/security"}, {"Audit", "/audit"}, {"Evidence", "/evidence"}, {"Legal", "/legal"}, {"Logs", "/logs"}]} active={@active} />
           <.nav_group label="System" items={[{"i7 Display", "/display/i7"}, {"Health", "/health"}, {"Readiness", "/ready"}]} active={@active} />
         </nav>
+        <div class="mc-sidebar-footer">
+          <span class="mc-operator-avatar">SO</span>
+          <span><strong>Local operator</strong><small>Administrator</small></span>
+        </div>
       </aside>
       <div class="mc-workspace">
         <header class="mc-topbar">
@@ -42,6 +50,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <div class="mc-topbar-meta">
             <.status_badge status={@availability} />
             <span :if={@updated_at} class="mc-updated">Updated <time>{@updated_at}</time></span>
+            <a class="mc-icon-button" href={@active} aria-label="Refresh current view" title="Refresh">↻</a>
           </div>
         </header>
         <main id="mission-content" class="mc-main" tabindex="-1">
@@ -60,7 +69,10 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     ~H"""
     <section class="mc-nav-group">
       <h2>{@label}</h2>
-      <a :for={{label, path} <- @items} href={path} class={if active?(@active, path), do: "is-active"} aria-current={if active?(@active, path), do: "page"}>{label}</a>
+      <a :for={{label, path} <- @items} href={path} class={if active?(@active, path), do: "is-active"} aria-current={if active?(@active, path), do: "page"}>
+        <span class="mc-nav-icon" aria-hidden="true">{nav_icon(label)}</span>
+        <span>{label}</span>
+      </a>
     </section>
     """
   end
@@ -69,8 +81,8 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   attr(:label, :string, default: nil)
 
   def status_badge(assigns) do
-    value = normalize(assigns.status)
-    assigns = assigns |> assign(:value, value) |> assign(:tone, tone(value))
+    value = Status.normalize(assigns.status)
+    assigns = assigns |> assign(:value, value) |> assign(:tone, Status.tone(value))
 
     ~H"""
     <span class={["mc-badge", "is-#{@tone}"]}><span aria-hidden="true"></span>{@label || @value}</span>
@@ -82,14 +94,24 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   attr(:status, :any, default: "AVAILABLE")
   attr(:source, :string, default: nil)
   attr(:note, :string, default: nil)
+  attr(:icon, :string, default: nil)
 
   def metric_card(assigns) do
+    assigns = assign(assigns, :resolved_icon, assigns.icon || metric_icon(assigns.label))
+
     ~H"""
     <article class="mc-metric">
-      <div class="mc-metric-head"><span>{@label}</span><.status_badge status={@status} /></div>
+      <div class="mc-metric-head">
+        <span class="mc-metric-label">
+          <span class="mc-metric-icon" aria-hidden="true">{@resolved_icon}</span>
+          <span>{@label}</span>
+        </span>
+        <.status_badge status={@status} />
+      </div>
       <strong>{@value}</strong>
       <p :if={@note}>{@note}</p>
       <small :if={@source}>Source: {@source}</small>
+      <span class="mc-metric-spark" aria-hidden="true"></span>
     </article>
     """
   end
@@ -136,28 +158,65 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     """
   end
 
-  defp active?(active, "/"), do: active == "/"
-  defp active?(active, path), do: active == path or String.starts_with?(active, path <> "/")
-  defp normalize(value) when is_atom(value), do: value |> Atom.to_string() |> String.upcase()
-  defp normalize(value) when is_binary(value), do: String.upcase(value)
-  defp normalize(value), do: to_string(value) |> String.upcase()
+  defp nav_icon("Overview"), do: "⌂"
+  defp nav_icon("Layer Health"), do: "◉"
+  defp nav_icon("Infrastructure"), do: "▦"
+  defp nav_icon("Workflows"), do: "⌘"
+  defp nav_icon("Runs"), do: "▷"
+  defp nav_icon("Services"), do: "◆"
+  defp nav_icon("Nodes"), do: "▣"
+  defp nav_icon("Backups"), do: "▱"
+  defp nav_icon("Federated"), do: "◎"
+  defp nav_icon("ChatGPT"), do: "◌"
+  defp nav_icon("Finance"), do: "◇"
+  defp nav_icon("Investigations"), do: "⌕"
+  defp nav_icon("IHK"), do: "▤"
+  defp nav_icon("Community"), do: "♢"
+  defp nav_icon("Agents"), do: "⌬"
+  defp nav_icon("AI"), do: "✦"
+  defp nav_icon("Knowledge"), do: "▥"
+  defp nav_icon("Career"), do: "◈"
+  defp nav_icon("Reporting"), do: "◰"
+  defp nav_icon("Facebook"), do: "f"
+  defp nav_icon("Social Review"), do: "◫"
+  defp nav_icon("Messenger"), do: "◍"
+  defp nav_icon("WhatsApp"), do: "◉"
+  defp nav_icon("Telegram"), do: "△"
+  defp nav_icon("Approvals"), do: "✓"
+  defp nav_icon("Security"), do: "◇"
+  defp nav_icon("Audit"), do: "▧"
+  defp nav_icon("Evidence"), do: "▤"
+  defp nav_icon("Legal"), do: "§"
+  defp nav_icon("Logs"), do: "▰"
+  defp nav_icon("i7 Display"), do: "▣"
+  defp nav_icon("Health"), do: "♥"
+  defp nav_icon("Readiness"), do: "●"
+  defp nav_icon(_), do: "·"
 
-  defp tone(value) do
-    cond do
-      value in ~w(PASS VALID AVAILABLE CONNECTED ONLINE SUCCESS APPROVED READY VERIFIED HEALTHY ACTIVE) ->
-        "success"
-
-      value in ~w(FAIL INVALID ERROR OFFLINE FAILED REJECTED BLOCKED BLOCKED_CONFIGURATION) ->
-        "error"
-
-      value in ~w(PENDING RUNNING QUEUED DEGRADED PARTIAL REVIEW) ->
-        "review"
-
-      value in ~w(NOT_CONFIGURED NOT_CONNECTED UNAVAILABLE UNKNOWN NOT_CHECKED EXPIRED DISABLED DISABLED_BY_CONFIGURATION) ->
-        "muted"
-
-      true ->
-        "neutral"
+  defp metric_icon(label) do
+    case String.downcase(to_string(label)) do
+      "ryzen" -> "◆"
+      "i7" -> "◇"
+      "system" -> "◇"
+      "chatgpt nodes" -> "◌"
+      "workflows" -> "⌘"
+      "workflow inventory" -> "⌘"
+      "agents" -> "●"
+      "ai runtimes" -> "✦"
+      "ai / models" -> "✦"
+      "security" -> "◇"
+      "audit" -> "▧"
+      "runtime" -> "◉"
+      "connectors" -> "◎"
+      "pending approvals" -> "✓"
+      "backup" -> "▱"
+      "career" -> "◈"
+      "evidence" -> "▤"
+      "knowledge" -> "▥"
+      _ -> "◆"
     end
   end
+
+  defp active?(active, "/"), do: active == "/"
+  defp active?(active, path), do: active == path or String.starts_with?(active, path <> "/")
 end

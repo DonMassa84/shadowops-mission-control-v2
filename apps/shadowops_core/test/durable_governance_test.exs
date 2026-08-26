@@ -1,7 +1,7 @@
 defmodule ShadowOpsCore.DurableGovernanceTest do
   use ExUnit.Case, async: false
 
-  alias ShadowOpsCore.{ApprovalStore, Audit, RunStore}
+  alias ShadowOpsCore.{ApprovalStore, Audit, ResultEvaluator, RunStore}
 
   setup do
     suffix = System.unique_integer([:positive])
@@ -72,13 +72,21 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
 
     assert {:ok, queued} = RunStore.queue("repository_quality", "operator-a")
     assert queued.status == "QUEUED" and is_binary(queued.audit_ref)
+    assert queued.kind == "workflow"
+    assert queued.resource_id == "repository_quality"
     assert {:ok, running} = RunStore.start(queued.id, "operator-a")
     assert running.status == "RUNNING"
 
+    evaluation = ResultEvaluator.workflow("verified result", 0)
+
     assert {:ok, success} =
-             RunStore.succeed(running.id, "operator-a", "verified result", 0, "evidence-a")
+             RunStore.succeed(running.id, "operator-a", "verified result", 0, "evidence-a", %{
+               evaluation: evaluation,
+               score: evaluation.score
+             })
 
     assert success.status == "SUCCESS" and success.evidence_ref == "evidence-a"
+    assert success.score == 100
 
     assert {:error, {:invalid_transition, "SUCCESS", "RUNNING"}} =
              RunStore.start(success.id, "operator-a")
@@ -97,6 +105,60 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
     assert match?({:ok, %{valid: true}}, Audit.verify())
   end
 
+  test "service run persists before and after state with deterministic evaluation" do
+    before_state = %{active_state: "inactive", pid: nil}
+    after_state = %{active_state: "active", pid: 777}
+    evaluation = ResultEvaluator.service("start", before_state, after_state, :ok)
+
+    assert {:ok, queued} =
+             RunStore.queue_service(
+               "user:shadowops-phoenix.service",
+               "start",
+               "operator-service",
+               %{
+                 before_state: before_state,
+                 trigger: "test"
+               }
+             )
+
+    assert queued.kind == "service"
+    assert queued.workflow_id == nil
+    assert queued.resource_id == "user:shadowops-phoenix.service"
+    assert queued.action == "start"
+
+    assert {:ok, running} = RunStore.start(queued.id, "operator-service")
+
+    assert {:ok, success} =
+             RunStore.succeed(
+               running.id,
+               "operator-service",
+               "service started",
+               0,
+               "service:test",
+               %{
+                 after_state: after_state,
+                 evaluation: evaluation,
+                 score: evaluation.score
+               }
+             )
+
+    assert success.status == "SUCCESS"
+    assert nested_value(success.before_state, :active_state) == "inactive"
+    assert nested_value(success.after_state, :active_state) == "active"
+    assert nested_value(success.after_state, :pid) == 777
+    assert success.score == 100
+    assert nested_value(success.evaluation, :verdict) == "EXCELLENT"
+    assert is_integer(success.duration_ms)
+
+    assert {:ok, persisted} = RunStore.get(success.id)
+    assert persisted.kind == "service"
+    assert persisted.resource_id == "user:shadowops-phoenix.service"
+    assert nested_value(persisted.before_state, :active_state) == "inactive"
+    assert nested_value(persisted.after_state, :active_state) == "active"
+    assert nested_value(persisted.evaluation, :verdict) == "EXCELLENT"
+    assert match?({:ok, %{valid: true}}, Audit.verify())
+  end
+
   test "concurrent audit appends preserve a single valid hash chain" do
     1..20
     |> Task.async_stream(
@@ -110,6 +172,9 @@ defmodule ShadowOpsCore.DurableGovernanceTest do
 
     assert {:ok, %{valid: true, entries: 20}} = Audit.verify()
   end
+
+  defp nested_value(map, key) when is_map(map),
+    do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
 
   defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
   defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)

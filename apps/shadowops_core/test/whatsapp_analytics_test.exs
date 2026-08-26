@@ -1,10 +1,7 @@
 defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
   use ExUnit.Case, async: false
 
-  import Bitwise
-
   alias ShadowOps.Social.WhatsAppAnalytics
-  alias ShadowOpsCore.Audit
 
   @real_source "/home/schattenmacher/social-exports/whatsapp/WhatsApp Chat Existing Workflow.txt"
 
@@ -85,9 +82,9 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       assert String.starts_with?(first.provenance.trace_id, "wa_trace_")
       assert byte_size(first.provenance.normalized_digest) == 64
 
-      entries_after_first = Audit.list(100)
+      entries_after_first = ShadowOpsCore.Audit.list(100)
       assert length(entries_after_first) == 3
-      assert {:ok, %{valid: true, entries: 3}} = Audit.verify()
+      assert {:ok, %{valid: true, entries: 3}} = ShadowOpsCore.Audit.verify()
 
       assert {:ok, second} =
                WhatsAppAnalytics.load(source_path: @real_source, state_path: state_path)
@@ -96,9 +93,9 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       assert second.provenance.trace_id == first.provenance.trace_id
       assert second.provenance.normalized_digest == first.provenance.normalized_digest
       assert second.analysis == first.analysis
-      assert length(Audit.list(100)) == 3
+      assert length(ShadowOpsCore.Audit.list(100)) == 3
 
-      whatsapp_events = Audit.list(100)
+      whatsapp_events = ShadowOpsCore.Audit.list(100)
 
       assert Enum.sort(Enum.map(whatsapp_events, & &1["resource"])) ==
                ~w(whatsapp_analysis whatsapp_connector whatsapp_import)
@@ -110,7 +107,7 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
       refute Enum.any?(all_keys(artifact), &(&1 in ~w(body sender message_text raw_messages)))
 
       assert {:ok, stat} = File.stat(state_path)
-      assert band(stat.mode, 0o777) == 0o600
+      assert Bitwise.band(stat.mode, 0o777) == 0o600
     end
 
     test "unchanged ingest requires matching WhatsApp audit evidence, not only a valid chain" do
@@ -130,15 +127,27 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
 
       assert error.code == "WHATSAPP_AUDIT_EVIDENCE_INVALID"
       assert first.audit.hash_chain == "PASS"
-      assert {:ok, %{valid: true, entries: 3}} = Audit.verify()
+      assert {:ok, %{valid: true, entries: 3}} = ShadowOpsCore.Audit.verify()
     end
-  end
 
-  defp configure_audit(path) do
-    previous = Application.get_env(:shadowops_core, :audit_path)
-    Application.put_env(:shadowops_core, :audit_path, path)
+    defp configure_audit(path) do
+      previous = Application.get_env(:shadowops_core, :audit_path)
+      Application.put_env(:shadowops_core, :audit_path, path)
 
-    on_exit(fn -> restore(:audit_path, previous) end)
+      on_exit(fn -> restore(:audit_path, previous) end)
+    end
+
+    defp all_keys(value) when is_map(value),
+      do: Map.keys(value) ++ Enum.flat_map(Map.values(value), &all_keys/1)
+
+    defp all_keys(value) when is_list(value), do: Enum.flat_map(value, &all_keys/1)
+    defp all_keys(_value), do: []
+
+    defp sha256(value),
+      do: :sha256 |> :crypto.hash(value) |> Base.encode16(case: :lower)
+
+    defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
+    defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)
   end
 
   defp temporary_root(label) do
@@ -152,16 +161,4 @@ defmodule ShadowOps.Social.WhatsAppAnalyticsTest do
     on_exit(fn -> File.rm_rf(root) end)
     root
   end
-
-  defp all_keys(value) when is_map(value),
-    do: Map.keys(value) ++ Enum.flat_map(Map.values(value), &all_keys/1)
-
-  defp all_keys(value) when is_list(value), do: Enum.flat_map(value, &all_keys/1)
-  defp all_keys(_value), do: []
-
-  defp sha256(value),
-    do: :sha256 |> :crypto.hash(value) |> Base.encode16(case: :lower)
-
-  defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
-  defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)
 end

@@ -1,7 +1,9 @@
 defmodule Mix.Tasks.Shadowops.Registry do
+  @moduledoc false
+
   use Mix.Task
 
-  alias WorkflowEngine.Registry
+  alias WorkflowEngine.{AgentContract, Registry}
   alias WorkflowEngine.Registry.Error
 
   @shortdoc "Validate, list, or summarize the ShadowOps workflow registry"
@@ -28,14 +30,16 @@ defmodule Mix.Tasks.Shadowops.Registry do
   end
 
   defp validate(path) do
-    case Registry.load(path) do
-      {:ok, registry} ->
-        Mix.shell().info(
-          "registry valid: #{registry["registry_name"]} (schema v#{registry["schema_version"]})"
-        )
+    with {:ok, registry} <- Registry.load(path),
+         :ok <- AgentContract.validate_registry(registry) do
+      Mix.shell().info(
+        "registry valid: #{registry["registry_name"]} (schema v#{registry["schema_version"]})"
+      )
 
-      {:error, %Error{} = error} ->
-        fail(error)
+      Mix.shell().info("generic_agent_contract=PASS")
+      Mix.shell().info("agent_contract_workflows=#{map_size(registry["workflows"])}")
+    else
+      {:error, %Error{} = error} -> fail(error)
     end
   end
 

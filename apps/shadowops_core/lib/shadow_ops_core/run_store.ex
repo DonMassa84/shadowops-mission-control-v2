@@ -1,7 +1,8 @@
 defmodule ShadowOpsCore.RunStore do
-  @moduledoc "Append-only persistent store for real workflow execution lifecycles."
+  @moduledoc "Append-only persistent store for real governed execution lifecycles."
   alias ShadowOpsCore.{Audit, Correlation, WorkflowRun}
   @path Path.expand("../../../../var/runs.jsonl", __DIR__)
+  @service_actions ["start", "restart", "stop"]
 
   def path, do: Application.get_env(:shadowops_core, :run_path, @path)
   def list, do: records() |> Map.values() |> Enum.sort_by(&DateTime.to_unix(&1.queued_at), :desc)
@@ -16,25 +17,24 @@ defmodule ShadowOpsCore.RunStore do
   def queue(workflow_id, actor, attrs \\ %{}) do
     transact(fn ->
       with true <- workflow_exists?(workflow_id),
-           true <- is_binary(actor) and actor != "",
+           true <- valid_actor?(actor),
            {:ok, correlation_id} <- Correlation.ensure(value(attrs, :correlation_id)),
-           run = %WorkflowRun{
-             id: value(attrs, :id) || "run_" <> random_id(),
-             workflow_id: workflow_id,
-             requested_by: actor,
-             queued_at: DateTime.utc_now(),
-             status: "QUEUED",
-             evidence_ref: value(attrs, :evidence_ref),
-             trigger: value(attrs, :trigger) || "api",
-             node: value(attrs, :node) || "local-ryzen",
-             stdout_ref: value(attrs, :stdout_ref),
-             stderr_ref: value(attrs, :stderr_ref),
-             correlation_id: correlation_id
-           },
+           run =
+             build_run(
+               workflow_id,
+               "workflow",
+               workflow_id,
+               "run",
+               actor,
+               correlation_id,
+               attrs
+             ),
            false <- Map.has_key?(records(), run.id),
            {:ok, audit} <-
              Audit.record(:run_queued, actor, workflow_id, :success, %{
                run_id: run.id,
+               kind: run.kind,
+               action: run.action,
                evidence_ref: run.evidence_ref,
                correlation_id: run.correlation_id
              }),
@@ -49,20 +49,81 @@ defmodule ShadowOpsCore.RunStore do
     end)
   end
 
+  def queue_service(service_id, action, actor, attrs \\ %{})
+
+  def queue_service(service_id, action, actor, attrs)
+      when is_binary(service_id) and action in @service_actions do
+    transact(fn ->
+      with true <- service_id != "" and valid_actor?(actor),
+           {:ok, correlation_id} <- Correlation.ensure(value(attrs, :correlation_id)),
+           run = build_run(nil, "service", service_id, action, actor, correlation_id, attrs),
+           false <- Map.has_key?(records(), run.id),
+           {:ok, audit} <-
+             Audit.record(:run_queued, actor, service_id, :success, %{
+               run_id: run.id,
+               kind: run.kind,
+               action: run.action,
+               correlation_id: run.correlation_id
+             }),
+           record = %{run | audit_ref: audit.id},
+           :ok <- append(record) do
+        {:ok, record}
+      else
+        false -> {:error, :invalid_service_or_actor}
+        true -> {:error, :already_exists}
+        error -> error
+      end
+    end)
+  end
+
+  def queue_service(_service_id, _action, _actor, _attrs),
+    do: {:error, :invalid_service_execution_request}
+
   def start(id, actor), do: transition(id, "RUNNING", actor, %{})
 
-  def succeed(id, actor, result, exit_code \\ 0, evidence_ref \\ nil),
+  def succeed(id, actor, result, exit_code \\ 0, evidence_ref \\ nil, attrs \\ %{}),
     do:
-      transition(id, "SUCCESS", actor, %{
-        result: result,
-        exit_code: exit_code,
-        evidence_ref: evidence_ref
-      })
+      transition(
+        id,
+        "SUCCESS",
+        actor,
+        attrs
+        |> Map.put(:result, result)
+        |> Map.put(:exit_code, exit_code)
+        |> Map.put(:evidence_ref, evidence_ref)
+      )
 
-  def fail(id, actor, result, exit_code),
-    do: transition(id, "FAILED", actor, %{result: result, exit_code: exit_code})
+  def fail(id, actor, result, exit_code, attrs \\ %{}),
+    do:
+      transition(
+        id,
+        "FAILED",
+        actor,
+        attrs |> Map.put(:result, result) |> Map.put(:exit_code, exit_code)
+      )
 
-  def block(id, actor, result), do: transition(id, "BLOCKED", actor, %{result: result})
+  def block(id, actor, result, attrs \\ %{}),
+    do: transition(id, "BLOCKED", actor, Map.put(attrs, :result, result))
+
+  defp build_run(workflow_id, kind, resource_id, action, actor, correlation_id, attrs) do
+    %WorkflowRun{
+      id: value(attrs, :id) || "run_" <> random_id(),
+      workflow_id: workflow_id,
+      kind: kind,
+      resource_id: resource_id,
+      action: action,
+      requested_by: actor,
+      queued_at: DateTime.utc_now(),
+      status: "QUEUED",
+      evidence_ref: value(attrs, :evidence_ref),
+      trigger: value(attrs, :trigger) || "api",
+      node: value(attrs, :node) || "local-ryzen",
+      stdout_ref: value(attrs, :stdout_ref),
+      stderr_ref: value(attrs, :stderr_ref),
+      correlation_id: correlation_id,
+      before_state: value(attrs, :before_state)
+    }
+  end
 
   defp transition(id, target, actor, attrs) do
     transact(fn ->
@@ -71,10 +132,14 @@ defmodule ShadowOpsCore.RunStore do
            now = DateTime.utc_now(),
            event = if(target == "RUNNING", do: :run_started, else: :run_finished),
            audit_result = if(target in ["SUCCESS", "RUNNING"], do: :success, else: :blocked),
+           resource = current.resource_id || current.workflow_id,
            {:ok, audit} <-
-             Audit.record(event, actor, current.workflow_id, audit_result, %{
+             Audit.record(event, actor, resource, audit_result, %{
                run_id: id,
+               kind: current.kind || "workflow",
+               action: current.action || "run",
                status: target,
+               score: attrs[:score],
                evidence_ref: attrs[:evidence_ref],
                correlation_id: current.correlation_id
              }),
@@ -96,16 +161,27 @@ defmodule ShadowOpsCore.RunStore do
   defp apply_transition(run, "RUNNING", now, _attrs, audit),
     do: %{run | status: "RUNNING", started_at: now, audit_ref: audit}
 
-  defp apply_transition(run, target, now, attrs, audit),
-    do: %{
+  defp apply_transition(run, target, now, attrs, audit) do
+    %{
       run
       | status: target,
         finished_at: now,
+        duration_ms: duration_ms(run.started_at, now),
         result: attrs[:result],
         exit_code: attrs[:exit_code],
+        score: attrs[:score] || run.score,
+        evaluation: attrs[:evaluation] || run.evaluation,
+        before_state: attrs[:before_state] || run.before_state,
+        after_state: attrs[:after_state] || run.after_state,
         evidence_ref: attrs[:evidence_ref] || run.evidence_ref,
         audit_ref: audit
     }
+  end
+
+  defp duration_ms(%DateTime{} = started_at, %DateTime{} = finished_at),
+    do: DateTime.diff(finished_at, started_at, :millisecond)
+
+  defp duration_ms(_, _), do: nil
 
   defp workflow_exists?(id) do
     case YamlElixir.read_from_file!(Application.fetch_env!(:workflow_engine, :registry_path))[
@@ -171,6 +247,7 @@ defmodule ShadowOpsCore.RunStore do
     "corr_" <> String.slice(digest, 0, 32)
   end
 
+  defp valid_actor?(actor), do: is_binary(actor) and actor != ""
   defp value(attrs, key), do: Map.get(attrs, key) || Map.get(attrs, Atom.to_string(key))
   defp transact(fun), do: :global.trans({{__MODULE__, path()}, self()}, fun)
 

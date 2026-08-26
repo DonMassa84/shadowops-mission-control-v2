@@ -1,6 +1,7 @@
 defmodule ShadowOpsWeb.WorkflowsController do
   use Phoenix.Controller, formats: [:json]
 
+  alias ShadowOpsCore.{ExecutionTracker, WorkflowJobs}
   alias ShadowOpsApi
 
   def index(conn, _params) do
@@ -46,9 +47,21 @@ defmodule ShadowOpsWeb.WorkflowsController do
     input = conn.body_params
     context = Map.put(input, :approval_id, input["approval_id"])
 
-    case ShadowOpsApi.execute_workflow(id, actor, input, context) do
+    result =
+      if WorkflowJobs.enabled?() do
+        WorkflowJobs.enqueue_request(id, actor, input, context)
+      else
+        ExecutionTracker.execute_workflow(id, actor, input, context)
+      end
+
+    case result do
+      {:ok, run, job} ->
+        conn
+        |> put_status(:accepted)
+        |> json(%{status: run.status, workflow_id: id, run: run, job: job, persistent: true})
+
       {:ok, run} ->
-        json(conn, %{status: run.status, workflow_id: id, run: run})
+        json(conn, %{status: run.status, workflow_id: id, run: run, persistent: false})
 
       {:error, {:approval_required, run}} ->
         conn |> put_status(:conflict) |> json(%{error: "approval_required", run: run})

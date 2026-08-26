@@ -25,7 +25,8 @@ defmodule ShadowOpsWeb.LiveInteractionTest do
     assert Process.alive?(view.pid)
     rendered = render(view)
     assert rendered =~ "Security"
-    assert rendered =~ "Write API remains approval-gated"
+    assert rendered =~ "Write API remains governance-gated"
+    assert rendered =~ "Approvals"
   end
 
   test "workflow filters update the connected LiveView without a page reload" do
