@@ -33,39 +33,40 @@ if ! command -v timeout >/dev/null 2>&1; then
   exit 127
 fi
 
-if [[ -n "${SHADOWOPS_CODER_MODEL+x}" ]]; then
-  MODEL="$SHADOWOPS_CODER_MODEL"
-  MODEL_SOURCE="SHADOWOPS_CODER_MODEL"
-else
-  MODEL="ollama/qwen2.5-coder:14b"
-  MODEL_SOURCE="DEFAULT"
-fi
+# ShadowOps coding agents are REMOTE-ONLY. There is intentionally no local-model
+# default. The operator must choose an exact remote provider/model identifier that
+# the installed OpenCode instance exposes.
+MODEL="${SHADOWOPS_CODER_MODEL:-}"
+MODEL_SOURCE="SHADOWOPS_CODER_MODEL"
 RUN_TIMEOUT="${SHADOWOPS_CODER_TIMEOUT:-45m}"
+
+if [[ -z "$MODEL" ]]; then
+  echo "SHADOWOPS_CODER=BLOCKED_REMOTE_MODEL_REQUIRED" >&2
+  echo "AI_EXECUTION_POLICY=REMOTE_ONLY" >&2
+  echo "Choose an exact remote model identifier with: opencode models" >&2
+  echo "Then run: SHADOWOPS_CODER_MODEL='provider/model' scripts/shadowops-coder.sh --next" >&2
+  exit 69
+fi
+
+case "$MODEL" in
+  ollama/*|local/*|lmstudio/*|llamacpp/*|llama.cpp/*)
+    echo "SHADOWOPS_CODER=BLOCKED_LOCAL_AI_FORBIDDEN" >&2
+    echo "AI_EXECUTION_POLICY=REMOTE_ONLY" >&2
+    echo "MODEL=$MODEL" >&2
+    exit 69
+    ;;
+esac
 
 # The CLI --model value is authoritative. Verify that exact provider/model identifier
 # is visible to the same OpenCode installation before starting an agent session.
 MODEL_LIST="$(timeout 30s opencode models 2>/dev/null || true)"
 if ! printf '%s\n' "$MODEL_LIST" | awk '{print $1}' | grep -Fxq "$MODEL"; then
   echo "SHADOWOPS_CODER=BLOCKED_MODEL_NOT_AVAILABLE_IN_OPENCODE" >&2
+  echo "AI_EXECUTION_POLICY=REMOTE_ONLY" >&2
   echo "MODEL=$MODEL" >&2
   echo "MODEL_SOURCE=$MODEL_SOURCE" >&2
-  echo "Resolve an exact identifier with: opencode models | grep -i '<model-name>'" >&2
+  echo "Resolve an exact remote identifier with: opencode models | grep -Ei 'nemotron|claude|gpt|gemini'" >&2
   exit 69
-fi
-
-if [[ "$MODEL" == ollama/* ]]; then
-  if ! command -v ollama >/dev/null 2>&1; then
-    echo "SHADOWOPS_CODER=BLOCKED_OLLAMA_NOT_INSTALLED" >&2
-    exit 127
-  fi
-  LOCAL_MODEL="${MODEL#ollama/}"
-  if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -Fxq "$LOCAL_MODEL"; then
-    echo "SHADOWOPS_CODER=BLOCKED_LOCAL_MODEL_NOT_AVAILABLE" >&2
-    echo "MODEL=$MODEL" >&2
-    echo "Available local Ollama models:" >&2
-    ollama list >&2 || true
-    exit 69
-  fi
 fi
 
 NEXT_MODE=0
@@ -88,18 +89,18 @@ else
   if [[ $# -eq 0 ]]; then
     cat >&2 <<'EOF'
 Usage:
-  scripts/shadowops-coder.sh --next
-  scripts/shadowops-coder.sh "implement <task> and run relevant tests"
-
-Recommended deterministic mode:
-  scripts/shadowops-coder.sh --next
-
-Select an exact model known to OpenCode:
-  opencode models
   SHADOWOPS_CODER_MODEL='provider/model' scripts/shadowops-coder.sh --next
+  SHADOWOPS_CODER_MODEL='provider/model' scripts/shadowops-coder.sh "implement <task> and run relevant tests"
+
+AI execution policy:
+  REMOTE_ONLY
+  Local models/providers such as ollama/* are forbidden.
+
+Find an exact remote model known to OpenCode:
+  opencode models
 
 Optional run bound (GNU timeout syntax):
-  SHADOWOPS_CODER_TIMEOUT=30m scripts/shadowops-coder.sh --next
+  SHADOWOPS_CODER_MODEL='provider/model' SHADOWOPS_CODER_TIMEOUT=30m scripts/shadowops-coder.sh --next
 EOF
     exit 64
   fi
@@ -130,7 +131,7 @@ if [[ "$NEXT_MODE" == "1" ]]; then
   chmod 600 "$BASELINE_FILE" 2>/dev/null || true
 fi
 
-printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nMODEL_SOURCE=%s\nMODEL_AUTHORITY=CLI_--model\nMODEL_VERIFIED=YES\nROOT=%s\nMODE=%s\nTIMEOUT=%s\nLOG=%s\nBASELINE=%s\n' \
+printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nMODEL_SOURCE=%s\nMODEL_AUTHORITY=CLI_--model\nMODEL_VERIFIED=YES\nAI_EXECUTION_POLICY=REMOTE_ONLY\nROOT=%s\nMODE=%s\nTIMEOUT=%s\nLOG=%s\nBASELINE=%s\n' \
   "$(git branch --show-current)" "$MODEL" "$MODEL_SOURCE" "$ROOT" "$([[ "$NEXT_MODE" == "1" ]] && echo NEXT || echo CUSTOM)" "$RUN_TIMEOUT" "$LOG_FILE" "${BASELINE_FILE:-NONE}"
 
 set +e
