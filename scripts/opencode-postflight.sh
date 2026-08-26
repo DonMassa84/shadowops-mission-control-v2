@@ -8,9 +8,23 @@ if [[ -z "$ROOT" || ! -d "$ROOT/.git" ]]; then
 fi
 cd "$ROOT"
 
+BASELINE_FILE="${1:-}"
+if [[ -z "$BASELINE_FILE" || ! -f "$BASELINE_FILE" ]]; then
+  echo "OPENCODE_POSTFLIGHT=BLOCKED_BASELINE_MISSING" >&2
+  exit 64
+fi
+
+BASELINE_HEAD="$(awk -F= '$1 == "HEAD" {print $2}' "$BASELINE_FILE")"
+BASELINE_BRANCH="$(awk -F= '$1 == "BRANCH" {print $2}' "$BASELINE_FILE")"
+if [[ ! "$BASELINE_HEAD" =~ ^[0-9a-f]{40}$ || -z "$BASELINE_BRANCH" ]]; then
+  echo "OPENCODE_POSTFLIGHT=BLOCKED_BASELINE_INVALID" >&2
+  exit 64
+fi
+
 BRANCH="$(git branch --show-current)"
-if [[ "$BRANCH" != "local/all-developments" ]]; then
+if [[ "$BRANCH" != "local/all-developments" || "$BRANCH" != "$BASELINE_BRANCH" ]]; then
   echo "OPENCODE_POSTFLIGHT=BLOCKED_WRONG_BRANCH" >&2
+  echo "BASELINE_BRANCH=$BASELINE_BRANCH" >&2
   echo "BRANCH=$BRANCH" >&2
   exit 65
 fi
@@ -20,7 +34,20 @@ if git diff --name-only --diff-filter=U | grep -q .; then
   exit 66
 fi
 
-mapfile -t CHANGED < <(git status --porcelain=v1 | sed -E 's/^.. //' | sed -E 's/^"(.*)"$/\1/' | sort -u)
+if ! git merge-base --is-ancestor "$BASELINE_HEAD" HEAD; then
+  echo "OPENCODE_POSTFLIGHT=BLOCKED_HISTORY_REWRITE_OR_BRANCH_DRIFT" >&2
+  echo "BASELINE_HEAD=$BASELINE_HEAD" >&2
+  echo "HEAD=$(git rev-parse HEAD)" >&2
+  exit 68
+fi
+
+# Include both committed changes since the post-preflight baseline and current worktree changes.
+mapfile -t CHANGED < <(
+  {
+    git diff --name-only "$BASELINE_HEAD"..HEAD
+    git status --porcelain=v1 --untracked-files=all | sed -E 's/^.. //' | sed -E 's/^"(.*)"$/\1/'
+  } | sed '/^$/d' | sort -u
+)
 
 allowed_path() {
   local path="$1"
@@ -57,6 +84,8 @@ fi
 git diff --check
 
 echo "OPENCODE_POSTFLIGHT=PASS"
+echo "BASELINE_HEAD=$BASELINE_HEAD"
+echo "HEAD=$(git rev-parse HEAD)"
 echo "BRANCH=$BRANCH"
 echo "CHANGED_COUNT=${#CHANGED[@]}"
 for path in "${CHANGED[@]:-}"; do
