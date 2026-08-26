@@ -43,8 +43,8 @@ defmodule ShadowOpsWeb.RemoteAIUIPolicyTest do
   end
 
   defp request(path) do
-    path
-    |> Plug.Test.conn(:get)
+    :get
+    |> Plug.Test.conn(path)
     |> ShadowOpsWeb.Endpoint.call([])
   end
 end
