@@ -1,0 +1,42 @@
+name: Local All Developments Contract
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "scripts/local_all_developments.sh"
+      - "scripts/certify_all_developments.sh"
+      - "scripts/promote_stable_4013.sh"
+      - "scripts/shadowops-local.sh"
+      - "scripts/shadowops-coder.sh"
+      - "scripts/run-shadowops-mcp.sh"
+      - "scripts/test_local_all_developments_contract.sh"
+      - "opencode.jsonc"
+      - ".github/workflows/local-all-developments-contract.yml"
+  push:
+    branches: ["local/all-developments"]
+    paths:
+      - "scripts/local_all_developments.sh"
+      - "scripts/certify_all_developments.sh"
+      - "scripts/promote_stable_4013.sh"
+      - "scripts/shadowops-local.sh"
+      - "scripts/shadowops-coder.sh"
+      - "scripts/run-shadowops-mcp.sh"
+      - "scripts/test_local_all_developments_contract.sh"
+      - "opencode.jsonc"
+      - ".github/workflows/local-all-developments-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Port separation, certification and rollback contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate local all-developments contract
+        run: bash scripts/test_local_all_developments_contract.sh
