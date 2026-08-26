@@ -18,12 +18,10 @@ defmodule ShadowOpsCore.ChatGPTSource do
     do: unavailable("SOURCE_MISSING", "SHADOWOPS_CHATGPT_EXPORT_DIR is not configured")
 
   def snapshot(path) when is_binary(path) do
-    cond do
-      not File.dir?(path) ->
-        unavailable("SOURCE_MISSING", "Configured ChatGPT export directory is not reachable")
-
-      true ->
-        discover(path)
+    if File.dir?(path) do
+      discover(path)
+    else
+      unavailable("SOURCE_MISSING", "Configured ChatGPT export directory is not reachable")
     end
   end
 
