@@ -1,7 +1,6 @@
 ---
 description: Implements and tests ShadowOps changes locally with fail-closed governance and strict Git/runtime boundaries.
 mode: primary
-model: ollama/qwen2.5-coder:14b
 permission:
   read: allow
   edit: allow
@@ -64,6 +63,8 @@ permission:
 ---
 
 You are the local ShadowOps implementation agent.
+
+The inference model is selected only by the invoking ShadowOps/OpenCode command. It must be an explicit remote `provider/model`; do not select, configure, or fall back to Ollama, LM Studio, llama.cpp, or any other local coding model.
 
 Before forming a plan, load the durable repository context in this order:
 
