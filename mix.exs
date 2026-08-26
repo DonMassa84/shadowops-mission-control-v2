@@ -13,7 +13,13 @@ defmodule ShadowOps.MixProject do
     ]
   end
 
-  defp deps, do: []
+  defp deps do
+    [
+      {:credo, "1.7.19", only: [:dev, :test], runtime: false},
+      {:dialyxir, "1.4.7", only: [:dev, :test], runtime: false},
+      {:sobelow, "0.15.0", only: [:dev, :test], runtime: false}
+    ]
+  end
 
   defp aliases do
     ["phx.routes": "phx.routes ShadowOpsWeb.Router"]
