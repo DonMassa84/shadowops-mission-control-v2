@@ -3,8 +3,8 @@ defmodule ShadowOpsWeb.DashboardLive do
   import ShadowOpsWeb.MissionControlComponents
 
   alias ShadowOpsApi
-  alias ShadowOpsCore.JobQueue
-  alias ShadowOpsWeb.RuntimeOverview
+  alias ShadowOpsCore.{JobQueue, LearningFocus}
+  alias ShadowOpsWeb.{IntegrationCatalog, MissionBrief, RuntimeOverview}
   alias WorkflowEngine.{Inventory, Registry}
 
   @refresh_ms 15_000
@@ -58,15 +58,40 @@ defmodule ShadowOpsWeb.DashboardLive do
         </a>
       </section>
 
-      <.panel title="Do next" description="High-value surfaces for action, focus and source verification.">
+      <.panel title="Current mission" description="Configured mission source; never synthesized from an AI guess.">
         <div class="mc-command-grid">
-          <a class="mc-command-card" href="/workflows"><span class="mc-command-kicker">Automate</span><strong>Workflows</strong><span>{@workflow_inventory["canonical_count"]} governed workflows</span></a>
-          <a class="mc-command-card" href="/approvals"><span class="mc-command-kicker">Decide</span><strong>Approvals</strong><span>{pending(@overview.approvals.records)} pending</span></a>
-          <a class="mc-command-card" href="/focus"><span class="mc-command-kicker">Focus</span><strong>Next actions</strong><span>Configured objective and execution rules</span></a>
-          <a class="mc-command-card" href="/integrations"><span class="mc-command-kicker">Sources</span><strong>Integrations</strong><span>Real data, reachability and source evidence</span></a>
-          <a class="mc-command-card" href="/compute"><span class="mc-command-kicker">Operate</span><strong>Compute</strong><span>{node_summary(@overview)}</span></a>
-          <a class="mc-command-card" href="/logs"><span class="mc-command-kicker">Diagnose</span><strong>Logs</strong><span>Bounded runtime diagnostics</span></a>
+          <article class="mc-command-card">
+            <span class="mc-command-kicker">Mission</span>
+            <strong>{@mission.mission.title}</strong>
+            <span>{@mission.mission.current}</span>
+          </article>
+          <article class="mc-command-card">
+            <span class="mc-command-kicker">Execute</span>
+            <strong>{@mission.mission.detail}</strong>
+            <span>Done when: {@mission.mission.done_when}</span>
+          </article>
+          <article class="mc-command-card">
+            <span class="mc-command-kicker">Evidence</span>
+            <strong>{@mission.mission.source}</strong>
+            <span><.status_badge status={@mission.mission.status} /></span>
+          </article>
         </div>
+      </.panel>
+
+      <.panel title="Top 3 next actions" description="Deterministic priority: governance and runtime blockers first, configured focus second. No invented tasks.">
+        <div class="mc-command-grid" :if={@mission.actions != []}>
+          <a
+            :for={{action, index} <- Enum.with_index(@mission.actions, 1)}
+            class="mc-command-card"
+            href={action.href}
+          >
+            <span class="mc-command-kicker">#{index} · {action.status}</span>
+            <strong>{action.title}</strong>
+            <span>{action.detail}</span>
+            <small>Source: {action.source}</small>
+          </a>
+        </div>
+        <p :if={@mission.actions == []} class="mc-empty">No evidence-backed next action is currently available.</p>
       </.panel>
 
       <.panel title="Operational gates" description="Only evidence-backed gates are presented as healthy.">
@@ -88,6 +113,16 @@ defmodule ShadowOpsWeb.DashboardLive do
 
   defp load(socket) do
     overview = RuntimeOverview.snapshot()
+    jobs = JobQueue.snapshot()
+    integrations = IntegrationCatalog.snapshot()
+
+    focus =
+      case LearningFocus.load() do
+        {:ok, value} when is_map(value) -> value
+        _ -> %{"availability" => "UNAVAILABLE"}
+      end
+
+    mission = MissionBrief.build(overview, jobs, integrations, focus)
 
     {inventory, canonical_workflows} =
       case Registry.load() do
@@ -109,7 +144,9 @@ defmodule ShadowOpsWeb.DashboardLive do
 
     assign(socket,
       overview: overview,
-      jobs: JobQueue.snapshot(),
+      jobs: jobs,
+      integrations: integrations,
+      mission: mission,
       workflow_inventory: inventory,
       canonical_workflows: canonical_workflows,
       updated_at: now()
