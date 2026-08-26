@@ -31,6 +31,7 @@ defmodule ShadowOpsWeb.IntegrationsLive do
         <.metric_card label="Connectors" value={@catalog.external_count} status={scope_status(@external)} note="External source adapters" />
         <.metric_card label="Imports" value={@catalog.import_count} status={scope_status(@imports)} note="Bounded local import sources; truth fields fail closed" />
         <.metric_card label="Local functions" value={@catalog.local_discovered_count} status={@catalog.local_discovery.status} note={"#{@catalog.local_auto_discovered_count} auto-discovered beyond the fixed inventory"} />
+        <.metric_card label="Knowledge docs" value={@catalog.knowledge_document_count} status={knowledge_status(@catalog)} note={"#{@catalog.knowledge_available_source_count}/#{@catalog.knowledge_source_count} measured local sources available; RAG readiness remains separate"} />
       </div>
 
       <.panel title="Source catalog" description="A source is not promoted to healthy unless runtime evidence explicitly says it is real and reachable.">
@@ -47,6 +48,28 @@ defmodule ShadowOpsWeb.IntegrationsLive do
                 <td>{record.record_count || "—"}</td>
                 <td class="mc-mono">{record.source_type}</td>
                 <td>{record.error_message || record.source}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </.panel>
+
+      <.panel title="Knowledge sources" description="Measured local knowledge paths. AVAILABLE means the local source exists and its files were counted; indexed/RAG readiness is reported separately by the Knowledge module.">
+        <p class="mc-callout">
+          {@catalog.knowledge_available_source_count}/{@catalog.knowledge_source_count} sources available ·
+          {@catalog.knowledge_document_count} measured documents ·
+          indexed documents: {@catalog.knowledge_indexed_document_count || "not ready"}
+        </p>
+        <div class="mc-table-wrap">
+          <table class="mc-table">
+            <thead><tr><th>Source</th><th>Availability</th><th>Measured documents</th><th>Last update</th><th>Source type</th></tr></thead>
+            <tbody>
+              <tr :for={record <- @catalog.knowledge_sources}>
+                <td><strong>{record.name}</strong><br /><span class="mc-mono mc-muted">{record.id}</span></td>
+                <td><.status_badge status={record.availability} /></td>
+                <td>{record.document_count}</td>
+                <td class="mc-mono">{record.last_update || "—"}</td>
+                <td class="mc-mono">{record.source_type}</td>
               </tr>
             </tbody>
           </table>
@@ -102,6 +125,18 @@ defmodule ShadowOpsWeb.IntegrationsLive do
     do: "READY"
 
   defp optional_status(_), do: "DEGRADED"
+
+  defp knowledge_status(%{knowledge_source_count: 0}), do: "NOT_CONFIGURED"
+
+  defp knowledge_status(%{
+         knowledge_available_source_count: ready,
+         knowledge_source_count: total
+       })
+       when ready == total,
+       do: "AVAILABLE"
+
+  defp knowledge_status(%{knowledge_available_source_count: ready}) when ready > 0, do: "DEGRADED"
+  defp knowledge_status(_), do: "UNAVAILABLE"
 
   defp yes_no(true), do: "Yes"
   defp yes_no(_), do: "No"
