@@ -5,7 +5,8 @@ defmodule ShadowOpsWeb.WorkflowInventoryUITest do
     dashboard = request("/")
     assert dashboard.status == 200
     assert dashboard.resp_body =~ "Daily operations overview"
-    assert dashboard.resp_body =~ "Do next"
+    assert dashboard.resp_body =~ "Current mission"
+    assert dashboard.resp_body =~ "Top 3 next actions"
     assert dashboard.resp_body =~ "Operational gates"
     assert dashboard.resp_body =~ "Available workflows"
     assert dashboard.resp_body =~ "Job queue"
@@ -13,6 +14,7 @@ defmodule ShadowOpsWeb.WorkflowInventoryUITest do
     assert dashboard.resp_body =~ "AI policy"
     assert dashboard.resp_body =~ "Approvals"
     assert dashboard.resp_body =~ "Security"
+    assert dashboard.resp_body =~ "Source:"
     assert dashboard.resp_body =~ "href=\"/focus\""
     assert dashboard.resp_body =~ "href=\"/integrations\""
 
