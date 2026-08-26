@@ -268,8 +268,6 @@ defmodule ShadowOpsWeb.LayerEvaluator do
     end
   end
 
-  defp record_count(_), do: nil
-
   defp result(id, name, score, coverage, findings, metrics) do
     state =
       if Enum.any?(findings, &(&1.severity == "CRITICAL")),
@@ -352,7 +350,6 @@ defmodule ShadowOpsWeb.LayerEvaluator do
   defp ratio(value, total), do: value / total
 
   defp value(map, key) when is_map(map), do: Map.get(map, key) || Map.get(map, to_string(key))
-  defp value(_map, _key), do: nil
 
   defp normalize(nil), do: ""
   defp normalize(value) when is_atom(value), do: value |> Atom.to_string() |> String.upcase()
