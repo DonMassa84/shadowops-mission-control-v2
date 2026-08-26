@@ -1,21 +1,23 @@
 defmodule ShadowOpsWeb.WorkflowInventoryUITest do
   use ExUnit.Case, async: false
 
-  test "Mission Control exposes production operations and complete source-backed workflow inventory" do
+  test "Mission Control exposes focused daily operations and complete workflow inventory" do
     dashboard = request("/")
     assert dashboard.status == 200
-    assert dashboard.resp_body =~ "Production operations"
-    assert dashboard.resp_body =~ "Production readiness"
-    assert dashboard.resp_body =~ "Career &amp; application operations"
-    assert dashboard.resp_body =~ "Governed workflow operations"
-    assert dashboard.resp_body =~ "Sources &amp; integrations"
-    assert dashboard.resp_body =~ "Career pipeline"
+    assert dashboard.resp_body =~ "Daily operations overview"
+    assert dashboard.resp_body =~ "Do next"
+    assert dashboard.resp_body =~ "Operational gates"
+    assert dashboard.resp_body =~ "Available workflows"
+    assert dashboard.resp_body =~ "Job queue"
+    assert dashboard.resp_body =~ "Compute"
+    assert dashboard.resp_body =~ "AI policy"
     assert dashboard.resp_body =~ "Approvals"
-    assert dashboard.resp_body =~ "Audit"
     assert dashboard.resp_body =~ "Security"
-    assert dashboard.resp_body =~ "Backups"
-    assert dashboard.resp_body =~ "70"
-    assert dashboard.resp_body =~ "9 canonical / 61 external"
+    assert dashboard.resp_body =~ "href=\"/focus\""
+    assert dashboard.resp_body =~ "href=\"/integrations\""
+
+    refute dashboard.resp_body =~ "Career pipeline"
+    refute dashboard.resp_body =~ "9 canonical / 61 external"
 
     workflows = request("/workflows")
     assert workflows.status == 200
