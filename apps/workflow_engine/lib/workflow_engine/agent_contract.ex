@@ -26,11 +26,47 @@ defmodule WorkflowEngine.AgentContract do
   )
   @backoff_modes ~w(none fixed exponential)
 
+  @spec validate_registry(map()) :: :ok | {:error, Error.t()}
+  def validate_registry(%{"workflows" => workflows, "agent_contracts" => contracts})
+      when is_map(workflows) and is_map(contracts) do
+    workflow_ids = workflows |> Map.keys() |> Enum.sort()
+    contract_ids = contracts |> Map.keys() |> Enum.sort()
+
+    if workflow_ids == contract_ids do
+      Enum.reduce_while(workflows, :ok, fn {workflow_id, workflow}, :ok ->
+        workflow_with_contract = Map.put(workflow, "agent_contract", contracts[workflow_id])
+
+        case validate(workflow_with_contract, ["workflows", workflow_id]) do
+          :ok -> {:cont, :ok}
+          {:error, %Error{}} = validation_error -> {:halt, validation_error}
+        end
+      end)
+    else
+      error(:agent_contract_workflow_set_mismatch, ["agent_contracts"], %{
+        missing_contracts: workflow_ids -- contract_ids,
+        unknown_contracts: contract_ids -- workflow_ids
+      })
+    end
+  end
+
+  def validate_registry(%{"workflows" => workflows}) when is_map(workflows) do
+    error(:agent_contracts_missing, ["agent_contracts"], %{workflow_count: map_size(workflows)})
+  end
+
+  def validate_registry(value) do
+    error(:invalid_agent_contract_registry, [], %{actual: type_of(value)})
+  end
+
   @spec validate(map(), [String.t()]) :: :ok | {:error, Error.t()}
   def validate(workflow, base) when is_map(workflow) and is_list(base) do
     case workflow["agent_contract"] do
-      contract when is_map(contract) -> validate_contract(contract, workflow, base ++ ["agent_contract"])
-      value -> error(:missing_or_invalid_agent_contract, base ++ ["agent_contract"], %{actual: type_of(value)})
+      contract when is_map(contract) ->
+        validate_contract(contract, workflow, base ++ ["agent_contract"])
+
+      value ->
+        error(:missing_or_invalid_agent_contract, base ++ ["agent_contract"], %{
+          actual: type_of(value)
+        })
     end
   end
 
@@ -43,8 +79,15 @@ defmodule WorkflowEngine.AgentContract do
          :ok <- validate_string_list(contract, "permissions", base, false),
          :ok <- validate_timeout(contract, base),
          :ok <- validate_retry_policy(contract["retry_policy"], base ++ ["retry_policy"]),
-         :ok <- validate_agent_spec(contract["agent_spec"], contract, workflow, base ++ ["agent_spec"]),
-         :ok <- validate_human_review(contract["human_review_policy"], contract["agent_spec"], base),
+         :ok <-
+           validate_agent_spec(
+             contract["agent_spec"],
+             contract,
+             workflow,
+             base ++ ["agent_spec"]
+           ),
+         :ok <-
+           validate_human_review(contract["human_review_policy"], contract["agent_spec"], base),
          :ok <- validate_evidence_policy(contract["evidence_policy"], base ++ ["evidence_policy"]) do
       :ok
     end
@@ -113,9 +156,12 @@ defmodule WorkflowEngine.AgentContract do
   defp validate_all_capabilities(capabilities, base) do
     Enum.reduce_while(capabilities, :ok, fn capability, :ok ->
       case CapabilityRegistry.lookup(capability) do
-        {:ok, _spec} -> {:cont, :ok}
+        {:ok, _spec} ->
+          {:cont, :ok}
+
         {:error, {:unknown_capability, unknown}} ->
-          {:halt, error(:unknown_agent_capability, base ++ ["capabilities"], %{capability: unknown})}
+          {:halt,
+           error(:unknown_agent_capability, base ++ ["capabilities"], %{capability: unknown})}
       end
     end)
   end
@@ -195,7 +241,9 @@ defmodule WorkflowEngine.AgentContract do
   end
 
   defp validate_human_review(value, _agent_spec, base) do
-    error(:invalid_human_review_policy, base ++ ["human_review_policy"], %{actual: type_of(value)})
+    error(:invalid_human_review_policy, base ++ ["human_review_policy"], %{
+      actual: type_of(value)
+    })
   end
 
   defp validate_evidence_policy(policy, base) when is_map(policy) do
@@ -257,7 +305,10 @@ defmodule WorkflowEngine.AgentContract do
         if valid_strings and valid_size do
           :ok
         else
-          error(:invalid_agent_string_list, base ++ [key], %{actual: values, allow_empty: allow_empty})
+          error(:invalid_agent_string_list, base ++ [key], %{
+            actual: values,
+            allow_empty: allow_empty
+          })
         end
 
       value ->
