@@ -17,7 +17,7 @@ It combines:
 - canonical entities and relationships;
 - evidence/provenance;
 - governance, approvals and audit;
-- local AI tooling;
+- AI-assisted tooling with remote-only model execution;
 - decision-oriented Mission Control views.
 
 It should not become an unrestricted autonomous agent or generic shell executor.
@@ -161,7 +161,7 @@ shadowops:whatsapp-agent
 shadowops:facebook-analytics
 shadowops:messenger
 shadowops:telegram-controller
-shadowops:local-ai
+shadowops:local-ai                   # historical catalog identity; do not infer permission to execute local AI models
 shadowops:i7-control
 shadowops:knowledge
 shadowops:evidence
@@ -286,20 +286,30 @@ source changes
 
 See `docs/LOCAL_ALL_DEVELOPMENTS.md`.
 
-## 10. Local AI / coding stack
+## 10. AI / coding stack
 
-Preferred local coding integration:
+ShadowOps development remains local-first, but language-model execution for coding agents is explicitly remote-only:
 
 ```text
-Ollama
+AI_EXECUTION_POLICY=REMOTE_ONLY
+```
+
+Canonical coding path:
+
+```text
+Remote AI provider/model
  -> OpenCode
  -> guarded shadowops-coder agent
- -> read-only ShadowOps MCP
+ -> read-only local ShadowOps MCP
 ```
+
+The repository must not configure local Ollama/LM Studio/llama.cpp model execution for coding tasks, must not silently fall back to local AI, and must require an explicit remote `provider/model` identifier for `scripts/shadowops-coder.sh`.
 
 The coder is expected to be restricted from destructive Git operations, production deployment, `systemctl` mutation and direct stable-runtime changes.
 
-The MCP gateway is read-only and exposes a fixed API view set rather than generic URL forwarding.
+The MCP gateway is local and read-only; it exposes a fixed API view set rather than generic URL forwarding. A local MCP process is not a local AI model and is allowed by the remote-only AI policy.
+
+See `docs/REMOTE_AI_POLICY.md`.
 
 ## 11. Local integration discovery
 
@@ -392,10 +402,11 @@ Run/read in this order:
 1. git status / branch / HEAD
 2. README.md
 3. AGENTS.md
-4. docs/PROJECT_STATUS.md
-5. docs/LOCAL_ALL_DEVELOPMENTS.md
-6. relevant implementation + tests
-7. current CI/runtime evidence
+4. docs/REMOTE_AI_POLICY.md
+5. docs/PROJECT_STATUS.md
+6. docs/LOCAL_ALL_DEVELOPMENTS.md
+7. relevant implementation + tests
+8. current CI/runtime evidence
 ```
 
 Then state explicitly which facts are:
