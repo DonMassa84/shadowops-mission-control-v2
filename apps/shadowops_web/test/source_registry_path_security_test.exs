@@ -59,7 +59,9 @@ defmodule ShadowOpsWeb.SourceRegistryPathSecurityTest do
   end
 
   test "symlink import evidence is rejected even when the link name is allowlisted", %{root: root} do
-    outside = Path.join(System.tmp_dir!(), "shadowops-outside-#{System.unique_integer([:positive])}.json")
+    outside =
+      Path.join(System.tmp_dir!(), "shadowops-outside-#{System.unique_integer([:positive])}.json")
+
     File.write!(outside, Jason.encode!(%{"status" => "READY", "real_data" => true}))
     on_exit(fn -> File.rm(outside) end)
 
