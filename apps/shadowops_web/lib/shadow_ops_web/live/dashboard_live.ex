@@ -3,6 +3,7 @@ defmodule ShadowOpsWeb.DashboardLive do
   import ShadowOpsWeb.MissionControlComponents
 
   alias ShadowOpsApi
+  alias ShadowOpsCore.JobQueue
   alias ShadowOpsWeb.RuntimeOverview
   alias WorkflowEngine.{Inventory, Registry}
 
@@ -22,7 +23,7 @@ defmodule ShadowOpsWeb.DashboardLive do
     ~H"""
     <.app_shell
       title="Mission Control"
-      subtitle="Systemstatus · Workflows · Freigaben · Diagnose"
+      subtitle="Systemstatus · Workflows · Quellen · Fokus · Freigaben"
       active="/"
       availability={@overview.readiness.state}
       updated_at={@updated_at}
@@ -37,11 +38,14 @@ defmodule ShadowOpsWeb.DashboardLive do
         <a class="mc-card-link" href="/runs">
           <.metric_card label="Runs" value={length(@overview.runs.records)} status={@overview.runs.status} source={@overview.runs.source} note="Persisted workflow execution history" />
         </a>
+        <a class="mc-card-link" href="/jobs">
+          <.metric_card label="Job queue" value={job_summary(@jobs)} status={@jobs.status} source={@jobs.source} note={@jobs.error_message || "Persistent scheduled workload"} />
+        </a>
         <a class="mc-card-link" href="/approvals">
           <.metric_card label="Pending approvals" value={pending(@overview.approvals.records)} status={approval_overall(@overview)} source={@overview.approvals.source} note="Actions waiting for operator decision" />
         </a>
-        <a class="mc-card-link" href="/nodes">
-          <.metric_card label="Nodes" value={node_summary(@overview)} status={node_status(@overview)} source={@overview.nodes.source} note="Physical compute only" />
+        <a class="mc-card-link" href="/compute">
+          <.metric_card label="Compute" value={node_summary(@overview)} status={node_status(@overview)} source={@overview.nodes.source} note="Physical compute and workload control" />
         </a>
         <a class="mc-card-link" href="/services">
           <.metric_card label="Services" value={service_summary(@overview)} status={service_status(@overview)} source={@overview.services.source} note="Runtime services discovered on the host" />
@@ -54,11 +58,13 @@ defmodule ShadowOpsWeb.DashboardLive do
         </a>
       </section>
 
-      <.panel title="Do next" description="The four operational surfaces most likely to require action.">
+      <.panel title="Do next" description="High-value surfaces for action, focus and source verification.">
         <div class="mc-command-grid">
           <a class="mc-command-card" href="/workflows"><span class="mc-command-kicker">Automate</span><strong>Workflows</strong><span>{@workflow_inventory["canonical_count"]} governed workflows</span></a>
           <a class="mc-command-card" href="/approvals"><span class="mc-command-kicker">Decide</span><strong>Approvals</strong><span>{pending(@overview.approvals.records)} pending</span></a>
-          <a class="mc-command-card" href="/nodes"><span class="mc-command-kicker">Operate</span><strong>Compute</strong><span>{node_summary(@overview)}</span></a>
+          <a class="mc-command-card" href="/focus"><span class="mc-command-kicker">Focus</span><strong>Next actions</strong><span>Configured objective and execution rules</span></a>
+          <a class="mc-command-card" href="/integrations"><span class="mc-command-kicker">Sources</span><strong>Integrations</strong><span>Real data, reachability and source evidence</span></a>
+          <a class="mc-command-card" href="/compute"><span class="mc-command-kicker">Operate</span><strong>Compute</strong><span>{node_summary(@overview)}</span></a>
           <a class="mc-command-card" href="/logs"><span class="mc-command-kicker">Diagnose</span><strong>Logs</strong><span>Bounded runtime diagnostics</span></a>
         </div>
       </.panel>
@@ -98,7 +104,13 @@ defmodule ShadowOpsWeb.DashboardLive do
           {empty_inventory(), []}
       end
 
-    assign(socket, overview: overview, workflow_inventory: inventory, canonical_workflows: canonical_workflows, updated_at: now())
+    assign(socket,
+      overview: overview,
+      jobs: JobQueue.snapshot(),
+      workflow_inventory: inventory,
+      canonical_workflows: canonical_workflows,
+      updated_at: now()
+    )
   end
 
   defp empty_inventory, do: %{"total_count" => "UNAVAILABLE", "canonical_count" => 0, "external_count" => 0}
@@ -152,6 +164,8 @@ defmodule ShadowOpsWeb.DashboardLive do
     end
   end
 
+  defp job_summary(%{record_count: count}) when is_integer(count), do: count
+  defp job_summary(_), do: "Not configured"
   defp ai_policy(o), do: get_in(o, [:ai, :policy, :coding_execution]) || "UNAVAILABLE"
   defp ai_policy_status(o), do: if(ai_policy(o) == "REMOTE_ONLY", do: "READY", else: "DEGRADED")
   defp workflow_inventory_status(%{"canonical_count" => total}) when is_integer(total) and total > 0, do: "READY"
