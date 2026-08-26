@@ -2,6 +2,18 @@ defmodule ShadowOpsCore.WorkflowExecutor do
   @moduledoc "Fail-closed, no-shell executor for approved workflows from the canonical registry."
   @max_output 16_000
 
+  @doc "Returns the immutable execution-boundary contract used by runtime security checks."
+  def security_contract do
+    %{
+      execution_mode: "DIRECT_ARGV",
+      shell_interpolation: false,
+      runtime_policy: "ABSOLUTE_REGULAR_FILE",
+      arguments_policy: "BINARY_LIST_ONLY",
+      output_redaction: true,
+      max_output_bytes: @max_output
+    }
+  end
+
   def execute(workflow, input) when is_map(workflow) and is_map(input) do
     runtime = workflow["runtime"]
     args = if Map.has_key?(workflow, "argv"), do: workflow["argv"], else: input["args"] || []
