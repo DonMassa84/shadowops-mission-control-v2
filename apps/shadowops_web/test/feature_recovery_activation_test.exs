@@ -22,14 +22,18 @@ defmodule ShadowOpsWeb.FeatureRecoveryActivationTest do
     end
   end
 
-  test "compute center replaced the static unknown placeholder" do
+  test "compute center exposes activated node functions as one-click buttons" do
     response = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/compute"), [])
 
     assert response.status == 200
     assert response.resp_body =~ "Compute Center"
     assert response.resp_body =~ "Physical compute"
     assert response.resp_body =~ "Persistent workload queue"
-    assert response.resp_body =~ "Governed node action"
+    assert response.resp_body =~ "One-click mode"
+    assert response.resp_body =~ "phx-click=\"node_action\""
+    assert response.resp_body =~ "↻ Check"
+    refute response.resp_body =~ ~s(name="write_token")
+    refute response.resp_body =~ ~s(name="approval_id")
     refute response.resp_body =~ "Waiting for backend evidence"
     refute response.resp_body =~ ">UNVERIFIED<"
   end
@@ -38,9 +42,8 @@ defmodule ShadowOpsWeb.FeatureRecoveryActivationTest do
     response = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/compute"), [])
 
     assert response.status == 200
-    assert response.resp_body =~ "Start (i7 only)"
-    assert response.resp_body =~ "Stop remains hidden until a real stop adapter is implemented"
-    refute response.resp_body =~ "value=\"stop\""
+    refute response.resp_body =~ "phx-value-action=\"stop\""
+    refute response.resp_body =~ "■ Stop"
   end
 
   test "integration catalog keeps truthfulness metadata visible and hides retired Ollama connectors" do
