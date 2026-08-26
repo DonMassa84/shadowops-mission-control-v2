@@ -151,6 +151,297 @@ workflows:
     argv: []
     definition: /home/schattenmacher/.config/systemd/user/shadow-system-overnight-audit.service
 
+agent_contracts:
+  finanzabgleich:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: elixir
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs: []
+    produced_outputs:
+      - reconciliation_evidence
+    permissions:
+      - local_read
+      - local_state
+    timeout_seconds: 900
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  career_email_only:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: elixir
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs:
+      - application_context
+    produced_outputs:
+      - application_evidence
+    permissions:
+      - local_read
+      - external_email
+    timeout_seconds: 1800
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - external_side_effect
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  document_ai:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: hybrid
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs:
+      - document_ref
+    produced_outputs:
+      - extraction_evidence
+    permissions:
+      - local_read
+      - local_state
+    timeout_seconds: 1800
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  repository_quality:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: github_actions
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs:
+      - repository_ref
+    produced_outputs:
+      - quality_gate_evidence
+    permissions:
+      - github_ci
+    timeout_seconds: 1800
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - external_runtime
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  finance_quality_gate:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: github_actions
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs:
+      - repository_ref
+    produced_outputs:
+      - finance_gate_evidence
+    permissions:
+      - github_ci
+    timeout_seconds: 1800
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - external_runtime
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  agent_state_sync:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: /usr/bin/flock
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs: []
+    produced_outputs:
+      - sync_evidence
+    permissions:
+      - local_state
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  career_funnel_ihk:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: /home/schattenmacher/.local/bin/career-funnel
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs:
+      - project_dir
+    produced_outputs:
+      - funnel_evidence
+    permissions:
+      - local_read
+      - external_email
+    timeout_seconds: 1800
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - external_side_effect
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  daily_digest:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: /home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs: []
+    produced_outputs:
+      - digest_evidence
+    permissions:
+      - local_read
+      - local_state
+    timeout_seconds: 600
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
+  shadow_system_overnight_audit:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: /home/schattenmacher/03_scripts/system_overnight_audit.sh
+      approval_required: true
+    capabilities:
+      - workflow.run
+    required_inputs: []
+    produced_outputs:
+      - security_audit_evidence
+    permissions:
+      - local_read
+      - security_scan
+    timeout_seconds: 1800
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+        - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+        - status
+        - result
+        - audit_ref
+
 workflow_runs:
   career_wave_07:
     workflow: career_email_only
@@ -257,8 +548,8 @@ external_runtime_sets:
     workflow_ids: not_yet_imported
 
 migration:
-  current_phase: 4
-  implementation_status: phase_4_validated
+  current_phase: 5
+  implementation_status: phase_5_implemented_pending_validation
   completed:
     - phase_1_inventory_and_classification
     - phase_2_schema_v2_registry_candidate
@@ -289,6 +580,21 @@ migration:
     - whatsapp_pack_integrity_validation
     - registry_cli
     - targeted_elixir_ci
+  phase_5_components:
+    - agent_spec
+    - version
+    - capabilities
+    - required_inputs
+    - produced_outputs
+    - permissions
+    - timeout
+    - retry_policy
+    - human_review_policy
+    - evidence_policy
+    - capability_registry_binding
+    - risk_policy_binding
+    - approval_policy_binding
+    - runtime_binding_validation
   validation:
     shadowops_elixir:
       run_id: 31851602075
@@ -315,16 +621,12 @@ migration:
     legacy_registry_removed: false
     github_ci_replaced: false
   next_phase:
-    id: 5
-    name: generic_agent_contract
+    id: 6
+    name: local_workflow_service_integration
     target_components:
-      - agent_spec
-      - version
-      - capabilities
-      - required_inputs
-      - produced_outputs
-      - permissions
-      - timeout
-      - retry_policy
-      - human_review_policy
-      - evidence_policy
+      - discovery_dedup
+      - service_classification
+      - workflow_candidate_review
+      - generic_agent_contract_compatibility
+      - governed_runtime_binding
+      - evidence_backed_readiness
