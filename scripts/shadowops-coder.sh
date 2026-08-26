@@ -28,25 +28,44 @@ if ! command -v opencode >/dev/null 2>&1; then
   echo "SHADOWOPS_CODER=BLOCKED_OPENCODE_NOT_INSTALLED" >&2
   exit 127
 fi
-if ! command -v ollama >/dev/null 2>&1; then
-  echo "SHADOWOPS_CODER=BLOCKED_OLLAMA_NOT_INSTALLED" >&2
-  exit 127
-fi
 if ! command -v timeout >/dev/null 2>&1; then
   echo "SHADOWOPS_CODER=BLOCKED_TIMEOUT_COMMAND_MISSING" >&2
   exit 127
 fi
 
-MODEL="${SHADOWOPS_CODER_MODEL:-ollama/qwen2.5-coder:14b}"
-LOCAL_MODEL="${MODEL#ollama/}"
+if [[ -n "${SHADOWOPS_CODER_MODEL+x}" ]]; then
+  MODEL="$SHADOWOPS_CODER_MODEL"
+  MODEL_SOURCE="SHADOWOPS_CODER_MODEL"
+else
+  MODEL="ollama/qwen2.5-coder:14b"
+  MODEL_SOURCE="DEFAULT"
+fi
 RUN_TIMEOUT="${SHADOWOPS_CODER_TIMEOUT:-45m}"
 
-if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -Fxq "$LOCAL_MODEL"; then
-  echo "SHADOWOPS_CODER=BLOCKED_MODEL_NOT_AVAILABLE" >&2
+# The CLI --model value is authoritative. Verify that exact provider/model identifier
+# is visible to the same OpenCode installation before starting an agent session.
+MODEL_LIST="$(timeout 30s opencode models 2>/dev/null || true)"
+if ! printf '%s\n' "$MODEL_LIST" | awk '{print $1}' | grep -Fxq "$MODEL"; then
+  echo "SHADOWOPS_CODER=BLOCKED_MODEL_NOT_AVAILABLE_IN_OPENCODE" >&2
   echo "MODEL=$MODEL" >&2
-  echo "Available local models:" >&2
-  ollama list >&2 || true
+  echo "MODEL_SOURCE=$MODEL_SOURCE" >&2
+  echo "Resolve an exact identifier with: opencode models | grep -i '<model-name>'" >&2
   exit 69
+fi
+
+if [[ "$MODEL" == ollama/* ]]; then
+  if ! command -v ollama >/dev/null 2>&1; then
+    echo "SHADOWOPS_CODER=BLOCKED_OLLAMA_NOT_INSTALLED" >&2
+    exit 127
+  fi
+  LOCAL_MODEL="${MODEL#ollama/}"
+  if ! ollama list 2>/dev/null | awk 'NR > 1 {print $1}' | grep -Fxq "$LOCAL_MODEL"; then
+    echo "SHADOWOPS_CODER=BLOCKED_LOCAL_MODEL_NOT_AVAILABLE" >&2
+    echo "MODEL=$MODEL" >&2
+    echo "Available local Ollama models:" >&2
+    ollama list >&2 || true
+    exit 69
+  fi
 fi
 
 NEXT_MODE=0
@@ -75,8 +94,9 @@ Usage:
 Recommended deterministic mode:
   scripts/shadowops-coder.sh --next
 
-Optional model override:
-  SHADOWOPS_CODER_MODEL=ollama/qwen2.5-coder:7b scripts/shadowops-coder.sh --next
+Select an exact model known to OpenCode:
+  opencode models
+  SHADOWOPS_CODER_MODEL='provider/model' scripts/shadowops-coder.sh --next
 
 Optional run bound (GNU timeout syntax):
   SHADOWOPS_CODER_TIMEOUT=30m scripts/shadowops-coder.sh --next
@@ -89,10 +109,29 @@ fi
 STATE_DIR="${SHADOWOPS_STATE_DIR:-$HOME/.local/state/shadowops}"
 LOG_DIR="$STATE_DIR/opencode"
 mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/shadowops-coder-$(date +%Y%m%d-%H%M%S).log"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+LOG_FILE="$LOG_DIR/shadowops-coder-$STAMP.log"
+BASELINE_FILE="$LOG_DIR/shadowops-coder-$STAMP.baseline.env"
 
-printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nROOT=%s\nMODE=%s\nTIMEOUT=%s\nLOG=%s\n' \
-  "$(git branch --show-current)" "$MODEL" "$ROOT" "$([[ "$NEXT_MODE" == "1" ]] && echo NEXT || echo CUSTOM)" "$RUN_TIMEOUT" "$LOG_FILE"
+# Baseline is intentionally captured AFTER preflight. Deterministic --next mode
+# starts only from a clean post-preflight worktree; the agent may then touch only
+# the P0 allowlist verified by opencode-postflight.sh.
+if [[ "$NEXT_MODE" == "1" ]]; then
+  if [[ -n "$(git status --porcelain=v1 --untracked-files=all)" ]]; then
+    echo "SHADOWOPS_CODER=BLOCKED_DIRTY_AFTER_PREFLIGHT" >&2
+    git status --short --branch --untracked-files=all >&2
+    echo "Inspect the listed paths; do not reset or clean automatically." >&2
+    exit 70
+  fi
+  {
+    echo "HEAD=$(git rev-parse HEAD)"
+    echo "BRANCH=$(git branch --show-current)"
+  } > "$BASELINE_FILE"
+  chmod 600 "$BASELINE_FILE" 2>/dev/null || true
+fi
+
+printf 'SHADOWOPS_CODER=START\nBRANCH=%s\nMODEL=%s\nMODEL_SOURCE=%s\nMODEL_AUTHORITY=CLI_--model\nMODEL_VERIFIED=YES\nROOT=%s\nMODE=%s\nTIMEOUT=%s\nLOG=%s\nBASELINE=%s\n' \
+  "$(git branch --show-current)" "$MODEL" "$MODEL_SOURCE" "$ROOT" "$([[ "$NEXT_MODE" == "1" ]] && echo NEXT || echo CUSTOM)" "$RUN_TIMEOUT" "$LOG_FILE" "${BASELINE_FILE:-NONE}"
 
 set +e
 timeout --foreground --signal=INT --kill-after=30s "$RUN_TIMEOUT" \
@@ -107,10 +146,11 @@ set -e
 
 if [[ "$NEXT_MODE" == "1" ]]; then
   echo "=== SHADOWOPS OPENCODE POSTFLIGHT ==="
-  if ! bash scripts/opencode-postflight.sh; then
+  if ! bash scripts/opencode-postflight.sh "$BASELINE_FILE"; then
     echo "SHADOWOPS_CODER=BLOCKED_POSTFLIGHT" >&2
     echo "LOG=$LOG_FILE" >&2
-    exit 70
+    echo "BASELINE=$BASELINE_FILE" >&2
+    exit 72
   fi
 fi
 
