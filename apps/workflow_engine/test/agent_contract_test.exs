@@ -12,6 +12,7 @@ defmodule WorkflowEngine.AgentContractTest do
   test "validates every canonical workflow non-vacuously", %{registry: registry} do
     assert map_size(registry["workflows"]) == 9
     assert map_size(registry["agent_contracts"]) == 9
+
     assert Map.keys(registry["workflows"]) |> Enum.sort() ==
              Map.keys(registry["agent_contracts"]) |> Enum.sort()
 
