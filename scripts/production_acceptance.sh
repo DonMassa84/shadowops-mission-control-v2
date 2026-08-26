@@ -34,7 +34,12 @@ run_gate() {
 
 http_code() {
   local path="$1"
-  curl -sS --max-time 8 -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || printf '000'
+  if [[ -n "$READ_TOKEN" ]]; then
+    curl -sS --max-time 8 -H "Authorization: Bearer $READ_TOKEN" \
+      -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || printf '000'
+  else
+    curl -sS --max-time 8 -o /dev/null -w '%{http_code}' "$BASE_URL$path" 2>/dev/null || printf '000'
+  fi
 }
 
 api_get() {
@@ -52,9 +57,34 @@ printf 'BASE_URL=%s\n' "$BASE_URL"
 
 run_gate format mix format --check-formatted
 run_gate compile mix compile --warnings-as-errors
-run_gate tests mix test
+run_gate tests mix test --seed 12345
 run_gate registry mix shadowops.registry validate
 run_gate prod_compile env MIX_ENV=prod mix compile --warnings-as-errors
+
+mix phx.routes > /tmp/shadowops-routes.txt
+if grep -F '/layers' /tmp/shadowops-routes.txt >/dev/null && grep -F '/api/layers' /tmp/shadowops-routes.txt >/dev/null; then
+  ok layer_routes
+else
+  bad layer_routes "browser or API Layer Health route missing"
+fi
+
+if grep -E 'POST[[:space:]]+/api/layers([[:space:]/]|$)' /tmp/shadowops-routes.txt >/dev/null; then
+  bad layer_api_read_only "mutation route detected"
+else
+  ok layer_api_read_only
+fi
+
+if grep -F '/projects/federated' /tmp/shadowops-routes.txt >/dev/null && grep -F '/api/projects' /tmp/shadowops-routes.txt >/dev/null; then
+  ok project_catalog_routes
+else
+  bad project_catalog_routes "browser or API project catalog route missing"
+fi
+
+if grep -E '(POST|PUT|PATCH|DELETE)[[:space:]]+/api/projects([[:space:]/]|$)' /tmp/shadowops-routes.txt >/dev/null; then
+  bad project_catalog_read_only "mutation route detected"
+else
+  ok project_catalog_read_only
+fi
 
 if mix hex.audit >/tmp/shadowops-hex-audit.log 2>&1; then
   ok dependency_audit
@@ -62,15 +92,15 @@ else
   bad dependency_audit "see /tmp/shadowops-hex-audit.log"
 fi
 
-if command -v sobelow >/dev/null 2>&1; then
-  if sobelow --root "$ROOT/apps/shadowops_web" --private --exit high --threshold high \
+if mix help sobelow >/dev/null 2>&1; then
+  if (cd "$ROOT/apps/shadowops_web" && mix sobelow --private --strict --exit high --threshold high) \
     >/tmp/shadowops-sobelow.log 2>&1; then
     ok phoenix_security_scan
   else
-    bad phoenix_security_scan "high-confidence Sobelow finding; see /tmp/shadowops-sobelow.log"
+    bad phoenix_security_scan "Sobelow high-confidence finding or parse failure; see /tmp/shadowops-sobelow.log"
   fi
 else
-  printf 'SKIP %-30s %s\n' phoenix_security_scan 'sobelow executable not installed'
+  bad phoenix_security_scan "Sobelow is required but unavailable"
 fi
 
 if grep -RInE --exclude-dir='_build' --exclude-dir='deps' --exclude='*.md' \
@@ -89,10 +119,10 @@ else
   ok secret_scan
 fi
 
-if curl -fsS --max-time 4 "$BASE_URL/health" >/tmp/shadowops-health.json 2>/dev/null; then
+if api_get /health >/tmp/shadowops-health.json 2>/dev/null; then
   ok runtime_health
 
-  for path in / /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
+  for path in / /layers /projects/federated /projects/chatgpt /ready /settings /workflows /runs /nodes /services /agents /ai /security /approvals /audit /logs /knowledge /career /backups /evidence /legal /social/facebook /social/review /display/i7; do
     code="$(http_code "$path")"
     if [[ "$code" =~ ^(200|204|301|302|307|308)$ ]]; then
       ok "route:$path" "HTTP=$code"
@@ -105,6 +135,62 @@ if curl -fsS --max-time 4 "$BASE_URL/health" >/tmp/shadowops-health.json 2>/dev/
     ok integration_catalog_ui
   else
     bad integration_catalog_ui
+  fi
+
+  if payload="$(api_get /api/layers 2>/dev/null)"; then
+    if printf '%s' "$payload" | python3 -c '
+import json, sys
+p=json.load(sys.stdin)
+assert p.get("id") == "layer-health"
+assert p.get("synthetic") is False
+assert p.get("real_data") is True
+assert p.get("total_layers") == 12
+layers=p.get("layers", [])
+assert len(layers) == 12
+for layer in layers:
+    if not layer.get("assessed"):
+        assert layer.get("state") == "NOT_ASSESSED"
+        assert layer.get("score") is None
+        assert layer.get("coverage") is None
+print(len(layers))
+' >/tmp/shadowops-layer-count; then
+      ok layer_truthfulness "layers=$(cat /tmp/shadowops-layer-count)"
+    else
+      bad layer_truthfulness
+    fi
+  else
+    if [[ -n "$READ_TOKEN" ]]; then
+      bad layer_api "authorized API request failed"
+    else
+      printf 'SKIP %-30s %s\n' layer_api 'read token not provided or API protected'
+    fi
+  fi
+
+  if payload="$(api_get /api/projects 2>/dev/null)"; then
+    if printf '%s' "$payload" | python3 -c '
+import json, sys
+p=json.load(sys.stdin)
+assert p.get("synthetic") is False
+projects=p.get("projects", [])
+for item in projects:
+    assert "local_export_path" not in item
+    assert "secret" not in item
+    if item.get("status") == "READY":
+        assert item.get("real_data") is True, (item.get("id"), "positive_without_real_data")
+        assert item.get("synthetic") is False, (item.get("id"), "positive_synthetic")
+        assert item.get("reachable") is True, (item.get("id"), "positive_unreachable")
+print(len(projects))
+' >/tmp/shadowops-project-count; then
+      ok project_catalog_truthfulness "projects=$(cat /tmp/shadowops-project-count)"
+    else
+      bad project_catalog_truthfulness
+    fi
+  else
+    if [[ -n "$READ_TOKEN" ]]; then
+      bad project_catalog_api "authorized API request failed"
+    else
+      printf 'SKIP %-30s %s\n' project_catalog_api 'read token not provided or API protected'
+    fi
   fi
 
   if payload="$(api_get /api/connectors 2>/dev/null)"; then
@@ -153,7 +239,7 @@ PY
   fi
 else
   if [[ "$RUNTIME_REQUIRED" == "1" ]]; then
-    bad runtime_health "runtime required but unreachable"
+    bad runtime_health "runtime required but unreachable or unauthorized"
   else
     printf 'SKIP %-30s %s\n' runtime_health 'runtime not required in this execution context'
   fi

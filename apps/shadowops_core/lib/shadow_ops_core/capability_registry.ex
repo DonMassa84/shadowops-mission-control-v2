@@ -9,7 +9,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
   @capabilities %{
     "workflow.execute" => %{
       id: "workflow.execute",
-      executor: :workflow_runtime,
+      executor: :canonical_workflow,
       args: [:workflow_id, :input]
     },
     "node.status" => %{id: "node.status", executor: :node_runtime, args: [:node_id]},
@@ -35,14 +35,18 @@ defmodule ShadowOpsCore.CapabilityRegistry do
       executor: :service_runtime,
       args: [:service_id]
     },
-    "systemd.restart" => %{id: "systemd.restart", executor: :not_connected, args: [:service_name]},
-    "systemd.start" => %{id: "systemd.start", executor: :not_connected, args: [:service_name]},
-    "systemd.stop" => %{id: "systemd.stop", executor: :not_connected, args: [:service_name]},
-    "systemd.status" => %{id: "systemd.status", executor: :not_connected, args: [:service_name]},
+    "systemd.restart" => %{
+      id: "systemd.restart",
+      executor: :service_runtime,
+      args: [:service_name]
+    },
+    "systemd.start" => %{id: "systemd.start", executor: :service_runtime, args: [:service_name]},
+    "systemd.stop" => %{id: "systemd.stop", executor: :service_runtime, args: [:service_name]},
+    "systemd.status" => %{id: "systemd.status", executor: :service_runtime, args: [:service_name]},
     "shadowctl.run" => %{id: "shadowctl.run", executor: :not_connected, args: [:workflow_id]},
     "ollama.generate" => %{
       id: "ollama.generate",
-      executor: :not_connected,
+      executor: :ollama_runtime,
       args: [:model, :prompt]
     },
     "local_agent.invoke" => %{
@@ -52,8 +56,8 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     },
     "opencode.execute" => %{
       id: "opencode.execute",
-      executor: :not_connected,
-      args: [:workflow_id, :input]
+      executor: :opencode_runtime,
+      args: [:prompt, :project_dir]
     },
     "telegram.send" => %{
       id: "telegram.send",

@@ -2,6 +2,21 @@ defmodule ShadowOpsWeb.ProjectDomainsUITest do
   use ExUnit.Case, async: false
 
   test "project domain hub and detail routes stay fail-visible without local manifests" do
+    previous_domain_dir = System.get_env("SHADOWOPS_DOMAIN_DIR")
+    isolated_domain_dir = Path.join(System.tmp_dir!(), "shadowops-domain-test-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(isolated_domain_dir)
+    System.put_env("SHADOWOPS_DOMAIN_DIR", isolated_domain_dir)
+
+    on_exit(fn ->
+      if previous_domain_dir do
+        System.put_env("SHADOWOPS_DOMAIN_DIR", previous_domain_dir)
+      else
+        System.delete_env("SHADOWOPS_DOMAIN_DIR")
+      end
+
+      File.rm_rf(isolated_domain_dir)
+    end)
+
     hub = request("/projects")
     assert hub.status == 200
     assert hub.resp_body =~ "Project domains"

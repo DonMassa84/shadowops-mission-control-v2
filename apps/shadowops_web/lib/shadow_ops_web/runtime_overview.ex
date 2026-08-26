@@ -2,7 +2,7 @@ defmodule ShadowOpsWeb.RuntimeOverview do
   @moduledoc "Bounded, fail-closed projection of real ShadowOps runtime sources."
 
   alias ShadowOpsCore.{Audit, LearningFocus}
-  alias ShadowOpsWeb.{RuntimeSnapshotCache, SecurityStatus}
+  alias ShadowOpsWeb.{NodeCatalog, RuntimeSnapshotCache, SecurityStatus}
   alias WorkflowEngine.Registry
 
   @probe_timeout_ms 3_500
@@ -22,7 +22,7 @@ defmodule ShadowOpsWeb.RuntimeOverview do
       workflows: &workflow_overview/0,
       runs: &ShadowOpsApi.runs/0,
       services: &ShadowOpsApi.services/0,
-      nodes: &ShadowOpsApi.nodes/0,
+      nodes: &NodeCatalog.snapshot/0,
       agents: &ShadowOpsApi.agents/0,
       ai: &ShadowOpsApi.ai/0,
       approvals: &ShadowOpsApi.approvals/0,
@@ -103,12 +103,8 @@ defmodule ShadowOpsWeb.RuntimeOverview do
   defp readiness_status do
     registry = match?({:ok, _}, Registry.summary())
     audit = match?({:ok, %{valid: true}}, Audit.verify())
-
-    learning =
-      case LearningFocus.load() do
-        {:ok, value} -> value["availability"]
-        _ -> "UNAVAILABLE"
-      end
+    {:ok, learning_focus} = LearningFocus.load()
+    learning = learning_focus["availability"]
 
     ready = registry and audit and learning == "AVAILABLE"
 

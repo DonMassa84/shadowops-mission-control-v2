@@ -1,6 +1,8 @@
 defmodule ShadowOpsWeb.LegalRouteTest do
   use ExUnit.Case, async: true
-  use Plug.Test
+
+  import Plug.Conn
+  import Plug.Test
 
   @opts ShadowOpsWeb.Router.init([])
 

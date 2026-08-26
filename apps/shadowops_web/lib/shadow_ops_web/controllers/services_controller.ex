@@ -2,7 +2,7 @@ defmodule ShadowOpsWeb.ServicesController do
   use Phoenix.Controller, formats: [:json]
 
   alias ShadowOpsApi
-  alias ShadowOpsCore.GovernanceGate
+  alias ShadowOpsCore.ExecutionTracker
 
   def index(conn, _params) do
     json(conn, ShadowOpsApi.services())
@@ -18,23 +18,44 @@ defmodule ShadowOpsWeb.ServicesController do
     end
   end
 
-  def operate(conn, %{"id" => id, "action" => action}) do
+  def operate(conn, %{"id" => id, "action" => action} = params) do
     actor = conn.assigns.actor
-    capability = "service.#{action}"
-    input = %{service_id: id, action: action}
-    context = %{request_id: List.first(get_resp_header(conn, "x-request-id"))}
 
-    with {:ok, _decision} <- GovernanceGate.authorize(capability, actor, id, input, context),
-         {:ok, service} <- ShadowOpsApi.execute_service_action(id, action, actor) do
-      json(conn, service)
-    else
-      {:error, :approval_required} ->
-        conn |> put_status(:conflict) |> json(%{error: "approval_required"})
+    context = %{
+      request_id: List.first(get_resp_header(conn, "x-request-id")),
+      approval_id: params["approval_id"],
+      trigger: "api"
+    }
 
-      {:error, {:unknown_capability, _} = reason} ->
+    case ExecutionTracker.execute_service(action, actor, id, context) do
+      {:ok, service, run} ->
+        json(conn, %{service: service, run: run, evaluation: run.evaluation})
+
+      {:error, :approval_required, run} ->
+        conn |> put_status(:conflict) |> json(%{error: "approval_required", run: run})
+
+      {:error, {:approval_required, _}, run} ->
+        conn |> put_status(:conflict) |> json(%{error: "approval_required", run: run})
+
+      {:error, {:approval_blocked, reason}, run} ->
         conn
         |> put_status(:forbidden)
-        |> json(%{error: "governance_blocked", reason: inspect(reason)})
+        |> json(%{error: "approval_blocked", reason: inspect(reason), run: run})
+
+      {:error, {:approval_invalid, reason}, run} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "approval_invalid", reason: inspect(reason), run: run})
+
+      {:error, {:unknown_capability, _} = reason, run} ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "governance_blocked", reason: inspect(reason), run: run})
+
+      {:error, reason, run} ->
+        conn
+        |> put_status(:service_unavailable)
+        |> json(%{error: "service_action_unavailable", reason: inspect(reason), run: run})
 
       {:error, reason} ->
         conn

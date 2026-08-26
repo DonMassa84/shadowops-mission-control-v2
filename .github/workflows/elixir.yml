@@ -1,39 +1,206 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Elixir CI
+name: ShadowOps Production Gate
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - hardening/production-ready-2026-08-25
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-jobs:
-  build:
+concurrency:
+  group: shadowops-production-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-    name: Build and test
+env:
+  MIX_ENV: test
+  SHADOWOPS_START_PERSISTENCE: "false"
+
+jobs:
+  quality:
+    name: Build, test and production gate
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Elixir
-      uses: erlef/setup-beam@61e01a43a562a89bfc54c7f9a378ff67b03e4a21 # v1.16.0
-      with:
-        elixir-version: '1.15.2' # [Required] Define the Elixir version
-        otp-version: '26.0'      # [Required] Define the Erlang/OTP version
-    - name: Restore dependencies cache
-      uses: actions/cache@v3
-      with:
-        path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-        restore-keys: ${{ runner.os }}-mix-
-    - name: Install dependencies
-      run: mix deps.get
-    - name: Run tests
-      run: mix test
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Validate local configuration scripts
+        shell: bash
+        run: |
+          bash -n scripts/local_production_handoff.sh
+          bash -n scripts/configure_local_all.sh
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.3"
+
+      - name: Restore Mix cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-otp27-elixir1.17-mix-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-otp27-elixir1.17-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Install Sobelow 0.15.0
+        run: mix archive.install hex sobelow 0.15.0 --force
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Run full test suite
+        run: mix test --seed 12345
+
+      - name: Verify Layer Health routes and read-only contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          mix phx.routes > /tmp/shadowops-routes.txt
+          grep -F '/layers' /tmp/shadowops-routes.txt
+          grep -F '/api/layers' /tmp/shadowops-routes.txt
+          if grep -E 'POST[[:space:]]+/api/layers([[:space:]/]|$)' /tmp/shadowops-routes.txt; then
+            echo 'Layer API mutation route detected' >&2
+            exit 1
+          fi
+
+      - name: Validate workflow registry
+        run: mix shadowops.registry validate
+
+      - name: Validate workflow IDs
+        run: mix shadowops.workflow_ids.validate
+
+      - name: Audit Hex dependencies
+        run: mix hex.audit
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Run static production acceptance
+        env:
+          SHADOWOPS_RUNTIME_REQUIRED: "0"
+        run: bash scripts/production_acceptance.sh
+
+      - name: Build production release
+        env:
+          MIX_ENV: prod
+        run: mix release shadowops --overwrite
+
+      - name: Start release and run production smoke
+        shell: bash
+        env:
+          MIX_ENV: prod
+          PORT: "4013"
+          SHADOWOPS_START_PERSISTENCE: "false"
+        run: timeout 240s bash scripts/release_runtime_gate.sh
+
+  modern_toolchain_compat:
+    name: Elixir 1.20 + OTP 28 compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.20.3"
+          otp-version: "28.0"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Check formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Run full test suite
+        run: mix test --seed 12345
+
+      - name: Check whitespace
+        run: git diff --check
+
+  persistence_e2e:
+    name: PostgreSQL + Oban persistence gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadowops_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d shadowops_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      MIX_ENV: test
+      SHADOWOPS_START_PERSISTENCE: "true"
+      SHADOWOPS_DB_HOST: localhost
+      SHADOWOPS_DB_USER: postgres
+      SHADOWOPS_DB_PASSWORD: postgres
+      SHADOWOPS_DB_NAME: shadowops_dev
+      SHADOWOPS_DB_POOL_SIZE: "5"
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.3"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Verify dependency lock
+        run: git diff --exit-code -- mix.lock
+
+      - name: Compile persistence path
+        run: mix compile --warnings-as-errors
+
+      - name: Migrate Oban schema
+        env:
+          SHADOWOPS_START_PERSISTENCE: "false"
+        run: mix ecto.migrate -r ShadowOpsCore.Repo
+
+      - name: Run PostgreSQL Oban persistence E2E
+        run: mix run scripts/persistence_e2e.exs
