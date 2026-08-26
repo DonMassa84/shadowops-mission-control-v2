@@ -15,7 +15,10 @@ defmodule ShadowOpsWeb.MissionBrief do
     }
   end
 
-  defp mission(%{"availability" => "AVAILABLE", "goal" => goal, "current" => current} = focus, _overview)
+  defp mission(
+         %{"availability" => "AVAILABLE", "goal" => goal, "current" => current} = focus,
+         _overview
+       )
        when is_map(goal) and is_map(current) do
     %{
       title: value(goal, "title", "Configured mission"),
