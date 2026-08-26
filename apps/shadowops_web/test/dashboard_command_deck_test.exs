@@ -1,23 +1,68 @@
 defmodule ShadowOpsWeb.DashboardCommandDeckTest do
   use ExUnit.Case, async: false
 
-  test "dashboard renders primary command deck and governed navigation" do
+  test "dashboard focuses on daily operations" do
     conn = Plug.Test.conn(:get, "/")
     response = ShadowOpsWeb.Endpoint.call(conn, [])
 
     assert response.status == 200
-    assert response.resp_body =~ "Primary command deck"
-    assert response.resp_body =~ "Ryzen"
-    assert response.resp_body =~ "i7"
-    assert response.resp_body =~ "ChatGPT nodes"
+    assert response.resp_body =~ "Daily operations overview"
+    assert response.resp_body =~ "Do next"
+    assert response.resp_body =~ "Operational gates"
+    assert response.resp_body =~ "Recent runs"
+    assert response.resp_body =~ "Available workflows"
+
+    assert response.resp_body =~ "System"
     assert response.resp_body =~ "Workflows"
-    assert response.resp_body =~ "Agents"
-    assert response.resp_body =~ "AI runtimes"
+    assert response.resp_body =~ "Runs"
+    assert response.resp_body =~ "Pending approvals"
+    assert response.resp_body =~ "Nodes"
+    assert response.resp_body =~ "Services"
+    assert response.resp_body =~ "AI policy"
     assert response.resp_body =~ "Security"
-    assert response.resp_body =~ "Audit"
-    assert response.resp_body =~ "Command center"
-    assert response.resp_body =~ "/projects/federated"
-    assert response.resp_body =~ "/approvals"
-    assert response.resp_body =~ "/layers"
+  end
+
+  test "primary navigation excludes secondary and experimental surfaces" do
+    conn = Plug.Test.conn(:get, "/")
+    response = ShadowOpsWeb.Endpoint.call(conn, [])
+
+    assert response.status == 200
+
+    for path <- [
+          "/workflows",
+          "/runs",
+          "/nodes",
+          "/services",
+          "/backups",
+          "/approvals",
+          "/security",
+          "/audit",
+          "/logs",
+          "/ai",
+          "/agents",
+          "/knowledge",
+          "/evidence"
+        ] do
+      assert response.resp_body =~ "href=\"#{path}\""
+    end
+
+    for path <- [
+          "/layers",
+          "/projects/federated",
+          "/projects/chatgpt",
+          "/projects/finance",
+          "/projects/investigations",
+          "/career",
+          "/reporting",
+          "/social/facebook",
+          "/social/review",
+          "/social/messenger",
+          "/social/whatsapp",
+          "/social/telegram",
+          "/legal",
+          "/display/i7"
+        ] do
+      refute response.resp_body =~ "href=\"#{path}\""
+    end
   end
 end
