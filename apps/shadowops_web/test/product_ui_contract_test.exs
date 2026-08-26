@@ -3,15 +3,19 @@ defmodule ShadowOpsWeb.ProductUIContractTest do
 
   @root Path.expand("../../..", __DIR__)
 
-  test "AI surface presents the binding remote-only execution policy" do
+  test "AI surface presents remote-only execution without local Ollama LLM inventory" do
     response = request(:get, "/ai")
 
     assert response.status == 200
     assert response.resp_body =~ "AI Governance"
     assert response.resp_body =~ "REMOTE_ONLY"
-    assert response.resp_body =~ "Local models"
-    assert response.resp_body =~ "FORBIDDEN"
-    refute response.resp_body =~ "Installed local Ollama models"
+    assert response.resp_body =~ "Local LLM runtime"
+    assert response.resp_body =~ "DISABLED"
+    assert response.resp_body =~ "Local LLM inventory disabled"
+    refute response.resp_body =~ "OLLAMA LOCAL"
+    refute response.resp_body =~ "Product AI runtime"
+    refute response.resp_body =~ "ollama_runtime"
+    refute response.resp_body =~ "Inventory is not certification"
   end
 
   test "Mission Control ships an accessible command palette and keyboard navigation" do
@@ -27,7 +31,8 @@ defmodule ShadowOpsWeb.ProductUIContractTest do
     assert js =~ "ArrowDown"
     assert js =~ "ArrowUp"
     assert js =~ "AI Governance"
-    assert js =~ "remote-only"
+    assert js =~ "remote only ai policy"
+    refute js =~ "governed local product runtime"
 
     assert css =~ ".mc-palette-dialog"
     assert css =~ ".mc-command-trigger"

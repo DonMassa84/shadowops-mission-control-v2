@@ -23,7 +23,7 @@ const destinations = [
   ["IHK", "/projects/ihk", "ihk project"],
   ["Community", "/projects/community", "community project"],
   ["Agents", "/agents", "agent runtime evidence"],
-  ["AI Governance", "/ai", "remote only ai model policy"],
+  ["AI Governance", "/ai", "remote only ai policy explicit provider model"],
   ["Knowledge", "/knowledge", "knowledge retrieval"],
   ["Career", "/career", "career applications"],
   ["Reporting", "/reporting", "reports"],
@@ -166,7 +166,7 @@ function decorateDashboardPolicy() {
   if (aiCard) {
     setText(aiCard.querySelector(".mc-metric-label>span:last-child"), "AI policy")
     setText(aiCard.querySelector(":scope>strong"), "REMOTE_ONLY")
-    setText(aiCard.querySelector(":scope>p"), "Explicit remote provider/model required · no local inference fallback")
+    setText(aiCard.querySelector(":scope>p"), "Explicit remote provider/model required · no local LLM runtime")
     setText(aiCard.querySelector(":scope>small"), "Source: docs/REMOTE_AI_POLICY.md")
     setBadge(aiCard.querySelector(".mc-badge"), "ENFORCED", "success")
   }

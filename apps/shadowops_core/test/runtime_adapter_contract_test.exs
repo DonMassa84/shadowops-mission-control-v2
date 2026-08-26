@@ -22,7 +22,7 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
     :ok
   end
 
-  test "runtime capabilities are mapped to concrete or explicitly disconnected executors" do
+  test "runtime capabilities are mapped to concrete governed executors" do
     assert {:ok, %{executor: :service_runtime}} = CapabilityRegistry.lookup("systemd.status")
     assert {:ok, %{executor: :service_runtime}} = CapabilityRegistry.lookup("systemd.restart")
     assert {:ok, %{executor: :opencode_runtime}} = CapabilityRegistry.lookup("opencode.execute")
