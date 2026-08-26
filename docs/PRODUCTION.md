@@ -107,7 +107,53 @@ bash scripts/production_acceptance.sh
 
 A production claim requires `FINAL_STATUS=PRODUCTION_ACCEPTANCE_PASS` with runtime required. A static CI pass alone proves build/release readiness, not the state of local external sources.
 
-## 8. Truthfulness rules
+## 8. Reproducible local production handoff
+
+The supported local handoff entrypoint is:
+
+```bash
+bash scripts/local_production_handoff.sh
+```
+
+It intentionally uses port `4014` by default so it does not disturb an existing ShadowOps service on `4013`.
+
+The handoff gate is stricter than a normal development test run. It:
+
+- fetches the configured remote branch and requires local `HEAD` to equal that remote commit;
+- rejects tracked, staged, or untracked source/config/test files that could shadow the proven Git tree;
+- requires the CI toolchain contract (`Elixir 1.17.3`, OTP major `27`);
+- cleans generated test/prod build state before compiling, which prevents stale BEAM files from an older checkout affecting results;
+- verifies the dependency lock, formatter, warnings-as-errors compilation, full umbrella test suite, workflow registry, workflow IDs, Hex audit and whitespace;
+- runs the static production acceptance gate;
+- builds a production release;
+- refuses to use the handoff port when another listener already owns it;
+- launches the release only on the isolated handoff port, runs the production runtime smoke, and shuts that temporary release down again;
+- verifies that no source changes were created during the handoff.
+
+A successful run ends with:
+
+```text
+FINAL_STATUS=LOCAL_PRODUCTION_HANDOFF_PASS
+```
+
+A failure is fail-closed and reports a machine-readable `FAIL_REASON`. The full log is stored below:
+
+```text
+~/.local/state/shadowops/handoff/
+```
+
+The gate never resets, cleans Git files, merges branches, pushes commits, restarts an existing systemd service, or kills a process that owns another port. Repository reconciliation must be completed before this gate is run.
+
+Useful overrides:
+
+```bash
+SHADOWOPS_HANDOFF_PORT=4015 bash scripts/local_production_handoff.sh
+SHADOWOPS_HANDOFF_BRANCH=hardening/production-ready-2026-08-25 bash scripts/local_production_handoff.sh
+```
+
+Do not use an override to bypass a failed source-parity check. Fix the local worktree or move local-only source files to a verified backup first.
+
+## 9. Truthfulness rules
 
 - Missing evidence must remain `UNKNOWN`, `NOT_CONFIGURED`, `SOURCE_MISSING`, `DEGRADED`, or the equivalent non-positive state.
 - A connector may report `READY`, `ONLINE`, or `CONNECTED` only when real data is present, the source is reachable and `synthetic=false`.
