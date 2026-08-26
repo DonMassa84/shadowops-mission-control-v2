@@ -21,7 +21,8 @@ Semantics:
   promote  Promote the exact certified artifact to stable 4013. Requires
            SHADOWOPS_PROMOTE_STABLE=YES and rolls back automatically on failure.
   status   Show stable/preview services, ports, git state and latest certificate.
-  coder    Run the guarded local OpenCode/Ollama ShadowOps coder.
+  coder    Run the guarded OpenCode ShadowOps coder. AI execution is REMOTE_ONLY;
+           local model providers are forbidden by repository policy.
 EOF
 }
 
