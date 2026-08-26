@@ -3,7 +3,10 @@ defmodule ShadowOpsWeb.ProjectDomainsUITest do
 
   test "project domain hub and detail routes stay fail-visible without local manifests" do
     previous_domain_dir = System.get_env("SHADOWOPS_DOMAIN_DIR")
-    isolated_domain_dir = Path.join(System.tmp_dir!(), "shadowops-domain-test-#{System.unique_integer([:positive])}")
+
+    isolated_domain_dir =
+      Path.join(System.tmp_dir!(), "shadowops-domain-test-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(isolated_domain_dir)
     System.put_env("SHADOWOPS_DOMAIN_DIR", isolated_domain_dir)
 
