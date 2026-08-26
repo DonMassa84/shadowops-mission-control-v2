@@ -9,6 +9,7 @@ defmodule ShadowOpsWeb.Router do
     plug(:fetch_session)
     plug(:protect_from_forgery)
     plug(:fetch_live_flash)
+    plug(ShadowOpsWeb.Plugs.WebMCPHeaders)
   end
 
   pipeline :runtime_dashboard do
