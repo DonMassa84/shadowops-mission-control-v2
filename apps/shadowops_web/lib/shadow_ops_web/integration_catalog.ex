@@ -81,6 +81,9 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     }
   end
 
+  def positive?(%{scope: scope} = card) when scope in ["external", "import"],
+    do: card.status in @positive and card.real_data == true and card.reachable == true
+
   def positive?(card), do: card.status in @positive
 
   @doc false
