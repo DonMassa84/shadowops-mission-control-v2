@@ -187,17 +187,9 @@ The ShadowOps runtime requires its own authorized adapter/configuration/evidence
 
 ## P0 — Governance correctness
 
-`OPEN` at snapshot time.
+`IMPLEMENTED_PENDING_CURRENT_HEAD_CI` on the product-release line.
 
-The current `ApprovalStore` implementation contained:
-
-```elixir
-def consume(id), do: get(id)
-```
-
-Therefore a function named `consume` did not yet persist an `APPROVED -> CONSUMED` transition or single-use evidence.
-
-This must be treated as a security blocker until the current code proves all of the following:
+`ApprovalStore.consume/5`, `Approval.consume/2` and the canonical event/audit path now implement terminal `APPROVED -> CONSUMED` semantics. Focused tests cover:
 
 ```text
 PrivacyGate succeeds before consumption
@@ -213,7 +205,7 @@ approval_consumed is audited
 audit chain remains valid
 ```
 
-Future AI: inspect current code first. If this has already been fixed with tests, mark the item closed rather than reimplementing it.
+The implementation must still be treated as unverified on any new HEAD until the focused approval suite and the full quality gate pass for that exact commit.
 
 ## P0/P1 — Production proof still required
 

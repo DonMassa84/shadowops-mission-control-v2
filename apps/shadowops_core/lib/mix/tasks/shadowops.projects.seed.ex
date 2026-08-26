@@ -16,8 +16,17 @@ defmodule Mix.Tasks.Shadowops.Projects.Seed do
 
     existing_projects =
       case existing do
-        %{status: "READY", projects: projects} when is_list(projects) -> projects
-        _ -> []
+        %{status: "READY", projects: projects} when is_list(projects) ->
+          projects
+
+        %{error_code: "SOURCE_MISSING"} ->
+          []
+
+        %{error_code: code, error_message: message} ->
+          Mix.raise("PROJECT_CATALOG_SEED=BLOCKED code=#{code} message=#{message}")
+
+        _ ->
+          Mix.raise("PROJECT_CATALOG_SEED=BLOCKED code=UNKNOWN message=Unexpected catalog state")
       end
 
     discovery_mode =

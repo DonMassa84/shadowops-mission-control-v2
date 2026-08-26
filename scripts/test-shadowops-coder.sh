@@ -29,6 +29,7 @@ EOF
 chmod +x "$FAKE_BIN/opencode"
 
 export PATH="$FAKE_BIN:$PATH"
+export SHADOWOPS_STATE_DIR="$TMP/state"
 
 git -C "$WORK" init -q -b main
 

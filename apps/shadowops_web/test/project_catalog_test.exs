@@ -124,4 +124,40 @@ defmodule ShadowOpsWeb.ProjectCatalogTest do
     assert response.resp_body =~ "Federated projects"
     assert response.resp_body =~ "NOT_CONFIGURED"
   end
+
+  test "project API enforces the read-token contract" do
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "shadowops-project-catalog-api-#{System.unique_integer([:positive])}.json"
+      )
+
+    previous_token = Application.get_env(:shadowops_web, :read_token)
+
+    File.write!(path, Jason.encode!(%{"projects" => []}))
+    System.put_env("SHADOWOPS_PROJECT_CATALOG", path)
+    Application.put_env(:shadowops_web, :read_token, "project-read-token")
+
+    on_exit(fn ->
+      File.rm(path)
+
+      if previous_token do
+        Application.put_env(:shadowops_web, :read_token, previous_token)
+      else
+        Application.delete_env(:shadowops_web, :read_token)
+      end
+    end)
+
+    denied = Plug.Test.conn(:get, "/api/projects") |> ShadowOpsWeb.Endpoint.call([])
+
+    authorized =
+      Plug.Test.conn(:get, "/api/projects")
+      |> Plug.Conn.put_req_header("authorization", "Bearer project-read-token")
+      |> ShadowOpsWeb.Endpoint.call([])
+
+    assert denied.status == 401
+    assert Jason.decode!(denied.resp_body)["error"] == "read_authorization_required"
+    assert authorized.status == 200
+    assert Jason.decode!(authorized.resp_body)["projects"] == []
+  end
 end

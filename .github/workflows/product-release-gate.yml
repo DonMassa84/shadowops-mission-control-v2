@@ -146,3 +146,11 @@ jobs:
         env:
           MIX_ENV: prod
         run: mix release shadowops --overwrite
+
+      - name: Smoke exact production release on isolated port 4015
+        shell: bash
+        env:
+          MIX_ENV: prod
+          PORT: "4015"
+          SHADOWOPS_START_PERSISTENCE: "false"
+        run: timeout 240s bash scripts/release_runtime_gate.sh

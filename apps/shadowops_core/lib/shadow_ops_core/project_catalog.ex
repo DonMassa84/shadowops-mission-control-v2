@@ -33,7 +33,13 @@ defmodule ShadowOpsCore.ProjectCatalog do
       when is_list(existing) and is_list(provider_projects) and is_binary(source_type) do
     preserved = Enum.reject(existing, &(value(&1, :source_type) == source_type))
 
-    (preserved ++ provider_projects)
+    bounded_provider_projects =
+      provider_projects
+      |> Enum.map(&normalize_maybe/1)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.filter(&(&1.source_type == source_type))
+
+    (preserved ++ bounded_provider_projects)
     |> Enum.map(&normalize_maybe/1)
     |> Enum.reject(&is_nil/1)
     |> Enum.uniq_by(&{&1.source_type, &1.id})
@@ -42,17 +48,17 @@ defmodule ShadowOpsCore.ProjectCatalog do
 
   @spec normalize_project(map()) :: map() | nil
   def normalize_project(project) when is_map(project) do
-    id = string_value(project, "id")
-    name = string_value(project, "name")
+    id = string_value(project, :id)
+    name = string_value(project, :name)
 
     if is_nil(id) or is_nil(name) do
       nil
     else
       candidate = %{
-        status: string_value(project, "status") || "NOT_CONFIGURED",
-        real_data: boolean_value(project, "real_data"),
-        synthetic: boolean_value(project, "synthetic"),
-        reachable: boolean_value(project, "reachable")
+        status: string_value(project, :status) || "NOT_CONFIGURED",
+        real_data: boolean_value(project, :real_data),
+        synthetic: boolean_value(project, :synthetic),
+        reachable: boolean_value(project, :reachable)
       }
 
       status =
@@ -63,18 +69,18 @@ defmodule ShadowOpsCore.ProjectCatalog do
       %{
         id: id,
         name: name,
-        domain: safe_domain(string_value(project, "domain")),
-        source_type: string_value(project, "source_type") || "UNKNOWN",
+        domain: safe_domain(string_value(project, :domain)),
+        source_type: string_value(project, :source_type) || "UNKNOWN",
         status: status,
-        visibility: string_value(project, "visibility"),
-        default_branch: string_value(project, "default_branch"),
-        archived: boolean_value(project, "archived"),
+        visibility: string_value(project, :visibility),
+        default_branch: string_value(project, :default_branch),
+        archived: boolean_value(project, :archived),
         real_data: candidate.real_data,
         synthetic: candidate.synthetic,
         reachable: candidate.reachable,
-        content_ingested: boolean_value(project, "content_ingested"),
-        integration_mode: string_value(project, "integration_mode") || "REFERENCE_ONLY",
-        url: safe_github_url(string_value(project, "url"))
+        content_ingested: boolean_value(project, :content_ingested),
+        integration_mode: string_value(project, :integration_mode) || "REFERENCE_ONLY",
+        url: safe_github_url(string_value(project, :url))
       }
     end
   end
@@ -173,13 +179,13 @@ defmodule ShadowOpsCore.ProjectCatalog do
   defp value(map, key), do: Map.get(map, key, Map.get(map, to_string(key)))
 
   defp string_value(map, key) do
-    case Map.get(map, key) do
+    case value(map, key) do
       value when is_binary(value) and value != "" -> value
       _ -> nil
     end
   end
 
-  defp boolean_value(map, key), do: Map.get(map, key) == true
+  defp boolean_value(map, key), do: value(map, key) == true
 
   defp safe_domain(domain) when domain in @domains, do: domain
   defp safe_domain(nil), do: nil

@@ -7,7 +7,7 @@ Run every currently integrated ShadowOps development locally without mutating th
 The lifecycle is deliberately split into three ports and three trust levels:
 
 ```text
-OpenCode + Ollama + source tree
+Remote AI + OpenCode + source tree
               |
               v
 4014  DEVELOPMENT / PREVIEW
@@ -58,9 +58,8 @@ SHADOWOPS_PROMOTE_STABLE=YES scripts/shadowops-local.sh promote
 
 - clean branch exactly synced with `origin/local/all-developments`;
 - Elixir/Erlang/Mix toolchain;
-- local Ollama reachable on `127.0.0.1:11434`;
-- `qwen2.5-coder:14b` and `qwen2.5-coder:7b` present;
-- OpenCode installed;
+- OpenCode only when the optional coder-contract validation is explicitly requested;
+- an explicit remote `provider/model` when the guarded coder is launched;
 - read-only MCP dependencies available through `uv`, or local Python `mcp` + `httpx` packages.
 
 It then:
@@ -84,15 +83,16 @@ scripts/shadowops-local.sh coder \
   "Implement the next verified ShadowOps task, run targeted tests, then the relevant quality gates."
 ```
 
-The project OpenCode configuration uses:
+The guarded coder requires:
 
 ```text
-primary model: ollama/qwen2.5-coder:14b
-small model:   ollama/qwen2.5-coder:7b
+AI execution:  REMOTE_ONLY
+model:         explicit remote provider/model
 runtime MCP:   http://127.0.0.1:4014 (read-only)
+local fallback: forbidden
 ```
 
-The guarded coder blocks protected branches and denies destructive Git/runtime operations through its agent policy.
+The guarded coder blocks protected branches, rejects local-model providers and denies destructive Git/runtime operations through its agent policy.
 
 ## `certify`
 

@@ -6,8 +6,32 @@ defmodule ShadowOpsCore.ProjectCatalogSeedTest do
   test "known project seed is metadata-only, deterministic and non-positive" do
     projects = ProjectCatalogSeed.projects()
 
+    expected_ids =
+      MapSet.new(~w(
+        shadowops:mission-control-v2
+        shadowops:data-fabric
+        shadowops:ontology-v3
+        shadowops:electron-mission-control
+        shadowops:workflow-federation
+        shadowops:whatsapp-agent
+        shadowops:facebook-analytics
+        shadowops:messenger
+        shadowops:telegram-controller
+        shadowops:local-ai
+        shadowops:i7-control
+        shadowops:knowledge
+        shadowops:evidence
+        shadowops:career
+        shadowops:backups
+        shadowops:reporting
+        shadowops:opencode-standard
+        ihk:zero-trust-project
+        chatgpt:local-project
+      ))
+
     assert length(projects) == 19
     assert Enum.map(projects, & &1.id) |> Enum.uniq() |> length() == 19
+    assert MapSet.new(projects, & &1.id) == expected_ids
 
     assert Enum.all?(projects, fn project ->
              project.status in ["DISCOVERED", "NOT_CONFIGURED"] and
@@ -25,15 +49,15 @@ defmodule ShadowOpsCore.ProjectCatalogSeedTest do
   test "existing evidenced record wins over a seed record with the same stable id" do
     existing = [
       %{
-        "id" => "shadowops:mission-control-v2",
-        "name" => "ShadowOps Mission Control V2",
-        "domain" => "shadowops",
-        "source_type" => "local_repo",
-        "status" => "READY",
-        "real_data" => true,
-        "synthetic" => false,
-        "reachable" => true,
-        "content_ingested" => false
+        id: "shadowops:mission-control-v2",
+        name: "ShadowOps Mission Control V2",
+        domain: "shadowops",
+        source_type: "local_repo",
+        status: "READY",
+        real_data: true,
+        synthetic: false,
+        reachable: true,
+        content_ingested: false
       }
     ]
 

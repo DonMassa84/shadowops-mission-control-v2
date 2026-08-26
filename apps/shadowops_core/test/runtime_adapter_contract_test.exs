@@ -22,11 +22,11 @@ defmodule ShadowOpsCore.RuntimeAdapterContractTest do
     :ok
   end
 
-  test "local runtime capabilities are mapped to concrete executors and risks" do
+  test "runtime capabilities are mapped to concrete or explicitly disconnected executors" do
     assert {:ok, %{executor: :service_runtime}} = CapabilityRegistry.lookup("systemd.status")
     assert {:ok, %{executor: :service_runtime}} = CapabilityRegistry.lookup("systemd.restart")
     assert {:ok, %{executor: :opencode_runtime}} = CapabilityRegistry.lookup("opencode.execute")
-    assert {:ok, %{executor: :ollama_runtime}} = CapabilityRegistry.lookup("ollama.generate")
+    assert {:ok, %{executor: :not_connected}} = CapabilityRegistry.lookup("ollama.generate")
 
     assert RiskPolicy.infer_risk("systemd.status") == "L0"
     assert RiskPolicy.infer_risk("systemd.restart") == "L1"

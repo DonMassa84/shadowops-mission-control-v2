@@ -58,7 +58,8 @@ import json
 from pathlib import Path
 cfg = json.loads(Path('opencode.jsonc').read_text())
 assert cfg['default_agent'] == 'shadowops-coder'
-assert cfg['model'].startswith('ollama/')
+assert 'model' not in cfg
+assert 'small_model' not in cfg
 assert cfg['mcp']['shadowops-runtime']['type'] == 'local'
 assert cfg['mcp']['shadowops-runtime']['environment']['SHADOWOPS_BASE_URL'] == 'http://127.0.0.1:4014'
 PY

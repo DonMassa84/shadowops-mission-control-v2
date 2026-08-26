@@ -238,11 +238,9 @@ Governance principles:
 - no client-authoritative executor/risk/approval fields;
 - approval replay must fail closed.
 
-### Current known governance review item
+### Governance review status
 
-At the time this document was created, `ApprovalStore.consume(id)` on the rolling branch only delegated to `get(id)`. Therefore atomic single-use consumption (`APPROVED -> CONSUMED`, with replay/concurrency protection) must be treated as an open P0 until code/tests prove otherwise.
-
-Do not assume a later model still needs this fix: inspect the current code first.
+The product-release line implements atomic single-use consumption (`APPROVED -> CONSUMED`) with persisted consumer/timestamp fields, replay protection, privacy-before-consumption ordering, audit evidence and concurrency tests. Treat this as closed only on a HEAD whose focused and full tests pass; inspect the current code and CI evidence before relying on it.
 
 ## 8. Audit and correlation
 

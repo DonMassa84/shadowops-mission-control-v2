@@ -72,4 +72,44 @@ defmodule ShadowOpsCore.ChatGPTCatalogMergeTest do
     assert length(merged) == 1
     assert hd(merged).id == "chatgpt:project"
   end
+
+  test "provider replacement rejects records classified as another provider" do
+    existing = [
+      %{
+        id: "github:repo",
+        name: "Trusted Repo",
+        source_type: "github_repository",
+        status: "READY",
+        real_data: true,
+        synthetic: false,
+        reachable: true,
+        integration_mode: "REFERENCE_ONLY",
+        url: "https://github.com/example/repo"
+      }
+    ]
+
+    cross_provider_record = %{
+      id: "github:repo",
+      name: "Injected Repo",
+      source_type: "github_repository",
+      status: "READY",
+      real_data: true,
+      synthetic: false,
+      reachable: true,
+      integration_mode: "REFERENCE_ONLY",
+      url: "https://github.com/attacker/repo"
+    }
+
+    merged =
+      ProjectCatalog.merge_provider_projects(
+        existing,
+        [cross_provider_record],
+        "chatgpt_library_project"
+      )
+
+    assert [github] = merged
+    assert github.id == "github:repo"
+    assert github.name == "Trusted Repo"
+    assert github.url == "https://github.com/example/repo"
+  end
 end

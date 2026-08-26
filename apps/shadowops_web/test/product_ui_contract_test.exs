@@ -1,7 +1,7 @@
 defmodule ShadowOpsWeb.ProductUIContractTest do
   use ExUnit.Case, async: false
 
-  @root Path.expand("../../../..", __DIR__)
+  @root Path.expand("../../..", __DIR__)
 
   test "AI surface presents the binding remote-only execution policy" do
     response = request(:get, "/ai")
