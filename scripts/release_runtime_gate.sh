@@ -8,6 +8,7 @@ export SHADOWOPS_SECRET_KEY_BASE="${SHADOWOPS_SECRET_KEY_BASE:-$(openssl rand -h
 export SHADOWOPS_READ_TOKEN="${SHADOWOPS_READ_TOKEN:-$(openssl rand -hex 32)}"
 export SHADOWOPS_WRITE_TOKEN="${SHADOWOPS_WRITE_TOKEN:-$(openssl rand -hex 32)}"
 export SHADOWOPS_STATE_DIR="${SHADOWOPS_STATE_DIR:-${RUNNER_TEMP:-/tmp}/shadowops-state}"
+export SHADOWOPS_PROJECT_CATALOG="${SHADOWOPS_PROJECT_CATALOG:-${SHADOWOPS_STATE_DIR}/project_catalog.json}"
 mkdir -p "$SHADOWOPS_STATE_DIR"
 
 RELEASE_BIN="_build/prod/rel/shadowops/bin/shadowops"
@@ -21,6 +22,8 @@ if [[ ! -x "$RELEASE_BIN" ]]; then
   echo 'Production release executable is missing' >&2
   exit 1
 fi
+
+MIX_ENV=prod mix shadowops.projects.seed
 
 # `start` is the foreground release command. The CI gate must continue to the
 # health probes, so launch the release with the built-in daemon command instead.
