@@ -5,7 +5,10 @@ defmodule ShadowOpsWeb.MissionTruthContractTest do
 
   test "import evidence fails closed when real_data and reachable are omitted" do
     previous = System.get_env("SHADOWOPS_IMPORT_DIR")
-    root = Path.join(System.tmp_dir!(), "shadowops-source-truth-#{System.unique_integer([:positive])}")
+
+    root =
+      Path.join(System.tmp_dir!(), "shadowops-source-truth-#{System.unique_integer([:positive])}")
+
     File.mkdir_p!(root)
 
     on_exit(fn ->
