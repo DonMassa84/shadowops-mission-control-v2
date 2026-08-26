@@ -6,6 +6,7 @@ defmodule ShadowOpsCore.Audit do
     :approval_requested,
     :approval_granted,
     :approval_rejected,
+    :approval_consumed,
     :execution_started,
     :execution_finished,
     :execution_blocked,
