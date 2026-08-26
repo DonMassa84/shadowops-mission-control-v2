@@ -5,6 +5,7 @@ defmodule ShadowOpsWeb.Application do
   def start(_type, _args) do
     children = [
       {Phoenix.PubSub, name: ShadowOpsWeb.PubSub},
+      {ShadowOpsWeb.RateLimit, [clean_period: :timer.minutes(10)]},
       ShadowOpsWeb.RuntimeSnapshotCache,
       ShadowOpsWeb.Endpoint
     ]
