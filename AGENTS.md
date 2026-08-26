@@ -13,6 +13,7 @@ Before changing code, read:
 - `docs/PROJECT_STATUS.md`
 - `docs/LOCAL_ALL_DEVELOPMENTS.md`
 - `docs/SECURITY.md`
+- `docs/REMOTE_AI_POLICY.md`
 - the files/tests directly relevant to the requested change
 
 For OpenCode/Nemotron also read:
@@ -96,7 +97,7 @@ Preserve these invariants:
 - privacy checks must not be bypassed;
 - relevant mutation/execution decisions must be auditable;
 - unknown executor/capability/runtime binding fails closed;
-- local AI output is advisory, never authoritative.
+- AI output is advisory, never authoritative.
 
 ## 6. Do not create parallel architecture
 
@@ -180,7 +181,35 @@ Keep upstream access loopback by default.
 
 If MCP tests pass, stop modifying MCP unless the active task is specifically about MCP.
 
-## 11. Test cadence
+## 11. AI execution policy
+
+AI-assisted coding is remote-only:
+
+```text
+AI_EXECUTION_POLICY=REMOTE_ONLY
+```
+
+Coding agents must not execute local language models.
+
+Forbidden for coding-agent execution include:
+
+```text
+ollama/*
+local/*
+lmstudio/*
+llamacpp/*
+llama.cpp/*
+```
+
+Do not reintroduce a repository-local Ollama provider, local model default, automatic local-model discovery/pulling, or fallback from remote AI to a local model.
+
+`scripts/shadowops-coder.sh` must require an explicit remote `provider/model` identifier and verify it through `opencode models` before launch. The exact CLI `--model` value is authoritative for the run; a UI label alone is not evidence of model identity.
+
+The local ShadowOps MCP gateway is allowed because it is a read-only runtime interface, not an AI model.
+
+This rule may only be changed by an explicit human request. See `docs/REMOTE_AI_POLICY.md`.
+
+## 12. Test cadence
 
 After a relevant change, run the smallest meaningful test first, then broaden.
 
@@ -212,7 +241,7 @@ Production release build
 
 Do not call a gate PASS if it did not run on the current HEAD.
 
-## 12. Current strategic rule
+## 13. Current strategic rule
 
 No new feature breadth until the existing product is proven.
 
@@ -226,7 +255,7 @@ Priority:
 
 See `docs/PROJECT_STATUS.md` for the dated priority snapshot.
 
-## 13. Expected final report from an AI change
+## 14. Expected final report from an AI change
 
 End implementation work with a compact evidence report:
 
