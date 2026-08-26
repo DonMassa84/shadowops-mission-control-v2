@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Shadowops.External do
+  @moduledoc false
+
   use Mix.Task
 
   @shortdoc "Inspect or import external ShadowOps workflows"

@@ -17,21 +17,19 @@ defmodule WorkflowEngine.Registry do
   end
 
   def load(path \\ path()) do
-    try do
-      registry = YamlElixir.read_from_file!(path)
+    registry = YamlElixir.read_from_file!(path)
 
-      case validate(registry) do
-        :ok -> {:ok, registry}
-        {:error, %Error{}} = error -> error
-      end
-    rescue
-      exception ->
-        {:error,
-         Error.new(:registry_load_failed, [], %{
-           path: path,
-           reason: Exception.message(exception)
-         })}
+    case validate(registry) do
+      :ok -> {:ok, registry}
+      {:error, %Error{}} = error -> error
     end
+  rescue
+    exception ->
+      {:error,
+       Error.new(:registry_load_failed, [], %{
+         path: path,
+         reason: Exception.message(exception)
+       })}
   end
 
   def validate(registry) when is_map(registry) do

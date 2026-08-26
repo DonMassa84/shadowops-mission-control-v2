@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Shadowops.WorkflowIds.Validate do
+  @moduledoc false
+
   use Mix.Task
 
   @shortdoc "Validates canonical ShadowOps workflow IDs"

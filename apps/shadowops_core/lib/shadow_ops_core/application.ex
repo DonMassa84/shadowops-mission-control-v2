@@ -1,4 +1,6 @@
 defmodule ShadowOpsCore.Application do
+  @moduledoc false
+
   use Application
 
   @impl true

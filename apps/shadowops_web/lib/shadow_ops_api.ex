@@ -10,6 +10,7 @@ defmodule ShadowOpsApi do
     WorkflowExecutor
   }
 
+  alias ShadowOps.Social.FacebookCommunicationBalance
   alias WorkflowEngine.Registry
 
   def health do
@@ -97,7 +98,7 @@ defmodule ShadowOpsApi do
   def whatsapp, do: RuntimeSources.whatsapp()
 
   def facebook_balance do
-    case ShadowOps.Social.FacebookCommunicationBalance.snapshot() do
+    case FacebookCommunicationBalance.snapshot() do
       {:ok, snapshot} ->
         snapshot
 

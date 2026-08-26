@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Shadowops.Projects.SeedTest do
   use ExUnit.Case, async: false
 
+  alias Mix.Tasks.Shadowops.Projects.Seed
+
   test "invalid existing catalog fails closed without overwriting it" do
     path =
       Path.join(
@@ -25,7 +27,7 @@ defmodule Mix.Tasks.Shadowops.Projects.SeedTest do
     Mix.Task.reenable("shadowops.projects.seed")
 
     assert_raise Mix.Error, ~r/PROJECT_CATALOG_SEED=BLOCKED code=INVALID_JSON/, fn ->
-      Mix.Tasks.Shadowops.Projects.Seed.run([])
+      Seed.run([])
     end
 
     assert File.read!(path) == "{invalid"

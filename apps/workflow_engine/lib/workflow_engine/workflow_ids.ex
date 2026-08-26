@@ -14,16 +14,14 @@ defmodule WorkflowEngine.WorkflowIds do
   def path, do: Application.fetch_env!(:workflow_engine, :workflow_ids_path)
 
   def load(path \\ path()) do
-    try do
-      data = YamlElixir.read_from_file!(path)
+    data = YamlElixir.read_from_file!(path)
 
-      case validate(data) do
-        :ok -> {:ok, data}
-        {:error, _reason} = error -> error
-      end
-    rescue
-      exception -> {:error, {:workflow_ids_load_failed, Exception.message(exception)}}
+    case validate(data) do
+      :ok -> {:ok, data}
+      {:error, _reason} = error -> error
     end
+  rescue
+    exception -> {:error, {:workflow_ids_load_failed, Exception.message(exception)}}
   end
 
   def all(path \\ path()) do
