@@ -15,9 +15,9 @@ defmodule ShadowOpsCore.Status do
   @type category :: :positive | :error | :degraded | :unavailable | :neutral
 
   @spec normalize(term()) :: String.t()
+  def normalize(nil), do: "UNKNOWN"
   def normalize(value) when is_atom(value), do: value |> Atom.to_string() |> String.upcase()
   def normalize(value) when is_binary(value), do: String.upcase(value)
-  def normalize(nil), do: "UNKNOWN"
   def normalize(value), do: value |> to_string() |> String.upcase()
 
   @spec category(term()) :: category()
