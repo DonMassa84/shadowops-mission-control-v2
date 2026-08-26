@@ -1,13 +1,8 @@
 defmodule ShadowOpsWeb.AIStatusController do
   use Phoenix.Controller, formats: [:json]
 
-  alias ShadowOpsApi
+  alias ShadowOpsWeb.AIStatus
 
-  def status(conn, _params) do
-    json(conn, ShadowOpsApi.ai())
-  end
-
-  def models(conn, _params) do
-    json(conn, ShadowOpsApi.ai())
-  end
+  def status(conn, _params), do: json(conn, AIStatus.snapshot())
+  def models(conn, _params), do: json(conn, AIStatus.snapshot())
 end
