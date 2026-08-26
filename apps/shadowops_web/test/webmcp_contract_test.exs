@@ -21,48 +21,116 @@ defmodule ShadowOpsWeb.WebMCPContractTest do
     refute js =~ "navigator.modelContext"
   end
 
-  test "WebMCP exports only bounded read-only API tools" do
+  test "WebMCP covers every canonical read API capability plus a global acceptance probe" do
     js = File.read!(@asset)
 
     for tool <- [
           "shadowops_health",
           "shadowops_readiness",
           "shadowops_overview",
+          "shadowops_layers",
+          "shadowops_layer",
+          "shadowops_projects",
+          "shadowops_system",
+          "shadowops_integrations",
           "shadowops_workflows",
+          "shadowops_workflow",
           "shadowops_runs",
+          "shadowops_run",
+          "shadowops_run_evaluation",
           "shadowops_jobs",
           "shadowops_nodes",
+          "shadowops_node",
           "shadowops_services",
-          "shadowops_integrations",
-          "shadowops_connectors",
+          "shadowops_service",
+          "shadowops_agents",
+          "shadowops_ai_status",
+          "shadowops_ai_models",
+          "shadowops_security",
+          "shadowops_audit",
+          "shadowops_audit_verify",
+          "shadowops_audit_entry",
+          "shadowops_logs",
+          "shadowops_knowledge",
           "shadowops_evidence",
+          "shadowops_legal",
           "shadowops_focus",
           "shadowops_approvals",
-          "shadowops_audit",
-          "shadowops_logs",
-          "shadowops_security"
+          "shadowops_approval",
+          "shadowops_connectors",
+          "shadowops_whatsapp",
+          "shadowops_connector",
+          "shadowops_social",
+          "shadowops_facebook_balance",
+          "shadowops_career",
+          "shadowops_backups",
+          "shadowops_reports",
+          "shadowops_webmcp_check"
         ] do
       assert js =~ tool
     end
 
     for endpoint <- [
-          "/api/jobs",
+          "/api/health",
+          "/api/ready",
+          "/api/system/overview",
+          "/api/layers",
+          "/api/layers/:id",
+          "/api/projects",
+          "/api/system",
           "/api/integrations",
-          "/api/connectors",
+          "/api/workflows",
+          "/api/workflows/:id",
+          "/api/runs",
+          "/api/runs/:id",
+          "/api/runs/:id/evaluation",
+          "/api/jobs",
+          "/api/nodes",
+          "/api/nodes/:id",
+          "/api/services",
+          "/api/services/:id",
+          "/api/agents",
+          "/api/ai/status",
+          "/api/ai/models",
+          "/api/security/status",
+          "/api/audit",
+          "/api/audit/verify",
+          "/api/audit/:id",
+          "/api/logs/recent",
+          "/api/knowledge",
           "/api/evidence",
-          "/api/learning/plan"
+          "/api/legal",
+          "/api/learning/plan",
+          "/api/approvals",
+          "/api/approvals/:id",
+          "/api/connectors",
+          "/api/connectors/whatsapp",
+          "/api/connectors/:id",
+          "/api/social",
+          "/api/social/facebook/balance",
+          "/api/career",
+          "/api/backups",
+          "/api/reports"
         ] do
       assert js =~ endpoint
     end
+  end
+
+  test "WebMCP remains bounded, cancellable, redacted and strictly read-only" do
+    js = File.read!(@asset)
 
     assert js =~ "readOnlyHint: true"
     assert js =~ "untrustedContentHint: true"
     assert js =~ "AUTH_REQUIRED"
     assert js =~ "[REDACTED]"
     assert js =~ "WEBMCP_MAX_OUTPUT"
+    assert js =~ "encodeURIComponent"
+    assert js =~ "context.signal"
     assert js =~ "method: \"GET\""
+    assert js =~ "runShadowOpsWebMcpCheck"
     refute js =~ "method: \"POST\""
     refute js =~ "method: \"PUT\""
+    refute js =~ "method: \"PATCH\""
     refute js =~ "method: \"DELETE\""
   end
 end
