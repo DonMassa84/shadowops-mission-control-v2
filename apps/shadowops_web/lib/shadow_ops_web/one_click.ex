@@ -27,7 +27,9 @@ defmodule ShadowOpsWeb.OneClick do
     with {:ok, actor} <- authorize_operator(),
          {:ok, context} <- approval_context("workflow.execute", workflow_id, actor) do
       input = %{"trigger" => "mission_control_one_click"}
-      input = if is_binary(action) and action != "", do: Map.put(input, "action", action), else: input
+
+      input =
+        if is_binary(action) and action != "", do: Map.put(input, "action", action), else: input
 
       result =
         if WorkflowJobs.enabled?() do
@@ -88,8 +90,12 @@ defmodule ShadowOpsWeb.OneClick do
     actor = actor()
 
     cond do
-      not enabled?() -> {:error, :one_click_disabled}
-      not is_binary(token) or token == "" -> {:error, :writes_disabled}
+      not enabled?() ->
+        {:error, :one_click_disabled}
+
+      not is_binary(token) or token == "" ->
+        {:error, :writes_disabled}
+
       true ->
         case Security.authorize_live_write(actor, token) do
           :ok -> {:ok, actor}
