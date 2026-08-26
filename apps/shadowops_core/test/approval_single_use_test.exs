@@ -163,6 +163,7 @@ defmodule ShadowOpsCore.ApprovalSingleUseTest do
 
     assert authorization.approval_required
     assert authorization.risk_level == "L2"
+
     assert {:ok, %{status: "CONSUMED", consumed_by: "operator-a"}} =
              ApprovalStore.get(approval.id)
 
