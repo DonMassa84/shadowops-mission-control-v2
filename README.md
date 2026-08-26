@@ -1,78 +1,239 @@
 # ShadowOps Mission Control V2
 
-Production-oriented Phoenix/LiveView operations console for the local ShadowOps control plane.
+Local-first, fail-closed operations and decision-support control plane built with Elixir/Phoenix/LiveView.
 
-## Security model
+ShadowOps is not a generic chatbot and not an unrestricted automation runner. It is a governed control plane for local infrastructure, projects, workflows, evidence, AI tooling and selected personal data sources. Every positive state should be backed by evidence; missing evidence must remain `NOT_CONFIGURED`, `DISCOVERED`, `DEGRADED`, `UNAVAILABLE` or `UNKNOWN` rather than being promoted to `READY`.
 
-ShadowOps is intentionally local-first:
+## Start here
 
-- the Phoenix endpoint binds to `127.0.0.1`;
-- production requires a strong `SHADOWOPS_SECRET_KEY_BASE`;
-- production read APIs require `SHADOWOPS_READ_TOKEN`;
-- writes stay disabled unless `SHADOWOPS_WRITE_TOKEN` is explicitly configured;
-- write requests additionally require an `x-shadowops-actor` identity and pass the governed command path;
-- runtime state, credentials and private source data must never be committed to this repository.
+For humans and coding agents, read these files before changing code:
 
-Remote access should be provided only through an authenticated tunnel or reverse proxy. Do not expose the Phoenix listener directly to an untrusted network.
+1. [`AGENTS.md`](AGENTS.md) — non-negotiable repository and safety rules for AI/coding agents.
+2. [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md) — architecture, terminology, trust boundaries and canonical concepts.
+3. [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) — dated status snapshot, verified facts and current priorities.
+4. [`docs/LOCAL_ALL_DEVELOPMENTS.md`](docs/LOCAL_ALL_DEVELOPMENTS.md) — local development/certification/promotion lifecycle.
+5. [`docs/PRODUCTION.md`](docs/PRODUCTION.md) and [`docs/SECURITY.md`](docs/SECURITY.md) — production and security contracts.
+6. [`docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md`](docs/handoff/OPENCODE_NEMOTRON_EXECUTION.md) — deterministic OpenCode/Nemotron handoff.
 
-## Local development
+Do not treat documentation as stronger evidence than the repository, CI and runtime. Re-check `git status`, branch/HEAD, tests and runtime before claiming a state is current.
 
-```bash
-git clone https://github.com/DonMassa84/shadowops-mission-control-v2.git
-cd shadowops-mission-control-v2
-./scripts/run-local-v2.sh
+## Architecture
+
+The target data and control flow is:
+
+```text
+Sources
+  -> bounded/raw ingest
+  -> normalization
+  -> canonical data
+  -> entity resolution
+  -> ontology objects + relationships
+  -> timeline
+  -> signals
+  -> decision views
+  -> governed actions
 ```
 
-Default URL: `http://127.0.0.1:4013/`
+Conceptually:
 
-Useful routes:
+```text
+                   SHADOWOPS
+                       |
+           +-----------+-----------+
+           |                       |
+       DATA PLANE              CONTROL PLANE
+           |                       |
+       Sources                 Governance
+       Canonical Data          Privacy Gate
+       Entities                Risk Policy
+       Relationships           Approvals
+       Timeline                Audit
+       Signals                 Execution
+           |                       |
+           +-----------+-----------+
+                       |
+                 DECISION PLANE
+                       |
+                 Mission Control
+```
+
+Important design rules:
+
+- local-first and privacy-preserving;
+- read-first, mutate-rare;
+- fail closed on missing configuration/evidence;
+- server-side governance is authoritative;
+- the UI/client is never authoritative for actor, executor, capability, risk or approval;
+- no free shell-command execution from workflow/source configuration;
+- no raw secrets/private source data in Git, HTML, logs or test fixtures;
+- source provenance and truthfulness are part of the data model;
+- AI suggestions are non-authoritative.
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md).
+
+## Canonical local development lifecycle
+
+The rolling integration branch is:
+
+```text
+local/all-developments
+```
+
+The runtime lifecycle deliberately separates development, certification and stable production:
+
+```text
+4014  DEVELOPMENT / PREVIEW
+  |
+  | full certification
+  v
+4015  EPHEMERAL RELEASE SMOKE
+  |
+  | certified artifact + SHA256 + explicit operator promotion
+  v
+4013  STABLE PRODUCTION
+```
+
+`4013` must not be changed just because a development branch is green. Promotion requires the exact certified commit and explicit operator opt-in, with rollback support.
+
+One local entrypoint:
+
+```bash
+cd ~/Projects/shadowops-mission-control-v2
+git fetch origin --prune
+git switch local/all-developments
+git pull --ff-only
+
+scripts/shadowops-local.sh status
+scripts/shadowops-local.sh setup
+scripts/shadowops-local.sh certify
+```
+
+Only after certification:
+
+```bash
+SHADOWOPS_PROMOTE_STABLE=YES scripts/shadowops-local.sh promote
+```
+
+Full details: [`docs/LOCAL_ALL_DEVELOPMENTS.md`](docs/LOCAL_ALL_DEVELOPMENTS.md).
+
+## Local coding agent
+
+ShadowOps uses a guarded local OpenCode agent with local Ollama models and a read-only ShadowOps MCP gateway.
+
+Preferred entrypoint:
+
+```bash
+scripts/opencode-preflight.sh --repair-known-drift --sync
+scripts/shadowops-coder.sh --next
+```
+
+The agent must not work directly on `main`/`master`, mutate stable port `4013`, run deployments, use destructive Git commands, or invent evidence. See [`AGENTS.md`](AGENTS.md).
+
+## Workflow governance
+
+Canonical workflow identifiers use:
+
+```text
+so:wf:v1:<slug>
+```
+
+The workflow registry, capability registry, risk policy, approval policy and audit trail are separate responsibilities. Do not create parallel registries for the same responsibility.
+
+Risk semantics use `L0`–`L3` in the governed execution path. Approval-required operations must not bypass the approval/audit path.
+
+Evidence/truthfulness and operational state are different axes. Do not collapse them into one ambiguous status enum.
+
+## Project/source truthfulness
+
+A component being present in source code does not make it operational:
+
+```text
+known only               -> DISCOVERED / NOT_CONFIGURED
+local evidence present   -> evidence-backed candidate
+preview gates pass       -> preview accepted
+all certification passes -> certified artifact
+promotion + runtime pass -> stable
+```
+
+For source-backed positive claims, prefer explicit evidence such as:
+
+```text
+real_data=true
+synthetic=false
+reachable=true
+```
+
+A configured source reports facts; that does not independently prove external truth.
+
+## Useful routes
+
+When a runtime is active, useful routes include:
 
 - `/` — Mission Control overview
-- `/projects` — project domains
-- `/projects/ihk` — IHK project domain
+- `/projects` — project catalog/domains
+- `/projects/federated` — federated project view
+- `/projects/chatgpt` — ChatGPT project/source status
 - `/career` — career module
 - `/workflows` — workflow inventory
 - `/runs` — durable runs
+- `/services` — services and discovery candidates
 - `/security` — security status
 - `/audit` — audit view
-- `/display/i7` — i7 display
+- `/evidence` — evidence view
+- `/display/i7` — i7 display compatibility path
 - `/health` — health probe
 - `/ready` — readiness probe
 
-## Production build
+Use port `4014` for the current development candidate, `4015` for release smoke and `4013` only for stable production.
 
-```bash
-mix deps.get
-mix format --check-formatted
-mix compile --warnings-as-errors
-mix test --seed 12345
-mix shadowops.registry validate
-MIX_ENV=prod mix release shadowops --overwrite
+## Quality gates
+
+The production path is expected to prove, as applicable:
+
+```text
+FORMAT
+COMPILE --warnings-as-errors
+FULL TESTS
+CREDO --strict
+DIALYZER
+SOBELOW
+WORKFLOW REGISTRY
+WORKFLOW IDS
+HEX AUDIT
+git diff --check
+PROJECT CATALOG / PRODUCTION ACCEPTANCE
+LOCAL CODER CONTRACT
+READ-ONLY MCP TESTS
+PRODUCTION RELEASE BUILD
+4015 RELEASE SMOKE
 ```
 
-Production boot requires at minimum:
-
-```bash
-export SHADOWOPS_SECRET_KEY_BASE="$(openssl rand -base64 64)"
-export SHADOWOPS_READ_TOKEN="$(openssl rand -hex 32)"
-export SHADOWOPS_STATE_DIR="$HOME/.local/state/shadowops"
-export PORT=4013
-```
-
-`SHADOWOPS_WRITE_TOKEN` is optional. If it is absent, mutating API routes fail closed.
-
-For persistence through PostgreSQL/Oban, also set `SHADOWOPS_START_PERSISTENCE=true` and provide production database credentials. See `docs/PRODUCTION.md`.
+A previous green result is historical evidence, not proof that the current HEAD is green. Re-run relevant gates after changes.
 
 ## Repository data policy
 
 This repository must not contain:
 
-- API tokens or passwords;
+- API tokens, passwords or OAuth client secrets;
 - SSH/private keys;
-- Gmail/Google OAuth secrets;
-- financial raw data;
-- legal raw case data;
-- private message content;
-- local runtime state.
+- financial or legal raw data;
+- private message bodies/attachments;
+- local runtime databases/state;
+- copied credential files;
+- synthetic data represented as real source data.
 
-Runtime data remains local and is consumed through approved adapters/manifests.
+Runtime data remains local and is consumed only through bounded adapters/manifests.
+
+## Current development priorities
+
+Keep feature breadth frozen until the existing system is proven end-to-end. The priority order is documented in [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md). In general:
+
+1. close governance/security correctness gaps;
+2. prove full local certification and rollback;
+3. connect a small number of real authorized sources;
+4. prove one complete Source -> Signal -> Decision -> Approval -> Action -> Audit use case;
+5. only then consider new feature families.
+
+## License / usage
+
+No proprietary third-party implementation or branding is implied by architectural inspiration. Keep all integrations compliant with their own APIs, licenses and authorization models.
