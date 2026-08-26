@@ -49,4 +49,43 @@ defmodule ShadowOpsWeb.ServiceIntegrationCandidatesTest do
     assert response.resp_body =~ "Local function inventory"
     assert response.resp_body =~ "Reference only"
   end
+
+  test "integrations API and page expose measured knowledge sources separately from RAG readiness" do
+    conn = Plug.Test.conn(:get, "/api/integrations")
+    response = ShadowOpsWeb.Endpoint.call(conn, [])
+
+    assert response.status == 200
+
+    body = Jason.decode!(response.resp_body)
+    sources = body["knowledge_sources"]
+
+    assert is_list(sources)
+    assert body["knowledge_source_count"] == 3
+    assert length(sources) == 3
+
+    assert Enum.map(sources, & &1["name"]) == [
+             "ProofFlow-Obsidian-Vault",
+             "shadowops-knowledge",
+             "workflow-knowledge"
+           ]
+
+    assert body["knowledge_document_count"] ==
+             Enum.sum(Enum.map(sources, & &1["document_count"]))
+
+    assert Enum.all?(sources, fn source ->
+             source["synthetic"] == false and
+               is_integer(source["document_count"]) and
+               source["document_count"] >= 0
+           end)
+
+    page = ShadowOpsWeb.Endpoint.call(Plug.Test.conn(:get, "/integrations"), [])
+
+    assert page.status == 200
+    assert page.resp_body =~ "Knowledge docs"
+    assert page.resp_body =~ "Knowledge sources"
+    assert page.resp_body =~ "ProofFlow-Obsidian-Vault"
+    assert page.resp_body =~ "shadowops-knowledge"
+    assert page.resp_body =~ "workflow-knowledge"
+    assert page.resp_body =~ "RAG readiness remains separate"
+  end
 end
