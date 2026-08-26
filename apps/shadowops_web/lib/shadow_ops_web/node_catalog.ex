@@ -78,8 +78,6 @@ defmodule ShadowOpsWeb.NodeCatalog do
     |> Enum.sort_by(& &1.node_id)
   end
 
-  defp chatgpt_nodes(_), do: []
-
   defp newest_timestamp(nil, other), do: other
   defp newest_timestamp(value, nil), do: value
   defp newest_timestamp(left, right), do: max(left, right)
