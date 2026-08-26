@@ -1,6 +1,7 @@
 defmodule ShadowOpsWeb.IntegrationCatalog do
   @moduledoc "Evidence-backed catalog projection for ShadowOps production integrations."
 
+  alias ShadowOpsCore.LocalIntegrationCandidates
   alias ShadowOpsWeb.{RuntimeOverview, SourceRegistry}
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
@@ -19,6 +20,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
   def snapshot do
     overview = RuntimeOverview.snapshot()
     connectors = value(overview, :connectors, %{})
+    local_discovery = LocalIntegrationCandidates.snapshot()
 
     core =
       [
@@ -54,7 +56,9 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
         card(value(payload, :name, value(payload, :id, "Import")), payload, "import")
       end)
 
-    records = core ++ external ++ imports
+    local = [local_card(local_discovery)]
+
+    records = core ++ external ++ imports ++ local
     health = health_summary(records)
 
     %{
@@ -63,7 +67,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       status: health.status,
       health: health.health,
       source:
-        "bounded cached runtime overview + canonical connector adapters + local import evidence",
+        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery",
       source_type: "CONTROL_PLANE_PROJECTION",
       real_data: Enum.any?(records, & &1.real_data),
       synthetic: false,
@@ -72,16 +76,20 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       core_count: length(core),
       external_count: length(external),
       import_count: length(imports),
+      local_count: length(local),
+      local_discovered_count: local_discovery.counts.discovered,
+      local_auto_discovered_count: local_discovery.counts.auto_discovered,
       positive_count: Enum.count(records, &positive?/1),
       required_core_count: health.required_total,
       required_core_ready_count: health.required_ready,
       optional_count: health.optional_total,
       optional_ready_count: health.optional_ready,
+      local_discovery: local_discovery,
       records: records
     }
   end
 
-  def positive?(%{scope: scope} = card) when scope in ["external", "import"],
+  def positive?(%{scope: scope} = card) when scope in ["external", "import", "local"],
     do: card.status in @positive and card.real_data == true and card.reachable == true
 
   def positive?(card), do: card.status in @positive
@@ -108,6 +116,33 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       required_ready: required_ready,
       optional_total: length(optional),
       optional_ready: optional_ready
+    }
+  end
+
+  defp local_card(local_discovery) do
+    %{
+      id: "local-functions",
+      name: "Local Functions",
+      scope: "local",
+      kind: "local_function_inventory",
+      status: local_discovery.status,
+      health: if(local_discovery.status == "DISCOVERED", do: "DISCOVERED", else: "UNKNOWN"),
+      source: "bounded scan of known local automation folders",
+      source_type: local_discovery.source_type,
+      real_data: local_discovery.real_data,
+      synthetic: false,
+      reachable: local_discovery.reachable,
+      record_count: local_discovery.counts.discovered,
+      last_sync: nil,
+      domains:
+        local_discovery.records
+        |> Enum.filter(&(&1.status == "DISCOVERED"))
+        |> Enum.map(& &1.domain)
+        |> Enum.uniq()
+        |> Enum.sort(),
+      secret_binding: nil,
+      error_code: nil,
+      error_message: nil
     }
   end
 
