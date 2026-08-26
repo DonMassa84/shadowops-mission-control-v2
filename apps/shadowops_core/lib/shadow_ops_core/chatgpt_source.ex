@@ -101,7 +101,8 @@ defmodule ShadowOpsCore.ChatGPTSource do
       value(conversation, ["project_name", "projectName"]) ||
         nested_value(conversation, ["project", "name"])
 
-    if is_binary(project_id) and project_id != "" and is_binary(project_name) and project_name != "" do
+    if is_binary(project_id) and project_id != "" and is_binary(project_name) and
+         project_name != "" do
       %{"id" => project_id, "name" => project_name}
     end
   end
