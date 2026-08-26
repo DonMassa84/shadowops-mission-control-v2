@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Shadowops.Chatgpt.Catalog do
+  @moduledoc false
+
   use Mix.Task
 
   @shortdoc "Projects verified local ChatGPT evidence into ShadowOps metadata surfaces"
