@@ -48,6 +48,8 @@ defmodule ShadowOpsWeb.FeatureRecoveryActivationTest do
 
     assert response.status == 200
     assert response.resp_body =~ "Source catalog"
+    assert response.resp_body =~ "Required core"
+    assert response.resp_body =~ "Optional ready"
     assert response.resp_body =~ "Real"
     assert response.resp_body =~ "Reachable"
     assert response.resp_body =~ "Source type"
