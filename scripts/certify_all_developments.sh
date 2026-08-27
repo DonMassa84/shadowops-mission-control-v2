@@ -42,6 +42,21 @@ pass() {
   printf 'PASS %-40s\n' "$1"
 }
 
+run_isolated_test_suite() {
+  local clean_user="${USER:-$(id -un)}"
+  local clean_lang="${LANG:-C.UTF-8}"
+
+  env -i \
+    HOME="$HOME" \
+    USER="$clean_user" \
+    LOGNAME="$clean_user" \
+    PATH="$PATH" \
+    LANG="$clean_lang" \
+    MIX_ENV=test \
+    SHADOWOPS_START_PERSISTENCE=false \
+    mix test --seed 12345
+}
+
 for cmd in git mix elixir erl curl ss tar sha256sum date; do
   command -v "$cmd" >/dev/null 2>&1 || fail "MISSING_COMMAND_$cmd"
 done
@@ -84,7 +99,7 @@ mix deps.get
 git diff --exit-code -- mix.lock
 mix format --check-formatted
 mix compile --warnings-as-errors
-MIX_ENV=test mix test --seed 12345
+run_isolated_test_suite
 mix credo --strict
 mix dialyzer
 mix sobelow --exit
