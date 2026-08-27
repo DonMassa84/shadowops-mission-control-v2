@@ -20,19 +20,24 @@ defmodule ShadowOpsWeb.IntegrationsLive do
     ~H"""
     <.app_shell
       title="Integrations"
-      subtitle="Real sources, connectors and import evidence"
+      subtitle="Real sources, workflow evidence and governed connector readiness"
       active="/integrations"
       availability={@catalog.status}
       updated_at={@updated_at}
     >
       <div class="mc-grid">
         <.metric_card label="Required core" value={"#{@catalog.required_core_ready_count}/#{@catalog.required_core_count}"} status={@catalog.status} source={@catalog.source} note="Required control-plane sources determine overall integration health" />
-        <.metric_card label="Optional ready" value={"#{@catalog.optional_ready_count}/#{@catalog.optional_count}"} status={optional_status(@catalog)} note="Optional connectors, imports and local discovery cannot mark required core healthy" />
+        <.metric_card label="Optional ready" value={"#{@catalog.optional_ready_count}/#{@catalog.optional_count}"} status={optional_status(@catalog)} note="Optional connectors and discoveries cannot mark required core healthy" />
         <.metric_card label="Connectors" value={@catalog.external_count} status={scope_status(@external)} note="External source adapters" />
         <.metric_card label="Imports" value={@catalog.import_count} status={scope_status(@imports)} note="Bounded local import sources; truth fields fail closed" />
         <.metric_card label="Local functions" value={@catalog.local_discovered_count} status={@catalog.local_discovery.status} note={"#{@catalog.local_auto_discovered_count} auto-discovered beyond the fixed inventory"} />
+        <.metric_card label="Workflow IDs" value={@catalog.local_workflow_registered_count} status={@catalog.local_workflow_registry.status} note={"Stable localwf_* IDs · #{@catalog.local_workflow_rejected_count} filtered/rejected · reference only"} />
         <.metric_card label="Knowledge docs" value={@catalog.knowledge_document_count} status={knowledge_status(@catalog)} note={"#{@catalog.knowledge_available_source_count}/#{@catalog.knowledge_source_count} measured local sources available; RAG readiness remains separate"} />
       </div>
+
+      <p class="mc-callout">
+        <strong>Evidence-first integration:</strong> discovered local workflows receive stable IDs and become visible immediately, but no discovery result gains execution rights until runtime and governance mapping are independently proven.
+      </p>
 
       <.panel title="Source catalog" description="A source is not promoted to healthy unless runtime evidence explicitly says it is real and reachable.">
         <div class="mc-table-wrap">
@@ -52,6 +57,34 @@ defmodule ShadowOpsWeb.IntegrationsLive do
             </tbody>
           </table>
         </div>
+      </.panel>
+
+      <.panel title="Registered local workflow IDs" description="Stable IDs from the latest local workflow correlation evidence. These rows are inventory records, not executable workflow grants.">
+        <p class="mc-callout">
+          {@catalog.local_workflow_registered_count} registered ·
+          {@catalog.local_workflow_rejected_count} filtered/rejected ·
+          maximum {@catalog.local_workflow_registry.counts.max_records} records ·
+          mode <strong>REFERENCE_ONLY</strong>
+        </p>
+        <div class="mc-table-wrap">
+          <table class="mc-table">
+            <thead><tr><th>Workflow / ID</th><th>Source</th><th>Kind</th><th>Domain</th><th>Status</th><th>Source ref</th><th>Governance</th></tr></thead>
+            <tbody>
+              <tr :for={record <- @catalog.local_workflow_registry.records}>
+                <td><strong>{record.name}</strong><br /><span class="mc-mono mc-muted">{record.id}</span></td>
+                <td>{record.source}</td>
+                <td class="mc-mono">{record.kind}</td>
+                <td>{record.domain}</td>
+                <td><.status_badge status={record.status} /></td>
+                <td class="mc-mono">{record.source_ref}</td>
+                <td>{if(record.governance_mapped, do: "Mapped", else: "Reference only")}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p :if={@catalog.local_workflow_registry.records == []} class="mc-empty">
+          No local workflow correlation report is currently available to this runtime.
+        </p>
       </.panel>
 
       <.panel title="Knowledge sources" description="Measured local knowledge paths. AVAILABLE means the local source exists and its files were counted; indexed/RAG readiness is reported separately by the Knowledge module.">
