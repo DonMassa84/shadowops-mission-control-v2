@@ -1,13 +1,41 @@
 defmodule ShadowOpsWeb.IntegrationCatalog do
   @moduledoc "Evidence-backed catalog projection for ShadowOps production integrations."
 
+  alias ShadowOpsCore.{
+    LocalIntegrationCandidates,
+    LocalWorkflowRegistry,
+    RuntimeSources,
+    WorkflowCuration
+  }
+
   alias ShadowOpsWeb.{RuntimeOverview, SourceRegistry}
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
+  @required_core_names MapSet.new([
+                         "System",
+                         "Workflows",
+                         "Runs",
+                         "Services",
+                         "Nodes",
+                         "AI / Models",
+                         "Approvals",
+                         "Audit",
+                         "Security"
+                       ])
 
   def snapshot do
     overview = RuntimeOverview.snapshot()
     connectors = value(overview, :connectors, %{})
+    local_discovery = LocalIntegrationCandidates.snapshot()
+    local_workflows = LocalWorkflowRegistry.snapshot()
+    workflow_curation = WorkflowCuration.snapshot(local_workflows)
+
+    knowledge =
+      overview
+      |> value(:knowledge, %{})
+      |> measured_knowledge()
+
+    knowledge_sources = knowledge_sources(knowledge)
 
     core =
       [
@@ -21,7 +49,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
         {"Approvals", value(overview, :approvals)},
         {"Audit", value(overview, :audit)},
         {"Security", value(overview, :security)},
-        {"Knowledge", value(overview, :knowledge)},
+        {"Knowledge", knowledge},
         {"Evidence", value(overview, :evidence)},
         {"Career", value(overview, :career)},
         {"Backups", value(overview, :backups)},
@@ -32,6 +60,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     external =
       connectors
       |> value(:records, [])
+      |> Enum.reject(&retired_local_llm_connector?/1)
       |> Enum.map(fn payload ->
         card(value(payload, :name, value(payload, :id, "Connector")), payload, "external")
       end)
@@ -42,29 +71,171 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
         card(value(payload, :name, value(payload, :id, "Import")), payload, "import")
       end)
 
-    records = core ++ external ++ imports
+    local = [local_card(local_discovery)]
+
+    records = core ++ external ++ imports ++ local
+    health = health_summary(records)
 
     %{
       id: "integrations",
       kind: "integration_catalog",
-      status: if(Enum.any?(records, &positive?/1), do: "READY", else: "DEGRADED"),
-      health: if(Enum.any?(records, &positive?/1), do: "HEALTHY", else: "DEGRADED"),
+      status: health.status,
+      health: health.health,
       source:
-        "bounded cached runtime overview + canonical connector adapters + local import evidence",
+        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery + stable local workflow evidence registry + curated workflow readiness funnel + measured local knowledge sources",
       source_type: "CONTROL_PLANE_PROJECTION",
       real_data: Enum.any?(records, & &1.real_data),
       synthetic: false,
-      reachable: true,
+      reachable: health.required_ready == health.required_total and health.required_total > 0,
       record_count: length(records),
       core_count: length(core),
       external_count: length(external),
       import_count: length(imports),
+      local_count: length(local),
+      local_discovered_count: local_discovery.counts.discovered,
+      local_auto_discovered_count: local_discovery.counts.auto_discovered,
+      local_workflow_registered_count: local_workflows.counts.registered,
+      local_workflow_rejected_count: local_workflows.counts.rejected,
+      local_workflow_registry: local_workflows,
+      workflow_found_count: workflow_curation.counts.found,
+      workflow_unique_count: workflow_curation.counts.unique,
+      workflow_potential_duplicate_count: workflow_curation.counts.potential_duplicates,
+      workflow_duplicate_group_count: workflow_curation.counts.duplicate_groups,
+      workflow_normalized_count: workflow_curation.counts.normalized,
+      workflow_connected_count: workflow_curation.counts.connected,
+      workflow_tested_count: workflow_curation.counts.tested,
+      workflow_production_ready_count: workflow_curation.counts.production_ready,
+      workflow_curation: workflow_curation,
+      knowledge_source_count: length(knowledge_sources),
+      knowledge_available_source_count:
+        Enum.count(knowledge_sources, &(&1.availability == "AVAILABLE")),
+      knowledge_document_count: Enum.sum(Enum.map(knowledge_sources, & &1.document_count)),
+      knowledge_indexed_document_count: value(knowledge, :indexed_documents_count),
+      knowledge_sources: knowledge_sources,
       positive_count: Enum.count(records, &positive?/1),
+      required_core_count: health.required_total,
+      required_core_ready_count: health.required_ready,
+      optional_count: health.optional_total,
+      optional_ready_count: health.optional_ready,
+      local_discovery: local_discovery,
       records: records
     }
   end
 
+  def positive?(%{scope: scope} = card) when scope in ["external", "import", "local"],
+    do: card.status in @positive and card.real_data == true and card.reachable == true
+
   def positive?(card), do: card.status in @positive
+
+  @doc false
+  def health_summary(records) when is_list(records) do
+    {required, optional} = Enum.split_with(records, &required_core?/1)
+    required_ready = Enum.count(required, &positive?/1)
+    optional_ready = Enum.count(optional, &positive?/1)
+    required_total = length(required)
+
+    status =
+      cond do
+        required_total == 0 -> "UNAVAILABLE"
+        required_ready == required_total -> "READY"
+        required_ready > 0 -> "DEGRADED"
+        true -> "UNAVAILABLE"
+      end
+
+    %{
+      status: status,
+      health: if(status == "READY", do: "HEALTHY", else: status),
+      required_total: required_total,
+      required_ready: required_ready,
+      optional_total: length(optional),
+      optional_ready: optional_ready
+    }
+  end
+
+  defp local_card(local_discovery) do
+    %{
+      id: "local-functions",
+      name: "Local Functions",
+      scope: "local",
+      kind: "local_function_inventory",
+      status: local_discovery.status,
+      health: if(local_discovery.status == "DISCOVERED", do: "DISCOVERED", else: "UNKNOWN"),
+      source: "bounded scan of known local automation folders",
+      source_type: local_discovery.source_type,
+      real_data: local_discovery.real_data,
+      synthetic: false,
+      reachable: local_discovery.reachable,
+      record_count: local_discovery.counts.discovered,
+      last_sync: nil,
+      domains:
+        local_discovery.records
+        |> Enum.filter(&(&1.status == "DISCOVERED"))
+        |> Enum.map(& &1.domain)
+        |> Enum.uniq()
+        |> Enum.sort(),
+      secret_binding: nil,
+      error_code: nil,
+      error_message: nil
+    }
+  end
+
+  defp measured_knowledge(knowledge) when is_map(knowledge) do
+    case value(knowledge, :sources, []) do
+      sources when is_list(sources) and sources != [] ->
+        knowledge
+
+      _ ->
+        RuntimeSources.knowledge()
+    end
+  rescue
+    _ -> knowledge
+  end
+
+  defp measured_knowledge(_), do: RuntimeSources.knowledge()
+
+  defp knowledge_sources(knowledge) do
+    knowledge
+    |> value(:sources, [])
+    |> Enum.map(fn source ->
+      name = to_string(value(source, :source, "Knowledge source"))
+
+      %{
+        id: slug(name),
+        name: name,
+        availability: normalize_status(value(source, :availability, "UNKNOWN")),
+        document_count: integer_or_zero(value(source, :document_count)),
+        last_update: value(source, :last_update),
+        source_type: knowledge_source_type(name),
+        synthetic: false
+      }
+    end)
+  end
+
+  defp knowledge_source_type("ProofFlow-Obsidian-Vault"), do: "LOCAL_KNOWLEDGE_VAULT"
+  defp knowledge_source_type("shadowops-knowledge"), do: "LOCAL_KNOWLEDGE_STORE"
+  defp knowledge_source_type("workflow-knowledge"), do: "WORKFLOW_KNOWLEDGE_STORE"
+  defp knowledge_source_type(_), do: "LOCAL_KNOWLEDGE_SOURCE"
+
+  defp integer_or_zero(value) when is_integer(value) and value >= 0, do: value
+  defp integer_or_zero(_), do: 0
+
+  defp required_core?(%{scope: "core", name: name}),
+    do: MapSet.member?(@required_core_names, name)
+
+  defp required_core?(_), do: false
+
+  defp retired_local_llm_connector?(payload) do
+    payload
+    |> connector_identity()
+    |> String.contains?("ollama")
+  end
+
+  defp connector_identity(payload) do
+    [value(payload, :id), value(payload, :name), value(payload, :kind)]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map_join(" ", &to_string/1)
+    |> String.downcase()
+  end
 
   defp card(name, payload, scope) when is_map(payload) do
     %{

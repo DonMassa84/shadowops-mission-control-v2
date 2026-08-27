@@ -12,26 +12,39 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     end
   end
 
-  test "workflow list exposes real registry rows, filters and detail" do
+  test "workflow list exposes real registry rows, filters, detail and one-click execution" do
     list = request(:get, "/workflows")
     assert list.resp_body =~ "finanzabgleich"
     assert list.resp_body =~ ~s(name="search")
     assert list.resp_body =~ "Clear filters"
+    assert approve_and_run?(list.resp_body)
+    assert list.resp_body =~ "one_click_run"
 
     detail = request(:get, "/workflows/repository_quality")
     assert detail.status == 200
     assert detail.resp_body =~ "Execution policy"
     assert detail.resp_body =~ "L2 approval required"
     assert detail.resp_body =~ "Run workflow"
+    assert approve_and_run?(detail.resp_body)
     assert detail.resp_body =~ "Audit events"
+    refute detail.resp_body =~ ~s(name="write_token")
+    refute detail.resp_body =~ ~s(name="approval_id")
   end
 
-  test "service page exposes governed runtime controls" do
+  test "service page exposes governed runtime actions as buttons only when services exist" do
     services = request(:get, "/services")
     assert services.status == 200
-    assert services.resp_body =~ "Governed service control"
-    assert services.resp_body =~ "Execute service action"
-    assert services.resp_body =~ ~s(type="password" name="write_token")
+    assert services.resp_body =~ "One-click mode"
+    assert services.resp_body =~ "Every supported mutation is a direct button"
+    refute services.resp_body =~ ~s(name="write_token")
+    refute services.resp_body =~ ~s(name="approval_id")
+    refute services.resp_body =~ ~s(name="actor")
+
+    if ShadowOpsApi.services().services != [] do
+      assert services.resp_body =~ "▶ Start"
+      assert services.resp_body =~ "↻ Restart"
+      assert services.resp_body =~ "■ Stop"
+    end
   end
 
   test "daily digest is available through the canonical workflow lookup" do
@@ -124,16 +137,22 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     assert Jason.decode!(unknown.resp_body)["error"] == "audit_entry_not_found"
   end
 
-  test "runtime configuration loads authorization tokens from the environment" do
+  test "runtime configuration loads authorization tokens and one-click operator state" do
     previous_read = System.get_env("SHADOWOPS_READ_TOKEN")
     previous_write = System.get_env("SHADOWOPS_WRITE_TOKEN")
+    previous_one_click = System.get_env("SHADOWOPS_ONE_CLICK_ENABLED")
+    previous_actor = System.get_env("SHADOWOPS_ONE_CLICK_ACTOR")
 
     System.put_env("SHADOWOPS_READ_TOKEN", "runtime-read-token")
     System.put_env("SHADOWOPS_WRITE_TOKEN", "runtime-write-token")
+    System.put_env("SHADOWOPS_ONE_CLICK_ENABLED", "true")
+    System.put_env("SHADOWOPS_ONE_CLICK_ACTOR", "runtime-local-operator")
 
     on_exit(fn ->
       restore_env("SHADOWOPS_READ_TOKEN", previous_read)
       restore_env("SHADOWOPS_WRITE_TOKEN", previous_write)
+      restore_env("SHADOWOPS_ONE_CLICK_ENABLED", previous_one_click)
+      restore_env("SHADOWOPS_ONE_CLICK_ACTOR", previous_actor)
     end)
 
     config =
@@ -143,6 +162,8 @@ defmodule ShadowOpsWeb.MissionControlUITest do
 
     assert get_in(config, [:shadowops_web, :read_token]) == "runtime-read-token"
     assert get_in(config, [:shadowops_web, :write_token]) == "runtime-write-token"
+    assert get_in(config, [:shadowops_web, :one_click_enabled]) == true
+    assert get_in(config, [:shadowops_web, :one_click_actor]) == "runtime-local-operator"
   end
 
   test "authenticated approval-gated write creates durable run and valid audit chain" do
@@ -316,6 +337,9 @@ defmodule ShadowOpsWeb.MissionControlUITest do
     |> Plug.Conn.put_req_header("authorization", "Bearer test-write-token")
     |> ShadowOpsWeb.Endpoint.call([])
   end
+
+  defp approve_and_run?(body),
+    do: body =~ "Approve & run" or body =~ "Approve &amp; run"
 
   defp restore(key, nil), do: Application.delete_env(:shadowops_core, key)
   defp restore(key, value), do: Application.put_env(:shadowops_core, key, value)

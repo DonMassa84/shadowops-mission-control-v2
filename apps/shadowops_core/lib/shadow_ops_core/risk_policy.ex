@@ -52,7 +52,11 @@ defmodule ShadowOpsCore.RiskPolicy do
     "github.export" => "L1",
     "github.sync" => "L2",
     "whatsapp.ingest" => "L0",
-    "whatsapp.analysis" => "L0"
+    "whatsapp.analysis" => "L0",
+    "local_workflow.verify_runtime" => "L1",
+    "local_workflow.record_test" => "L1",
+    "local_workflow.map_governance" => "L2",
+    "local_workflow.enable_execution" => "L2"
   }
 
   @spec get(String.t()) :: {:ok, map()} | {:error, :unknown_risk_level}

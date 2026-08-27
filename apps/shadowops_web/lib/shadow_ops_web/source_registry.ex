@@ -151,9 +151,9 @@ defmodule ShadowOpsWeb.SourceRegistry do
           adapter: Map.get(data, "adapter", "external_connector"),
           last_sync: Map.get(data, "last_sync", file_mtime(path)),
           record_count: non_negative_integer(Map.get(data, "record_count")),
-          real_data: Map.get(data, "real_data", true) == true,
+          real_data: Map.get(data, "real_data", false) == true,
           synthetic: Map.get(data, "synthetic", false) == true,
-          reachable: Map.get(data, "reachable", status in @positive) == true,
+          reachable: Map.get(data, "reachable", false) == true,
           secret_binding: secret_state,
           error_code: Map.get(data, "error_code"),
           error_message: Map.get(data, "error_message")

@@ -2,7 +2,7 @@ defmodule ShadowOpsWeb.RuntimeOverview do
   @moduledoc "Bounded, fail-closed projection of real ShadowOps runtime sources."
 
   alias ShadowOpsCore.{Audit, LearningFocus}
-  alias ShadowOpsWeb.{NodeCatalog, RuntimeSnapshotCache, SecurityStatus}
+  alias ShadowOpsWeb.{AIStatus, NodeCatalog, RuntimeSnapshotCache, SecurityStatus}
   alias WorkflowEngine.Registry
 
   @probe_timeout_ms 3_500
@@ -24,7 +24,7 @@ defmodule ShadowOpsWeb.RuntimeOverview do
       services: &ShadowOpsApi.services/0,
       nodes: &NodeCatalog.snapshot/0,
       agents: &ShadowOpsApi.agents/0,
-      ai: &ShadowOpsApi.ai/0,
+      ai: &AIStatus.snapshot/0,
       approvals: &ShadowOpsApi.approvals/0,
       audit: &ShadowOpsApi.audit/0,
       security: &SecurityStatus.check/0,

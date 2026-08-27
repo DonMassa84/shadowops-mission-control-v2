@@ -25,7 +25,7 @@ defmodule ShadowOpsWeb.LiveInteractionTest do
     assert Process.alive?(view.pid)
     rendered = render(view)
     assert rendered =~ "Security"
-    assert rendered =~ "Write API remains governance-gated"
+    assert rendered =~ "Governance and write-boundary state"
     assert rendered =~ "Approvals"
   end
 

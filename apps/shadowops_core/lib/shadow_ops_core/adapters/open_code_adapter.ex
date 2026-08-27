@@ -1,10 +1,10 @@
 defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
   @moduledoc """
-  Governed local OpenCode adapter.
+  Governed local OpenCode adapter with remote-only model inference.
 
   Execution is non-interactive (`opencode run`) and never enables OpenCode's
-  auto-approval flag. The adapter accepts only bounded prompts and project
-  directories below explicitly allowed local roots.
+  auto-approval flag. The adapter accepts only bounded prompts, an explicit
+  remote provider/model, and project directories below explicitly allowed local roots.
   """
   @behaviour ShadowOpsCore.Adapters.RuntimeAdapter
 
@@ -13,6 +13,8 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
   @max_prompt_bytes 32_000
   @max_output_bytes 128_000
   @default_timeout_ms 120_000
+  @forbidden_local_model_prefixes ["ollama/", "local/", "lmstudio/", "llamacpp/", "llama.cpp/"]
+  @remote_model_pattern ~r/^[A-Za-z0-9._-]+\/[A-Za-z0-9._:#@\/-]+$/
 
   @impl true
   def discover(_opts \\ []) do
@@ -46,23 +48,37 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
               state: "NOT_CONFIGURED",
               discovered: 1,
               reachable: false,
-              reason: "opencode_not_found"
+              reason: "opencode_not_found",
+              model_policy: "REMOTE_ONLY"
             }
 
           is_list(row.workflow_ids) ->
-            %{state: "AVAILABLE", discovered: 1, reachable: true, reason: nil}
+            %{
+              state: "AVAILABLE",
+              discovered: 1,
+              reachable: true,
+              reason: nil,
+              model_policy: "REMOTE_ONLY"
+            }
 
           true ->
             %{
               state: "DEGRADED",
               discovered: 1,
               reachable: true,
-              reason: "workflow_ids_not_imported"
+              reason: "workflow_ids_not_imported",
+              model_policy: "REMOTE_ONLY"
             }
         end
 
       {:error, reason} ->
-        %{state: "UNAVAILABLE", discovered: 0, reachable: false, reason: inspect(reason)}
+        %{
+          state: "UNAVAILABLE",
+          discovered: 0,
+          reachable: false,
+          reason: inspect(reason),
+          model_policy: "REMOTE_ONLY"
+        }
     end
   end
 
@@ -75,12 +91,15 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
     with :ok <- validate(resource),
          {:ok, prompt} <- prompt(input),
          {:ok, project_dir} <- project_dir(input),
-         {:ok, args} <- args(input, prompt),
+         {:ok, model} <- remote_model(input),
+         {:ok, args} <- args(input, prompt, model),
          {:ok, output} <- execute(resource.executable, args, project_dir, timeout_ms(input)) do
       {:ok,
        %{
          status: "COMPLETED",
          runtime: "opencode",
+         model: model,
+         execution_policy: "REMOTE_ONLY",
          output: truncate(output),
          real_data: true,
          synthetic: false,
@@ -124,9 +143,14 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
           gate: "workflow_ids",
           result: if(ids_imported, do: "PASS", else: "NOT_ASSESSED"),
           evidence_ref: "registry:opencode_standard"
+        },
+        %{
+          gate: "model_policy",
+          result: "PASS",
+          evidence_ref: "policy:remote_only"
         }
       ],
-      "local OpenCode runtime and canonical workflow registry"
+      "local OpenCode orchestration, remote-only inference, and canonical workflow registry"
     )
   end
 
@@ -156,10 +180,9 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
 
   defp prompt(_), do: {:error, :invalid_prompt}
 
-  defp args(input, prompt) do
-    with {:ok, agent_args} <- optional_flag(input, :agent, "--agent"),
-         {:ok, model_args} <- optional_flag(input, :model, "--model") do
-      {:ok, ["run", "--format", "json"] ++ agent_args ++ model_args ++ [prompt]}
+  defp args(input, prompt, model) do
+    with {:ok, agent_args} <- optional_flag(input, :agent, "--agent") do
+      {:ok, ["run", "--format", "json"] ++ agent_args ++ ["--model", model, prompt]}
     end
   end
 
@@ -169,6 +192,29 @@ defmodule ShadowOpsCore.Adapters.OpenCodeAdapter do
       value when is_binary(value) and byte_size(value) in 1..200 -> {:ok, [flag, value]}
       _ -> {:error, {:invalid_option, key}}
     end
+  end
+
+  defp remote_model(input) when is_map(input) do
+    model = value(input, :model) || System.get_env("SHADOWOPS_CODER_MODEL")
+
+    cond do
+      not is_binary(model) or byte_size(model) not in 1..200 ->
+        {:error, :remote_model_required}
+
+      not Regex.match?(@remote_model_pattern, model) ->
+        {:error, :invalid_remote_model}
+
+      local_model?(model) ->
+        {:error, :local_model_forbidden}
+
+      true ->
+        {:ok, model}
+    end
+  end
+
+  defp local_model?(model) do
+    normalized = String.downcase(model)
+    Enum.any?(@forbidden_local_model_prefixes, &String.starts_with?(normalized, &1))
   end
 
   defp project_dir(input) do

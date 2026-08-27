@@ -1,11 +1,28 @@
 defmodule ShadowOpsCore.LocalIntegrationCandidates do
   @moduledoc """
-  Read-only discovery for known local workflow/service candidates.
+  Read-only discovery for local workflow/service/integration candidates.
 
-  Every path and glob is fixed in source and resolved beneath the configured home
-  root. The module never executes scripts, starts services, expands client input,
-  or promotes filesystem presence to READY. Presence proves only DISCOVERED.
+  ShadowOps keeps the existing fixed candidate inventory and supplements it with
+  a bounded scan of known local automation folders. Discovery never executes a
+  script, starts a service, follows symlinked files, reads secret contents, or
+  promotes filesystem presence to READY. Presence proves only DISCOVERED.
   """
+
+  @max_auto_records 250
+
+  @scan_patterns [
+    "DokumentenSystem/07_AUTOMATION/**/*.service",
+    "DokumentenSystem/07_AUTOMATION/**/*.timer",
+    "DokumentenSystem/07_AUTOMATION/**/*.sh",
+    "DokumentenSystem/07_AUTOMATION/**/*.py",
+    "DokumentenSystem/07_AUTOMATION/**/*.exs",
+    "DokumentenSystem/09_BOT_GATEWAY/**/*.service",
+    "DokumentenSystem/09_BOT_GATEWAY/**/*.timer",
+    "DokumentenSystem/09_BOT_GATEWAY/**/*.sh",
+    "DokumentenSystem/09_BOT_GATEWAY/**/*.py",
+    "DokumentenSystem/.github/workflows/*.yml",
+    "DokumentenSystem/.github/workflows/*.yaml"
+  ]
 
   @candidates [
     %{
@@ -93,7 +110,10 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
   @spec snapshot(String.t() | nil) :: map()
   def snapshot(home \\ nil) do
     root = Path.expand(home || System.user_home!())
-    records = Enum.map(@candidates, &resolve(&1, root))
+    fixed_records = Enum.map(@candidates, &resolve(&1, root))
+    fixed_paths = known_fixed_paths(root)
+    auto_records = discover_folder_records(root, fixed_paths)
+    records = fixed_records ++ auto_records
 
     %{
       status:
@@ -101,12 +121,17 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
           do: "DISCOVERED",
           else: "NOT_CONFIGURED"
         ),
-      source_type: "LOCAL_FIXED_PATH_DISCOVERY",
+      source_type: "LOCAL_BOUNDED_FOLDER_DISCOVERY",
       synthetic: false,
       real_data: Enum.any?(records, & &1.real_data),
       reachable: Enum.any?(records, & &1.reachable),
+      scan_patterns: @scan_patterns,
+      max_auto_records: @max_auto_records,
       counts: %{
         total: length(records),
+        known_total: length(fixed_records),
+        known_discovered: Enum.count(fixed_records, &(&1.status == "DISCOVERED")),
+        auto_discovered: length(auto_records),
         discovered: Enum.count(records, &(&1.status == "DISCOVERED")),
         not_configured: Enum.count(records, &(&1.status == "NOT_CONFIGURED"))
       },
@@ -114,9 +139,160 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
     }
   end
 
+  defp discover_folder_records(root, fixed_paths) do
+    @scan_patterns
+    |> Enum.flat_map(fn pattern ->
+      root
+      |> safe_join(pattern)
+      |> Path.wildcard()
+    end)
+    |> Enum.uniq()
+    |> Enum.filter(&regular_file?/1)
+    |> Enum.reject(&excluded_discovery_path?(&1, root))
+    |> Enum.reject(&MapSet.member?(fixed_paths, &1))
+    |> Enum.sort()
+    |> Enum.take(@max_auto_records)
+    |> Enum.map(&auto_record(&1, root))
+  end
+
+  defp known_fixed_paths(root) do
+    @candidates
+    |> Enum.flat_map(fn
+      %{relative_path: relative} ->
+        path = safe_join(root, relative)
+        if regular_file?(path), do: [path], else: []
+
+      %{relative_glob: relative_glob} ->
+        root
+        |> safe_join(relative_glob)
+        |> Path.wildcard()
+        |> Enum.filter(&regular_file?/1)
+    end)
+    |> MapSet.new()
+  end
+
+  defp auto_record(path, root) do
+    relative = Path.relative_to(path, root)
+    {kind, domain, priority} = classify(relative)
+    basename = Path.basename(relative)
+
+    %{
+      id: "local_" <> stable_id(relative),
+      name: friendly_name(basename),
+      kind: kind,
+      domain: domain,
+      priority: priority,
+      status: "DISCOVERED",
+      real_data: true,
+      synthetic: false,
+      reachable: true,
+      executable: false,
+      side_effect_class: "UNKNOWN",
+      risk_level: "UNKNOWN",
+      integration_mode: "REFERENCE_ONLY",
+      discovery_mode: "FOLDER_SCAN",
+      runtime_verified: false,
+      governance_mapped: false,
+      source_ref: relative,
+      evidence: [basename]
+    }
+  end
+
+  defp classify(relative) do
+    lower = String.downcase(relative)
+
+    cond do
+      String.ends_with?(lower, ".service") ->
+        {"SYSTEMD_SERVICE_FILE", infer_domain(lower), "MEDIUM"}
+
+      String.ends_with?(lower, ".timer") ->
+        {"SYSTEMD_TIMER_FILE", infer_domain(lower), "MEDIUM"}
+
+      String.contains?(lower, "/.github/workflows/") ->
+        {"EXTERNAL_CI", "ci", "LOW"}
+
+      String.ends_with?(lower, ".sh") ->
+        {"WORKFLOW_SCRIPT", infer_domain(lower), "MEDIUM"}
+
+      String.ends_with?(lower, ".py") ->
+        {"AUTOMATION_SCRIPT", infer_domain(lower), "MEDIUM"}
+
+      String.ends_with?(lower, ".exs") ->
+        {"ELIXIR_AUTOMATION", infer_domain(lower), "LOW"}
+
+      true ->
+        {"LOCAL_ARTIFACT", infer_domain(lower), "LOW"}
+    end
+  end
+
+  defp excluded_discovery_path?(path, root) do
+    relative =
+      path
+      |> Path.relative_to(root)
+      |> String.downcase()
+
+    basename = Path.basename(relative)
+    segments = Path.split(relative)
+
+    ignored_segments = [
+      "test",
+      "tests",
+      "fixtures",
+      "deps",
+      "_build",
+      "node_modules",
+      "vendor",
+      ".venv",
+      "venv",
+      "site-packages",
+      "__pycache__",
+      ".pytest_cache",
+      ".mypy_cache",
+      ".ruff_cache",
+      ".tox",
+      "dist",
+      "build"
+    ]
+
+    Enum.any?(segments, &(&1 in ignored_segments)) or
+      basename == "__init__.py" or
+      String.ends_with?(basename, "_test.py") or
+      String.ends_with?(basename, "_test.exs") or
+      String.starts_with?(basename, "test_")
+  end
+
+  defp infer_domain(lower) do
+    cond do
+      contains_any?(lower, ["security", "zero_trust", "zero-trust"]) -> "security"
+      contains_any?(lower, ["evidence", "proof"]) -> "evidence"
+      contains_any?(lower, ["whatsapp", "telegram", "facebook", "social"]) -> "social"
+      contains_any?(lower, ["mail", "email", "gmail"]) -> "email"
+      contains_any?(lower, ["backup", "archive"]) -> "backups"
+      contains_any?(lower, ["voice", "agent", "ai"]) -> "ai"
+      contains_any?(lower, ["document", "dokument", "research", "moving"]) -> "documents"
+      true -> "system"
+    end
+  end
+
+  defp contains_any?(value, needles), do: Enum.any?(needles, &String.contains?(value, &1))
+
+  defp friendly_name(basename) do
+    basename
+    |> Path.rootname()
+    |> String.replace(~r/[-_]+/, " ")
+    |> String.split(" ", trim: true)
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp stable_id(relative) do
+    :crypto.hash(:sha256, relative)
+    |> Base.encode16(case: :lower)
+    |> binary_part(0, 12)
+  end
+
   defp resolve(%{relative_path: relative} = candidate, root) do
     path = safe_join(root, relative)
-    present = File.regular?(path) or File.dir?(path)
+    present = regular_file?(path) or File.dir?(path)
 
     candidate
     |> base_record(present)
@@ -130,7 +306,7 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
     evidence =
       glob
       |> Path.wildcard()
-      |> Enum.filter(&File.regular?/1)
+      |> Enum.filter(&regular_file?/1)
       |> Enum.map(&Path.basename/1)
       |> Enum.uniq()
       |> Enum.sort()
@@ -152,8 +328,18 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
       executable: false,
       side_effect_class: "UNKNOWN",
       risk_level: "UNKNOWN",
-      integration_mode: "REFERENCE_ONLY"
+      integration_mode: "REFERENCE_ONLY",
+      discovery_mode: "FIXED_PATH",
+      runtime_verified: false,
+      governance_mapped: false
     })
+  end
+
+  defp regular_file?(path) do
+    case File.lstat(path) do
+      {:ok, %File.Stat{type: :regular}} -> true
+      _ -> false
+    end
   end
 
   defp safe_join(root, relative) do

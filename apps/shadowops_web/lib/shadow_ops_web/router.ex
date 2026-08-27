@@ -9,6 +9,7 @@ defmodule ShadowOpsWeb.Router do
     plug(:fetch_session)
     plug(:protect_from_forgery)
     plug(:fetch_live_flash)
+    plug(ShadowOpsWeb.Plugs.WebMCPHeaders)
   end
 
   pipeline :runtime_dashboard do
@@ -49,6 +50,8 @@ defmodule ShadowOpsWeb.Router do
     live("/services", ServicesLive, :index)
     live("/agents", AgentsLive, :index)
     live("/ai", AILive, :index)
+    live("/focus", FocusLive, :index)
+    live("/integrations", IntegrationsLive, :index)
     live("/security", SecurityLive, :index)
     live("/approvals", ApprovalsLive, :index)
     live("/approvals/:id", ApprovalDetailLive, :show)
@@ -105,6 +108,7 @@ defmodule ShadowOpsWeb.Router do
     get("/runs", RunsController, :index)
     get("/runs/:id", RunsController, :show)
     get("/runs/:id/evaluation", RunsController, :evaluation)
+    get("/jobs", JobsController, :index)
     get("/nodes", NodesController, :index)
     get("/nodes/:id", NodesController, :show)
     get("/services", ServicesController, :index)

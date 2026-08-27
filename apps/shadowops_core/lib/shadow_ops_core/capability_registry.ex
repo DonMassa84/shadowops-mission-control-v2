@@ -46,7 +46,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "shadowctl.run" => %{id: "shadowctl.run", executor: :not_connected, args: [:workflow_id]},
     "ollama.generate" => %{
       id: "ollama.generate",
-      executor: :ollama_runtime,
+      executor: :not_connected,
       args: [:model, :prompt]
     },
     "local_agent.invoke" => %{
@@ -57,7 +57,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "opencode.execute" => %{
       id: "opencode.execute",
       executor: :opencode_runtime,
-      args: [:prompt, :project_dir]
+      args: [:prompt, :project_dir, :model]
     },
     "telegram.send" => %{
       id: "telegram.send",
@@ -73,7 +73,27 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "gmail.forward" => %{id: "gmail.forward", executor: :gmail, args: [:thread_ref]},
     "gmail.delete" => %{id: "gmail.delete", executor: :gmail, args: [:thread_ref]},
     "github.export" => %{id: "github.export", executor: :github_data, args: []},
-    "github.sync" => %{id: "github.sync", executor: :github_data, args: []}
+    "github.sync" => %{id: "github.sync", executor: :github_data, args: []},
+    "local_workflow.verify_runtime" => %{
+      id: "local_workflow.verify_runtime",
+      executor: :not_connected,
+      args: [:workflow_id, :evidence]
+    },
+    "local_workflow.record_test" => %{
+      id: "local_workflow.record_test",
+      executor: :not_connected,
+      args: [:workflow_id, :evidence]
+    },
+    "local_workflow.map_governance" => %{
+      id: "local_workflow.map_governance",
+      executor: :not_connected,
+      args: [:workflow_id, :evidence]
+    },
+    "local_workflow.enable_execution" => %{
+      id: "local_workflow.enable_execution",
+      executor: :not_connected,
+      args: [:workflow_id, :evidence]
+    }
   }
 
   @doc "Looks up a capability specification."

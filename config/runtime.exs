@@ -44,6 +44,16 @@ if token = System.get_env("SHADOWOPS_WRITE_TOKEN") do
   config :shadowops_web, write_token: token
 end
 
+# Local/dev Mission Control is optimized for button-only operation. The button
+# itself is the explicit operator decision; policy-required approvals are still
+# created and durably approved before execution. Production requires an explicit
+# opt-in and remains loopback-only.
+one_click_default = if runtime_env == :prod, do: "false", else: "true"
+
+config :shadowops_web,
+  one_click_enabled: truthy?.(System.get_env("SHADOWOPS_ONE_CLICK_ENABLED", one_click_default)),
+  one_click_actor: System.get_env("SHADOWOPS_ONE_CLICK_ACTOR", "local-operator")
+
 start_persistence = truthy?.(System.get_env("SHADOWOPS_START_PERSISTENCE", "false"))
 config :shadowops_core, start_persistence: start_persistence
 

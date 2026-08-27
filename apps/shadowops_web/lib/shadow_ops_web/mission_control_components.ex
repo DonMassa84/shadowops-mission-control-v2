@@ -27,17 +27,51 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
         <nav>
-          <.nav_group label="Dashboard" items={[{"Overview", "/"}, {"Layer Health", "/layers"}]} active={@active} />
-          <.nav_group label="Operations" items={[{"Infrastructure", "/infrastructure"}, {"Workflows", "/workflows"}, {"Runs", "/runs"}, {"Services", "/services"}, {"Nodes", "/nodes"}, {"Backups", "/backups"}]} active={@active} />
-          <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Federated", "/projects/federated"}, {"ChatGPT", "/projects/chatgpt"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
-          <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
-          <.nav_group label="Social" items={[{"Overview", "/social"}, {"Facebook", "/social/facebook"}, {"Social Review", "/social/review"}, {"Messenger", "/social/messenger"}, {"WhatsApp", "/social/whatsapp"}, {"Telegram", "/social/telegram"}]} active={@active} />
-          <.nav_group label="Governance" items={[{"Approvals", "/approvals"}, {"Security", "/security"}, {"Audit", "/audit"}, {"Evidence", "/evidence"}, {"Legal", "/legal"}, {"Logs", "/logs"}]} active={@active} />
-          <.nav_group label="System" items={[{"i7 Display", "/display/i7"}, {"Health", "/health"}, {"Readiness", "/ready"}]} active={@active} />
+          <.nav_group label="Dashboard" items={[{"Overview", "/"}]} active={@active} />
+          <.nav_group
+            label="Operations"
+            items={[
+              {"Compute", "/compute"},
+              {"Workflows", "/workflows"},
+              {"Runs", "/runs"},
+              {"Jobs", "/jobs"},
+              {"Services", "/services"},
+              {"Backups", "/backups"}
+            ]}
+            active={@active}
+          />
+          <.nav_group
+            label="Sources"
+            items={[
+              {"Integrations", "/integrations"},
+              {"Evidence", "/evidence"},
+              {"Knowledge", "/knowledge"}
+            ]}
+            active={@active}
+          />
+          <.nav_group
+            label="Governance"
+            items={[
+              {"Approvals", "/approvals"},
+              {"Security", "/security"},
+              {"Audit", "/audit"},
+              {"Logs", "/logs"}
+            ]}
+            active={@active}
+          />
+          <.nav_group
+            label="Focus & AI"
+            items={[
+              {"Focus", "/focus"},
+              {"AI", "/ai"},
+              {"Agents", "/agents"}
+            ]}
+            active={@active}
+          />
         </nav>
         <div class="mc-sidebar-footer">
           <span class="mc-operator-avatar">SO</span>
-          <span><strong>Local operator</strong><small>Administrator</small></span>
+          <span><strong>Local operator</strong><small>Remote AI · WebMCP</small></span>
         </div>
       </aside>
       <div class="mc-workspace">
@@ -159,60 +193,45 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   end
 
   defp nav_icon("Overview"), do: "⌂"
-  defp nav_icon("Layer Health"), do: "◉"
-  defp nav_icon("Infrastructure"), do: "▦"
+  defp nav_icon("Compute"), do: "▦"
   defp nav_icon("Workflows"), do: "⌘"
   defp nav_icon("Runs"), do: "▷"
+  defp nav_icon("Jobs"), do: "◫"
   defp nav_icon("Services"), do: "◆"
-  defp nav_icon("Nodes"), do: "▣"
   defp nav_icon("Backups"), do: "▱"
-  defp nav_icon("Federated"), do: "◎"
-  defp nav_icon("ChatGPT"), do: "◌"
-  defp nav_icon("Finance"), do: "◇"
-  defp nav_icon("Investigations"), do: "⌕"
-  defp nav_icon("IHK"), do: "▤"
-  defp nav_icon("Community"), do: "♢"
-  defp nav_icon("Agents"), do: "⌬"
-  defp nav_icon("AI"), do: "✦"
+  defp nav_icon("Integrations"), do: "◎"
+  defp nav_icon("Evidence"), do: "▤"
   defp nav_icon("Knowledge"), do: "▥"
-  defp nav_icon("Career"), do: "◈"
-  defp nav_icon("Reporting"), do: "◰"
-  defp nav_icon("Facebook"), do: "f"
-  defp nav_icon("Social Review"), do: "◫"
-  defp nav_icon("Messenger"), do: "◍"
-  defp nav_icon("WhatsApp"), do: "◉"
-  defp nav_icon("Telegram"), do: "△"
   defp nav_icon("Approvals"), do: "✓"
   defp nav_icon("Security"), do: "◇"
   defp nav_icon("Audit"), do: "▧"
-  defp nav_icon("Evidence"), do: "▤"
-  defp nav_icon("Legal"), do: "§"
   defp nav_icon("Logs"), do: "▰"
-  defp nav_icon("i7 Display"), do: "▣"
-  defp nav_icon("Health"), do: "♥"
-  defp nav_icon("Readiness"), do: "●"
+  defp nav_icon("Focus"), do: "◉"
+  defp nav_icon("AI"), do: "✦"
+  defp nav_icon("Agents"), do: "⌬"
   defp nav_icon(_), do: "·"
 
   defp metric_icon(label) do
     case String.downcase(to_string(label)) do
-      "ryzen" -> "◆"
-      "i7" -> "◇"
       "system" -> "◇"
-      "chatgpt nodes" -> "◌"
+      "compute" -> "▦"
+      "physical nodes" -> "▣"
+      "reachable" -> "●"
+      "job queue" -> "◫"
+      "visible jobs" -> "◫"
       "workflows" -> "⌘"
-      "workflow inventory" -> "⌘"
-      "agents" -> "●"
-      "ai runtimes" -> "✦"
-      "ai / models" -> "✦"
+      "runs" -> "▷"
+      "pending approvals" -> "✓"
+      "nodes" -> "▣"
+      "services" -> "◆"
+      "ai policy" -> "✦"
       "security" -> "◇"
       "audit" -> "▧"
-      "runtime" -> "◉"
-      "connectors" -> "◎"
-      "pending approvals" -> "✓"
       "backup" -> "▱"
-      "career" -> "◈"
       "evidence" -> "▤"
       "knowledge" -> "▥"
+      "integrations" -> "◎"
+      "focus" -> "◉"
       _ -> "◆"
     end
   end

@@ -1,16 +1,51 @@
 defmodule ShadowOpsWeb.AILive do
   use Phoenix.LiveView
   import ShadowOpsWeb.MissionControlComponents
-  alias ShadowOpsApi
+  alias ShadowOpsWeb.AIStatus
 
-  def mount(_params, _session, socket), do: {:ok, assign(socket, data: ShadowOpsApi.ai())}
+  def mount(_params, _session, socket), do: {:ok, assign(socket, data: AIStatus.snapshot())}
 
   def render(assigns) do
     ~H"""
-    <.app_shell title="AI Runtime" subtitle="Installed local Ollama models" active="/ai" availability={@data.status} updated_at={@data[:updated_at]}>
-      <.source_meta source={@data.source} updated_at={@data[:updated_at]} availability={@data.status} />
-      <.panel title="Installed models" description="Only models returned by the real Ollama CLI are listed.">
-        <div :if={@data.models != []} class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Model</th><th>Node</th><th>Details</th><th>Source</th></tr></thead><tbody><tr :for={model <- @data.models}><td class="mc-mono">{model.name}</td><td>{model.node}</td><td>{model.details}</td><td>{model.source}</td></tr></tbody></table></div><p :if={@data.models == []} class="mc-empty">No installed model records were reported by a reachable runtime.</p>
+    <.app_shell
+      title="AI Governance"
+      subtitle="Remote-only coding · no local LLM runtime"
+      active="/ai"
+      availability={@data.status}
+      updated_at={@data.updated_at}
+    >
+      <.source_meta
+        source={@data.source}
+        updated_at={@data.updated_at}
+        availability={@data.status}
+      />
+
+      <.panel
+        title="Coding execution policy"
+        description="ShadowOps coding uses explicit remote OpenCode providers. Local LLM execution is disabled and is never used as a fallback."
+      >
+        <div class="mc-policy-grid">
+          <div class="mc-policy-cell">
+            <small>Execution</small>
+            <strong>REMOTE_ONLY</strong>
+            <span>Only an explicitly selected remote provider/model may execute coding work.</span>
+          </div>
+          <div class="mc-policy-cell">
+            <small>Model authority</small>
+            <strong>CLI --model</strong>
+            <span>The exact OpenCode model identifier is authoritative.</span>
+          </div>
+          <div class="mc-policy-cell">
+            <small>Local LLM runtime</small>
+            <strong>DISABLED</strong>
+            <span>No local Ollama model inventory is exposed by Mission Control.</span>
+          </div>
+          <div class="mc-policy-cell">
+            <small>Fallback</small>
+            <strong>NONE</strong>
+            <span>Invalid or unavailable remote selection fails closed.</span>
+          </div>
+        </div>
       </.panel>
     </.app_shell>
     """
