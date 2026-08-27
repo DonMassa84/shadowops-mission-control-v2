@@ -57,7 +57,15 @@ printf 'BASE_URL=%s\n' "$BASE_URL"
 
 run_gate format mix format --check-formatted
 run_gate compile mix compile --warnings-as-errors
-run_gate tests mix test --seed 12345
+run_gate tests env -i \
+  HOME="$HOME" \
+  USER="${USER:-$(id -un)}" \
+  LOGNAME="${USER:-$(id -un)}" \
+  PATH="$PATH" \
+  LANG="${LANG:-C.UTF-8}" \
+  MIX_ENV=test \
+  SHADOWOPS_START_PERSISTENCE=false \
+  mix test --seed 12345
 run_gate registry mix shadowops.registry validate
 run_gate prod_compile env MIX_ENV=prod mix compile --warnings-as-errors
 
