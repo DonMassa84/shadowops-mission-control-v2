@@ -55,6 +55,21 @@ pass() {
   printf 'PASS %-32s\n' "$1"
 }
 
+run_isolated_test_suite() {
+  local clean_user="${USER:-$(id -un)}"
+  local clean_lang="${LANG:-C.UTF-8}"
+
+  env -i \
+    HOME="$HOME" \
+    USER="$clean_user" \
+    LOGNAME="$clean_user" \
+    PATH="$PATH" \
+    LANG="$clean_lang" \
+    MIX_ENV=test \
+    SHADOWOPS_START_PERSISTENCE=false \
+    mix test --seed 12345
+}
+
 validate_port() {
   case "$PORT" in
     ''|*[!0-9]*) fail "HANDOFF_PORT_NOT_NUMERIC" 2 ;;
@@ -141,7 +156,7 @@ MIX_ENV=test mix format --check-formatted
 pass "format"
 MIX_ENV=test mix compile --warnings-as-errors
 pass "compile"
-MIX_ENV=test mix test --seed 12345
+run_isolated_test_suite
 pass "tests"
 MIX_ENV=test mix shadowops.registry validate
 pass "registry"
