@@ -1,7 +1,7 @@
 defmodule ShadowOpsWeb.IntegrationCatalog do
   @moduledoc "Evidence-backed catalog projection for ShadowOps production integrations."
 
-  alias ShadowOpsCore.LocalIntegrationCandidates
+  alias ShadowOpsCore.{LocalIntegrationCandidates, LocalWorkflowRegistry}
   alias ShadowOpsWeb.{RuntimeOverview, SourceRegistry}
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
@@ -21,6 +21,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     overview = RuntimeOverview.snapshot()
     connectors = value(overview, :connectors, %{})
     local_discovery = LocalIntegrationCandidates.snapshot()
+    local_workflows = LocalWorkflowRegistry.snapshot()
     knowledge = value(overview, :knowledge, %{})
     knowledge_sources = knowledge_sources(knowledge)
 
@@ -69,7 +70,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       status: health.status,
       health: health.health,
       source:
-        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery + measured local knowledge sources",
+        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery + stable local workflow evidence registry + measured local knowledge sources",
       source_type: "CONTROL_PLANE_PROJECTION",
       real_data: Enum.any?(records, & &1.real_data),
       synthetic: false,
@@ -81,6 +82,9 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       local_count: length(local),
       local_discovered_count: local_discovery.counts.discovered,
       local_auto_discovered_count: local_discovery.counts.auto_discovered,
+      local_workflow_registered_count: local_workflows.counts.registered,
+      local_workflow_rejected_count: local_workflows.counts.rejected,
+      local_workflow_registry: local_workflows,
       knowledge_source_count: length(knowledge_sources),
       knowledge_available_source_count:
         Enum.count(knowledge_sources, &(&1.availability == "AVAILABLE")),
