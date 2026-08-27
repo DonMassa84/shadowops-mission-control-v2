@@ -300,7 +300,7 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
 
   defp value(_, _, default), do: default
 
-  defp root, do: Path.expand("../../../../../..", __DIR__)
+  defp root, do: Path.expand("../../../../..", __DIR__)
   defp pass(true), do: "PASS"
   defp pass(false), do: "FAIL"
 end
