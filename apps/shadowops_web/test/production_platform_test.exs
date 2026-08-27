@@ -8,6 +8,8 @@ defmodule ShadowOpsWeb.ProductionPlatformTest do
     RuntimeSnapshotCache
   }
 
+  alias ShadowOpsCore.RuntimeSources
+
   setup do
     if Process.whereis(RuntimeSnapshotCache), do: RuntimeSnapshotCache.clear()
     :ok
@@ -45,6 +47,7 @@ defmodule ShadowOpsWeb.ProductionPlatformTest do
           :knowledge,
           :evidence,
           :connectors,
+          :social,
           :career,
           :backups,
           :legal
@@ -77,6 +80,48 @@ defmodule ShadowOpsWeb.ProductionPlatformTest do
 
     refute_receive :snapshot_rebuilt, 50
     assert second == first
+  end
+
+  test "knowledge probe failure remains unavailable while source measurement stays factual" do
+    expected_sources = RuntimeSources.knowledge_sources()
+
+    knowledge = RuntimeOverview.project_probe_result(:knowledge, {:exit, :timeout})
+
+    assert knowledge.status == "UNAVAILABLE"
+    assert knowledge.real_data == false
+    assert knowledge.reachable == false
+    assert knowledge.record_count == nil
+    assert knowledge.source_measurement_complete == true
+    assert knowledge.source_measurement_status == "AVAILABLE"
+    assert length(knowledge.sources) == length(expected_sources)
+  end
+
+  test "transient knowledge failure is not cached" do
+    incomplete = %{
+      knowledge: %{
+        status: "UNAVAILABLE",
+        source_measurement_complete: false,
+        sources: [],
+        error_code: "SOURCE_TIMEOUT"
+      }
+    }
+
+    owner = self()
+    key = {:knowledge_incomplete_test, System.unique_integer([:positive])}
+
+    assert RuntimeSnapshotCache.fetch(key, fn -> incomplete end) == incomplete
+
+    complete = %{knowledge: %{status: "READY", source_measurement_complete: true, sources: []}}
+
+    assert RuntimeSnapshotCache.fetch(
+             key,
+             fn ->
+               send(owner, :complete_snapshot_built)
+               complete
+             end
+           ) == complete
+
+    assert_receive :complete_snapshot_built
   end
 
   test "prometheus exporter exposes control-plane integration metrics" do

@@ -8,18 +8,11 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
   """
 
   alias ShadowOpsWeb.{ProjectDomains, RuntimeOverview}
+  alias WorkflowEngine.WorkflowIds
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE HEALTHY VALID PASS GREEN)
   @not_applicable ~w(NOT_APPLICABLE OPTIONAL_UNAVAILABLE)
   @severity_rank %{"INFO" => 0, "LOW" => 1, "MEDIUM" => 2, "HIGH" => 3, "CRITICAL" => 4}
-
-  @workflow_ids %{
-    daily_control: "so:wf:v1:daily-control",
-    system_doctor: "so:wf:v1:system-doctor",
-    release_acceptance: "so:wf:v1:release-acceptance",
-    ihk_evidence_gate: "so:wf:v1:ihk-evidence-gate",
-    career_control: "so:wf:v1:career-control"
-  }
 
   def all, do: collect_sources() |> from_sources()
 
@@ -128,7 +121,7 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
       |> rank_actions()
 
     result(
-      @workflow_ids.daily_control,
+      :daily_control,
       checks,
       actions,
       "Daily operational control across specialized ShadowOps workflows."
@@ -268,7 +261,7 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
       |> rank_actions()
 
     result(
-      @workflow_ids.system_doctor,
+      :system_doctor,
       checks,
       actions,
       "Read-only diagnosis of system, services, security, audit and backup evidence."
@@ -348,7 +341,7 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
       |> rank_actions()
 
     result(
-      @workflow_ids.release_acceptance,
+      :release_acceptance,
       checks,
       actions,
       "Exact-HEAD release certificate and required quality/security gates."
@@ -466,7 +459,7 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
       |> rank_actions()
 
     result(
-      @workflow_ids.ihk_evidence_gate,
+      :ihk_evidence_gate,
       checks,
       actions,
       "Deterministic IHK evidence completeness; file presence alone is never VERIFIED."
@@ -571,7 +564,7 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
       |> rank_actions()
 
     result(
-      @workflow_ids.career_control,
+      :career_control,
       checks,
       actions,
       "Read-only career control; missing Gmail/application evidence remains explicit."
@@ -946,7 +939,7 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
     }
   end
 
-  defp result(workflow_id, checks, actions, summary) do
+  defp result(workflow_kind, checks, actions, summary) do
     effective = Enum.reject(checks, &(&1.status == "NOT_APPLICABLE"))
 
     status =
@@ -964,8 +957,18 @@ defmodule ShadowOpsWeb.HighValueWorkflows do
       |> Enum.map(& &1.severity)
       |> highest_severity()
 
+    workflow_key = Atom.to_string(workflow_kind)
+
+    {workflow_id, registry_status} =
+      case WorkflowIds.canonical_id(workflow_key) do
+        {:ok, id} -> {id, "REGISTERED"}
+        {:error, _reason} -> {nil, "NOT_CONFIGURED"}
+      end
+
     %{
+      workflow_key: workflow_key,
       workflow_id: workflow_id,
+      registry_status: registry_status,
       status: status,
       severity: severity,
       summary: summary,

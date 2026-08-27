@@ -78,6 +78,12 @@ defmodule ShadowOpsWeb.HighValueWorkflowsTest do
     assert result.release_acceptance.status == "GREEN"
     assert result.ihk_evidence_gate.status == "GREEN"
     assert result.career_control.status == "GREEN"
+    assert result.daily_control.workflow_id == "so:wf:v1:daily-control"
+
+    for kind <- [:system_doctor, :release_acceptance, :ihk_evidence_gate, :career_control] do
+      assert result[kind].workflow_id == nil
+      assert result[kind].registry_status == "NOT_CONFIGURED"
+    end
   end
 
   test "daily control returns max three deterministic actions" do

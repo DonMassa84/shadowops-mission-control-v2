@@ -31,6 +31,7 @@ defmodule ShadowOpsWeb.RuntimeOverview do
       knowledge: &ShadowOpsApi.knowledge/0,
       evidence: &ShadowOpsApi.evidence/0,
       connectors: &ShadowOpsApi.connectors/0,
+      social: &ShadowOpsApi.social/0,
       career: &ShadowOpsApi.career/0,
       backups: &ShadowOpsApi.backups/0,
       legal: &ShadowOpsApi.legal/0
@@ -50,7 +51,7 @@ defmodule ShadowOpsWeb.RuntimeOverview do
       probes
       |> Enum.zip(stream)
       |> Enum.reduce(%{}, fn {{key, _fun}, result}, acc ->
-        Map.put(acc, key, probe_result(key, result))
+        Map.put(acc, key, project_probe_result(key, result))
       end)
 
     Map.put(overview, :readiness, readiness_status())
@@ -66,21 +67,22 @@ defmodule ShadowOpsWeb.RuntimeOverview do
     end
   end
 
-  defp probe_result(_key, {:ok, {:ok, payload}}) when is_map(payload), do: payload
+  @doc false
+  def project_probe_result(_key, {:ok, {:ok, payload}}) when is_map(payload), do: payload
 
-  defp probe_result(:knowledge, {:ok, {:error, reason}}),
+  def project_probe_result(:knowledge, {:ok, {:error, reason}}),
     do: knowledge_unavailable("SOURCE_ERROR", reason)
 
-  defp probe_result(:knowledge, {:exit, reason}),
+  def project_probe_result(:knowledge, {:exit, reason}),
     do: knowledge_unavailable("SOURCE_TIMEOUT", reason)
 
-  defp probe_result(key, {:ok, {:error, reason}}),
+  def project_probe_result(key, {:ok, {:error, reason}}),
     do: unavailable(key, "SOURCE_ERROR", reason)
 
-  defp probe_result(key, {:exit, reason}),
+  def project_probe_result(key, {:exit, reason}),
     do: unavailable(key, "SOURCE_TIMEOUT", reason)
 
-  defp probe_result(key, other),
+  def project_probe_result(key, other),
     do: unavailable(key, "SOURCE_INVALID", other)
 
   defp workflow_overview do
@@ -139,6 +141,11 @@ defmodule ShadowOpsWeb.RuntimeOverview do
 
     unavailable(:knowledge, code, reason)
     |> Map.put(:sources, sources)
+    |> Map.put(:source_measurement_complete, sources != [])
+    |> Map.put(
+      :source_measurement_status,
+      if(sources == [], do: "UNAVAILABLE", else: "AVAILABLE")
+    )
     |> Map.put(
       :source_documents_count,
       Enum.sum(Enum.map(sources, &Map.get(&1, :document_count, 0)))

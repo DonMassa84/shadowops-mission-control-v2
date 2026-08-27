@@ -1,6 +1,8 @@
 defmodule ShadowOpsWeb.ServiceIntegrationCandidatesTest do
   use ExUnit.Case, async: false
 
+  alias ShadowOpsCore.RuntimeSources
+
   test "services API exposes bounded read-only integration candidates" do
     conn = Plug.Test.conn(:get, "/api/services")
     response = ShadowOpsWeb.Endpoint.call(conn, [])
@@ -60,8 +62,11 @@ defmodule ShadowOpsWeb.ServiceIntegrationCandidatesTest do
     sources = body["knowledge_sources"]
 
     assert is_list(sources)
-    assert body["knowledge_source_count"] == 3
-    assert length(sources) == 3
+    expected_source_count = length(RuntimeSources.knowledge_sources())
+
+    assert body["knowledge_measurement_status"] == "AVAILABLE"
+    assert body["knowledge_source_count"] == expected_source_count
+    assert length(sources) == expected_source_count
 
     assert Enum.map(sources, & &1["name"]) == [
              "ProofFlow-Obsidian-Vault",

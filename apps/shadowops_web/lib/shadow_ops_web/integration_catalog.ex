@@ -81,6 +81,9 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       local_count: length(local),
       local_discovered_count: local_discovery.counts.discovered,
       local_auto_discovered_count: local_discovery.counts.auto_discovered,
+      knowledge_measurement_status: knowledge_measurement_status(knowledge_sources),
+      knowledge_rag_status: normalize_status(value(knowledge, :status, "UNAVAILABLE")),
+      knowledge_rag_reachable: value(knowledge, :reachable, false) == true,
       knowledge_source_count: length(knowledge_sources),
       knowledge_available_source_count:
         Enum.count(knowledge_sources, &(&1.availability == "AVAILABLE")),
@@ -153,6 +156,12 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       error_message: nil
     }
   end
+
+  # Source measurement is independent from vector/RAG readiness.
+  # A non-empty measured source set means the local measurement completed,
+  # even when the downstream RAG probe timed out or is unavailable.
+  defp knowledge_measurement_status([_ | _]), do: "AVAILABLE"
+  defp knowledge_measurement_status(_), do: "UNAVAILABLE"
 
   defp knowledge_sources(knowledge) do
     knowledge

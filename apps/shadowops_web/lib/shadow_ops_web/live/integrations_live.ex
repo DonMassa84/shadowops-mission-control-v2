@@ -32,7 +32,7 @@ defmodule ShadowOpsWeb.IntegrationsLive do
         <.metric_card label="Connectors" value={@catalog.external_count} status={scope_status(@external)} note="External source adapters" />
         <.metric_card label="Imports" value={@catalog.import_count} status={scope_status(@imports)} note="Bounded local import sources; truth fields fail closed" />
         <.metric_card label="Local functions" value={@catalog.local_discovered_count} status={@catalog.local_discovery.status} note={"#{@catalog.local_auto_discovered_count} auto-discovered beyond the fixed inventory"} />
-        <.metric_card label="Knowledge docs" value={@catalog.knowledge_document_count} status={knowledge_status(@catalog)} note={"#{@catalog.knowledge_available_source_count}/#{@catalog.knowledge_source_count} measured local sources available; RAG readiness remains separate"} />
+        <.metric_card label="Knowledge docs" value={@catalog.knowledge_document_count || "Unavailable"} status={knowledge_status(@catalog)} note={knowledge_measurement_note(@catalog)} />
       </div>
 
       <.panel title="Source catalog" description="A source is not promoted to healthy unless runtime evidence explicitly says it is real and reachable.">
@@ -57,8 +57,7 @@ defmodule ShadowOpsWeb.IntegrationsLive do
 
       <.panel title="Knowledge sources" description="Measured local knowledge paths. AVAILABLE means the local source exists and its files were counted; indexed/RAG readiness is reported separately by the Knowledge module.">
         <p class="mc-callout">
-          {@catalog.knowledge_available_source_count}/{@catalog.knowledge_source_count} sources available ·
-          {@catalog.knowledge_document_count} measured documents ·
+          {knowledge_measurement_note(@catalog)} ·
           indexed documents: {@catalog.knowledge_indexed_document_count || "not ready"}
         </p>
         <div class="mc-table-wrap">
@@ -181,6 +180,8 @@ defmodule ShadowOpsWeb.IntegrationsLive do
 
   defp knowledge_status(%{knowledge_source_count: 0}), do: "NOT_CONFIGURED"
 
+  defp knowledge_status(%{knowledge_measurement_status: "UNAVAILABLE"}), do: "UNAVAILABLE"
+
   defp knowledge_status(%{
          knowledge_available_source_count: ready,
          knowledge_source_count: total
@@ -190,6 +191,13 @@ defmodule ShadowOpsWeb.IntegrationsLive do
 
   defp knowledge_status(%{knowledge_available_source_count: ready}) when ready > 0, do: "DEGRADED"
   defp knowledge_status(_), do: "UNAVAILABLE"
+
+  defp knowledge_measurement_note(%{knowledge_measurement_status: "UNAVAILABLE"}),
+    do: "Knowledge source measurement unavailable; no factual zero recorded"
+
+  defp knowledge_measurement_note(catalog) do
+    "#{catalog.knowledge_available_source_count}/#{catalog.knowledge_source_count} measured local sources available; RAG readiness remains separate"
+  end
 
   defp yes_no(true), do: "Yes"
   defp yes_no(_), do: "No"

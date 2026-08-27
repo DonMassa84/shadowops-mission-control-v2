@@ -5,10 +5,18 @@ defmodule ShadowOpsWeb.DashboardLive do
   alias ShadowOpsApi
   alias ShadowOpsCore.{DailyControl, JobQueue, LearningFocus, Status}
   alias ShadowOpsWeb.{IntegrationCatalog, MissionBrief, ProjectDomains, RuntimeOverview}
+  alias WorkflowEngine.WorkflowIds
 
   @refresh_ms 15_000
 
-  @source_order ~w(system security audit ihk evidence career knowledge services social)
+  @source_order ~w(system security audit ihk evidence knowledge services social career backups)
+  @one_click_targets [
+    %{key: "daily_control", label: "Daily Control", kind: "Control", route: "/daily-control"},
+    %{key: "system_doctor", label: "System Doctor", kind: "Diagnostic"},
+    %{key: "ihk_evidence_gate", label: "IHK Evidence Gate", kind: "IHK"},
+    %{key: "release_acceptance", label: "Release Acceptance", kind: "Release"},
+    %{key: "career_control", label: "Career Control", kind: "Career"}
+  ]
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: Process.send_after(self(), :refresh, @refresh_ms)
@@ -83,6 +91,7 @@ defmodule ShadowOpsWeb.DashboardLive do
           <article
             :for={{action, index} <- Enum.with_index(@daily.top_actions, 1)}
             class="mc-command-card"
+            data-role="top-action"
           >
             <span class="mc-command-kicker">{index} · {action.severity}</span>
             <strong>{action.title}</strong>
@@ -94,6 +103,7 @@ defmodule ShadowOpsWeb.DashboardLive do
           <a
             :for={{action, index} <- Enum.with_index(@mission.actions, 1)}
             class="mc-command-card"
+            data-role="top-action"
             href={action.href}
           >
             <span class="mc-command-kicker">{index} · {action.status}</span>
@@ -105,33 +115,29 @@ defmodule ShadowOpsWeb.DashboardLive do
         <p :if={@daily.top_actions == [] and @mission.actions == []} class="mc-empty">No evidence-backed next action is currently available.</p>
       </.panel>
 
-      <.panel title="Daily control" description="One-click workflows for daily operations.">
+      <.panel title="One-click control" description="Registry-backed controls only. Unregistered or non-executable targets remain fail-visible.">
         <div class="mc-command-grid">
-          <a class="mc-command-card" href="/daily-control">
-            <span class="mc-command-kicker">Control</span>
-            <strong>Daily Control</strong>
-            <span>Full system status overview and prioritized actions</span>
+          <a
+            :for={control <- Enum.filter(@one_click_controls, & &1.href)}
+            class="mc-command-card"
+            href={control.href}
+            data-role="one-click-control"
+          >
+            <span class="mc-command-kicker">{control.kind} · {control.status}</span>
+            <strong>{control.label}</strong>
+            <span>{control.workflow_id}</span>
+            <small>{control.action_label}</small>
           </a>
-          <a class="mc-command-card" href="/workflows/so:wf:v1:system-doctor">
-            <span class="mc-command-kicker">Diagnostic</span>
-            <strong>System Doctor</strong>
-            <span>Health check and automated remediation</span>
-          </a>
-          <a class="mc-command-card" href="/workflows/so:wf:v1:release-acceptance">
-            <span class="mc-command-kicker">Release</span>
-            <strong>Release Acceptance</strong>
-            <span>Pre-deployment verification and quality gate</span>
-          </a>
-          <a class="mc-command-card" href="/projects/ihk">
-            <span class="mc-command-kicker">IHK</span>
-            <strong>IHK Evidence Gate</strong>
-            <span>Verify and archive project evidence artifacts</span>
-          </a>
-          <a class="mc-command-card" href="/career">
-            <span class="mc-command-kicker">Career</span>
-            <strong>Career Control</strong>
-            <span>Career pipeline status and next steps</span>
-          </a>
+          <article
+            :for={control <- Enum.reject(@one_click_controls, & &1.href)}
+            class="mc-command-card"
+            data-role="one-click-unavailable"
+          >
+            <span class="mc-command-kicker">{control.kind} · {control.status}</span>
+            <strong>{control.label}</strong>
+            <span>{control.workflow_id || "No canonical workflow ID registered"}</span>
+            <small>Execution unavailable</small>
+          </article>
         </div>
       </.panel>
     </.app_shell>
@@ -141,13 +147,24 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp source_card(assigns) do
     ~H"""
     <a class="mc-card-link" href={@card.href}>
-      <.metric_card
-        label={@card.label}
-        value={@card.value}
-        status={@card.status}
-        source={@card.source}
-        note={@card.note}
-      />
+      <article class="mc-metric" data-source-id={@card.id}>
+        <div class="mc-metric-head">
+          <span class="mc-metric-label"><span>{@card.label}</span></span>
+          <.status_badge status={@card.status} />
+        </div>
+        <strong>{@card.value}</strong>
+        <p :if={@card.note}>{@card.note}</p>
+        <dl>
+          <div><dt>Health</dt><dd>{@card.health}</dd></div>
+          <div><dt>Real data</dt><dd>{to_string(@card.real_data)}</dd></div>
+          <div><dt>Synthetic</dt><dd>{to_string(@card.synthetic)}</dd></div>
+          <div><dt>Reachable</dt><dd>{to_string(@card.reachable)}</dd></div>
+          <div><dt>Record count</dt><dd>{@card.record_count}</dd></div>
+          <div><dt>Source type</dt><dd>{@card.source_type}</dd></div>
+        </dl>
+        <p :if={@card.error} class="mc-muted">Reason: {@card.error}</p>
+        <small>Source: {@card.source}</small>
+      </article>
     </a>
     """
   end
@@ -163,12 +180,14 @@ defmodule ShadowOpsWeb.DashboardLive do
 
     source_cards = build_source_cards(overview, ihk)
     daily = build_daily_control(overview, ihk)
-    attention_items = build_attention_items(source_cards, daily)
+    attention_items = build_attention_items(daily)
+    one_click_controls = build_one_click_controls()
 
     assign(socket,
       overview: overview,
       source_cards: source_cards,
       attention_items: attention_items,
+      one_click_controls: one_click_controls,
       mission: mission,
       daily: daily,
       updated_at: now()
@@ -189,71 +208,64 @@ defmodule ShadowOpsWeb.DashboardLive do
         _ -> []
       end)
 
-    DailyControl.build(normalized, ihk)
+    normalized
+    |> DailyControl.build(ihk)
+    |> Map.update!(:top_actions, &Enum.take(&1, 3))
   end
 
   defp build_source_cards(overview, ihk) do
+    evidence = Map.get(overview, :evidence, %{})
+
     cards =
       [
-        source_card_data("system", "System", overview.readiness.state, "runtime readiness",
+        source_card_data("system", "System", Map.get(overview, :system, %{}),
+          status: overview.readiness.state,
+          source: "runtime readiness",
           note: "Required dependencies and audit readiness",
           href: "/infrastructure"
         ),
-        source_card_data(
-          "security",
-          "Security",
-          overview.security.overall,
-          overview.security.source,
+        source_card_data("security", "Security", Map.get(overview, :security, %{}),
+          status: source_value(Map.get(overview, :security, %{}), :overall, "UNKNOWN"),
           note: "Governance and write-boundary state",
           href: "/security"
         ),
-        source_card_data("audit", "Audit", overview.audit.state, overview.audit.source,
+        source_card_data("audit", "Audit", Map.get(overview, :audit, %{}),
+          status: source_value(Map.get(overview, :audit, %{}), :state, "UNKNOWN"),
           note: "Chain integrity and verification",
           href: "/audit"
         ),
-        source_card_data("ihk", "IHK", ihk.status, "project domains",
-          note: ihk.summary || "Zero Trust project source truth",
+        source_card_data("ihk", "IHK", ihk,
+          source: "project domains",
+          note: source_value(ihk, :summary, "Zero Trust project source truth"),
           href: "/projects/ihk"
         ),
-        source_card_data(
-          "evidence",
-          "Evidence",
-          source_value(Map.get(overview, :evidence, %{}), :status, "UNKNOWN"),
-          "local filesystem",
-          note: "#{source_value(Map.get(overview, :evidence, %{}), :record_count, 0)} artifacts",
+        source_card_data("evidence", "Evidence", evidence,
+          source: "local filesystem evidence adapter",
+          note: evidence_note(evidence),
           href: "/evidence"
         ),
-        source_card_data(
-          "career",
-          "Career",
-          source_value(Map.get(overview, :career, %{}), :status, "UNKNOWN"),
-          "career source",
-          note: "#{source_value(Map.get(overview, :career, %{}), :record_count, 0)} records",
-          href: "/career"
-        ),
-        source_card_data(
-          "knowledge",
-          "Knowledge",
-          source_value(Map.get(overview, :knowledge, %{}), :status, "UNKNOWN"),
-          source_value(Map.get(overview, :knowledge, %{}), :source, "knowledge source"),
+        source_card_data("knowledge", "Knowledge", Map.get(overview, :knowledge, %{}),
           note: knowledge_note(Map.get(overview, :knowledge, %{})),
           href: "/knowledge"
         ),
-        source_card_data(
-          "services",
-          "Services",
-          service_overall_status(overview),
-          source_value(Map.get(overview, :services, %{}), :source, "runtime services"),
+        source_card_data("services", "Services", Map.get(overview, :services, %{}),
           note: service_note(overview),
           href: "/services"
         ),
-        source_card_data(
-          "social",
-          "Social",
-          social_status(Map.get(overview, :social, %{})),
-          Map.get(Map.get(overview, :social, %{}), :source, "social sources"),
+        source_card_data("social", "Social", Map.get(overview, :social, %{}),
           note: social_note(Map.get(overview, :social, %{})),
           href: "/social"
+        ),
+        source_card_data("career", "Career", Map.get(overview, :career, %{}),
+          source: "career source adapter",
+          note:
+            "#{source_value(Map.get(overview, :career, %{}), :record_count, "UNAVAILABLE")} records",
+          href: "/career"
+        ),
+        source_card_data("backups", "Backups", Map.get(overview, :backups, %{}),
+          source: "bounded backup inventory",
+          note: "Backup source truth",
+          href: "/backups"
         )
       ]
 
@@ -262,82 +274,126 @@ defmodule ShadowOpsWeb.DashboardLive do
     end)
   end
 
-  defp source_card_data(id, label, status, source, opts) do
+  defp source_card_data(id, label, payload, opts) do
+    status = opts[:status] || truth_status(payload)
+    source = opts[:source] || source_value(payload, :source, "canonical source")
+    error = source_value(payload, :error_message, source_value(payload, :reason, nil))
+
     %{
       id: id,
       label: label,
       value: Status.normalize(status),
       status: status,
-      source: source,
-      note: opts[:note],
+      health: source_value(payload, :health, "UNKNOWN"),
+      real_data: source_value(payload, :real_data, false) == true,
+      synthetic: source_value(payload, :synthetic, false) == true,
+      reachable: source_value(payload, :reachable, false) == true,
+      record_count: source_value(payload, :record_count, "UNAVAILABLE"),
+      source_type: source_value(payload, :source_type, "INTERNAL"),
+      source: public_text(source, "canonical source"),
+      error: public_text(error, "Source detail unavailable"),
+      note: public_text(opts[:note], "Source detail unavailable"),
       href: opts[:href]
     }
   end
 
-  defp build_attention_items(cards, daily) do
-    card_items =
-      cards
-      |> Enum.filter(&attention_needed?/1)
-      |> Enum.map(fn card ->
-        %{
-          label: card.label,
-          status: card.status,
-          detail: card.note || "#{card.label} source requires attention"
-        }
-      end)
-
-    daily_items =
-      daily.checks
-      |> Enum.reject(&(&1.status == "GREEN"))
-      |> Enum.map(fn check ->
-        %{
-          label: check.domain,
-          status: check.status,
-          detail: check.summary
-        }
-      end)
-
-    merged =
-      (card_items ++ daily_items)
-      |> Enum.uniq_by(&{&1.label, &1.status})
-      |> Enum.sort_by(fn item -> severity_sort_key(item.status) end)
-
-    Enum.take(merged, 6)
+  defp build_attention_items(daily) do
+    daily.checks
+    |> Enum.reject(&(&1.status == "GREEN"))
+    |> Enum.map(fn check ->
+      %{
+        label: check.domain,
+        status: attention_status(check),
+        detail: "#{check.status}: #{check.summary}"
+      }
+    end)
+    |> Enum.take(6)
   end
 
-  defp attention_needed?(%{status: status}) when status in ["READY", "HEALTHY", "VERIFIED"],
-    do: false
+  defp attention_status(%{severity: severity}) when severity in ["CRITICAL", "HIGH"],
+    do: severity
 
-  defp attention_needed?(%{status: "NOT_CONFIGURED"}), do: false
-  defp attention_needed?(_), do: true
+  defp attention_status(%{status: status}), do: status
 
-  defp severity_sort_key("BLOCKED"), do: 0
-  defp severity_sort_key("UNAVAILABLE"), do: 1
-  defp severity_sort_key("DEGRADED"), do: 2
-  defp severity_sort_key("ATTENTION"), do: 3
-  defp severity_sort_key("GREEN"), do: 99
-  defp severity_sort_key(_), do: 50
+  defp build_one_click_controls do
+    workflows =
+      case ShadowOpsApi.list_workflows() do
+        {:ok, records} -> records
+        {:error, _reason} -> []
+      end
 
-  defp knowledge_note(knowledge) do
-    count = source_value(knowledge, :record_count, 0)
-    availability = source_value(knowledge, :availability, "UNKNOWN")
+    Enum.map(@one_click_targets, &one_click_control(&1, workflows))
+  end
+
+  defp one_click_control(target, workflows) do
+    workflow = Enum.find(workflows, &(Map.get(&1, "id") == target.key))
+
+    canonical_id =
+      case WorkflowIds.canonical_id(target.key) do
+        {:ok, id} -> id
+        {:error, _reason} -> nil
+      end
 
     cond do
-      is_integer(count) and count > 0 -> "#{count} sources, #{availability}"
-      availability == "AVAILABLE" -> "Connected, count unavailable"
-      true -> "Source #{String.downcase(availability)}"
+      is_nil(workflow) or is_nil(canonical_id) ->
+        Map.merge(target, %{
+          workflow_id: canonical_id,
+          status: "NOT_CONFIGURED",
+          href: nil,
+          action_label: nil
+        })
+
+      Map.get(workflow, "read_only") == true and is_binary(target[:route]) ->
+        Map.merge(target, %{
+          workflow_id: canonical_id,
+          status: "REGISTERED_READ_ONLY",
+          href: target.route,
+          action_label: "Open read-only control"
+        })
+
+      Map.get(workflow, "executable") == true ->
+        Map.merge(target, %{
+          workflow_id: canonical_id,
+          status: "EXECUTABLE",
+          href: "/workflows/#{target.key}",
+          action_label: "Review / run through governed execution"
+        })
+
+      true ->
+        Map.merge(target, %{
+          workflow_id: canonical_id,
+          status: Map.get(workflow, "execution_status", "UNAVAILABLE"),
+          href: nil,
+          action_label: nil
+        })
     end
   end
 
-  defp service_overall_status(overview) do
-    services = Map.get(overview.services, :services, [])
-    ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
+  defp truth_status(payload) do
+    source_value(payload, :status, nil) || source_value(payload, :state, nil) ||
+      source_value(payload, :overall, nil) || source_value(payload, :availability, "UNKNOWN")
+  end
+
+  defp evidence_note(evidence) do
+    artifacts = source_value(evidence, :artifacts, [])
+
+    available =
+      Enum.count(artifacts, &(source_value(&1, :verification_status, "") == "AVAILABLE"))
+
+    verified = Enum.count(artifacts, &(source_value(&1, :verification_status, "") == "VERIFIED"))
+    status = truth_status(evidence)
+
+    "Source status: #{status} · Artifacts available: #{available} · Artifacts verified: #{verified}"
+  end
+
+  defp knowledge_note(knowledge) do
+    sources = source_value(knowledge, :sources, [])
+    complete = source_value(knowledge, :source_measurement_complete, false) == true
+    availability = source_value(knowledge, :availability, "UNKNOWN")
 
     cond do
-      services == [] -> "UNAVAILABLE"
-      ready == length(services) -> "READY"
-      ready > 0 -> "MIXED"
-      true -> "UNAVAILABLE"
+      complete -> "#{length(sources)} measured sources · #{availability}"
+      true -> "Source #{String.downcase(availability)}"
     end
   end
 
@@ -346,9 +402,6 @@ defmodule ShadowOpsWeb.DashboardLive do
     ready = Enum.count(services, &(record_value(&1, :status, "") == "READY"))
     "#{ready}/#{length(services)} ready"
   end
-
-  defp social_status(%{status: status}), do: status
-  defp social_status(_), do: "UNAVAILABLE"
 
   defp social_note(%{source: source}) when is_binary(source), do: source
   defp social_note(%{error_message: msg}) when is_binary(msg), do: msg
@@ -362,6 +415,17 @@ defmodule ShadowOpsWeb.DashboardLive do
   end
 
   defp source_value(_source, _key, default), do: default
+
+  defp public_text(nil, _fallback), do: nil
+
+  defp public_text(value, fallback) when is_binary(value) do
+    if String.starts_with?(value, "/") or
+         String.contains?(value, ["/home/", "/tmp/", "\\home\\"]),
+       do: fallback,
+       else: value
+  end
+
+  defp public_text(_value, fallback), do: fallback
 
   defp record_value(record, key, default) when is_map(record),
     do: Map.get(record, key, Map.get(record, to_string(key), default))
