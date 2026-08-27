@@ -42,7 +42,9 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
   end
 
   @doc "Reads validated evidence for one discovered workflow."
-  def get(id, registry \\ nil) when is_binary(id) do
+  def get(id, registry \\ nil)
+
+  def get(id, registry) when is_binary(id) do
     case Map.fetch(snapshot(registry), id) do
       {:ok, evidence} -> {:ok, evidence}
       :error -> {:error, :not_found}
@@ -52,7 +54,9 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
   def get(_, _), do: {:error, :invalid_workflow_id}
 
   @doc "Atomically replaces the evidence overlay for one currently discovered workflow."
-  def put(id, attrs, registry \\ nil) when is_binary(id) and is_map(attrs) do
+  def put(id, attrs, registry \\ nil)
+
+  def put(id, attrs, registry) when is_binary(id) and is_map(attrs) do
     registry = registry || LocalWorkflowRegistry.snapshot()
     records = registry_records(registry)
 
@@ -133,9 +137,11 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
 
   defp normalize_strings(attrs) do
     Enum.reduce_while(@string_fields -- [:source_ref, :risk_level], {:ok, %{}}, fn key,
-                                                                                 {:ok, acc} ->
+                                                                                   {:ok, acc} ->
       case Map.get(attrs, key) do
-        nil -> {:cont, {:ok, acc}}
+        nil ->
+          {:cont, {:ok, acc}}
+
         value when is_binary(value) and byte_size(value) <= @max_string ->
           {:cont, {:ok, Map.put(acc, key, value)}}
 
