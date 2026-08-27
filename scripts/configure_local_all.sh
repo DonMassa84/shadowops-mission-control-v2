@@ -78,6 +78,28 @@ write_env_line() {
   printf '%s=%s\n' "$key" "$value"
 }
 
+run_isolated_test_suite() {
+  env \
+    -u PORT \
+    -u SHADOWOPS_PUBLIC_HOST \
+    -u SHADOWOPS_SECRET_KEY_BASE \
+    -u SHADOWOPS_READ_TOKEN \
+    -u SHADOWOPS_WRITE_TOKEN \
+    -u SHADOWOPS_STATE_DIR \
+    -u SHADOWOPS_DOMAIN_DIR \
+    -u SHADOWOPS_PROJECT_CATALOG \
+    -u SHADOWOPS_DB_HOST \
+    -u SHADOWOPS_DB_USER \
+    -u SHADOWOPS_DB_PASSWORD \
+    -u SHADOWOPS_DB_NAME \
+    -u SHADOWOPS_DB_POOL_SIZE \
+    -u RELEASE_NODE \
+    -u RELEASE_COOKIE \
+    MIX_ENV=test \
+    SHADOWOPS_START_PERSISTENCE=false \
+    mix test --seed 12345
+}
+
 for cmd in git mix elixir erl openssl curl ss systemctl sha256sum; do
   require_cmd "$cmd"
 done
@@ -230,7 +252,7 @@ git diff --exit-code -- mix.lock
 mix archive.install hex sobelow 0.15.0 --force
 mix format --check-formatted
 mix compile --warnings-as-errors
-MIX_ENV=test mix test --seed 12345
+run_isolated_test_suite
 mix shadowops.registry validate
 mix shadowops.workflow_ids.validate
 mix hex.audit
