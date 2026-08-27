@@ -134,7 +134,7 @@ defmodule ShadowOpsCore.LocalWorkflowRegistry do
       |> Enum.filter(&String.starts_with?(&1, "workflow_correlation_"))
       |> Enum.map(&Path.join(reports_root, &1))
       |> Enum.filter(&File.dir?/1)
-      |> Enum.filter(&(File.regular?(Path.join(&1, "entrypoints.tsv"))))
+      |> Enum.filter(&File.regular?(Path.join(&1, "entrypoints.tsv")))
       |> Enum.max_by(&report_mtime/1, fn -> nil end)
     else
       _ -> nil
@@ -151,17 +151,36 @@ defmodule ShadowOpsCore.LocalWorkflowRegistry do
   defp excluded_path?(relative) do
     lower = String.downcase(relative)
     basename = Path.basename(lower)
+    segments = Path.split(lower)
 
-    contains_any?(lower, [
-      "/test/",
-      "/tests/",
-      "/deps/",
-      "/_build/",
-      "/node_modules/",
-      "/vendor/",
-      "/config/"
-    ]) or
-      basename in ["mix.exs", ".formatter.exs", "test_helper.exs"] or
+    ignored_segments = [
+      "test",
+      "tests",
+      "fixtures",
+      "deps",
+      "_build",
+      "node_modules",
+      "vendor",
+      "config",
+      ".venv",
+      "venv",
+      "site-packages",
+      "__pycache__",
+      ".pytest_cache",
+      ".mypy_cache",
+      ".ruff_cache",
+      ".tox",
+      "dist",
+      "build"
+    ]
+
+    Enum.any?(segments, &(&1 in ignored_segments)) or
+      basename in [
+        "mix.exs",
+        ".formatter.exs",
+        "test_helper.exs",
+        "__init__.py"
+      ] or
       String.ends_with?(basename, "_test.exs") or
       String.ends_with?(basename, "_test.py") or
       String.starts_with?(basename, "test_")
@@ -171,18 +190,29 @@ defmodule ShadowOpsCore.LocalWorkflowRegistry do
     lower = String.downcase(relative)
 
     cond do
-      contains_any?(lower, ["whatsapp", "telegram", "facebook", "social"]) -> "social"
-      contains_any?(lower, ["career", "bewerb", "income"]) -> "career"
+      contains_any?(lower, ["whatsapp", "telegram", "facebook", "social"]) ->
+        "social"
+
+      contains_any?(lower, ["career", "bewerb", "income"]) ->
+        "career"
+
       contains_any?(lower, ["security", "audit", "governance", "zero-trust", "zero_trust"]) ->
         "security"
 
       contains_any?(lower, ["knowledge", "obsidian", "rag", "research", "document", "dokument"]) ->
         "knowledge"
 
-      contains_any?(lower, ["backup", "archive", "timeshift"]) -> "backups"
-      contains_any?(lower, ["agent", "ai", "openclaw"]) -> "agents"
-      contains_any?(lower, ["github", ".github/workflows"]) -> "ci"
-      true -> "system"
+      contains_any?(lower, ["backup", "archive", "timeshift"]) ->
+        "backups"
+
+      contains_any?(lower, ["agent", "ai", "openclaw"]) ->
+        "agents"
+
+      contains_any?(lower, ["github", ".github/workflows"]) ->
+        "ci"
+
+      true ->
+        "system"
     end
   end
 

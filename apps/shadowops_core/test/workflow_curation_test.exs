@@ -8,7 +8,12 @@ defmodule ShadowOpsCore.WorkflowCurationTest do
       records: [
         record("localwf_a", "Career Sync", "auto_bewerbungen", "scripts/career_sync.py"),
         record("localwf_b", "Career Sync Copy", "Projects", "tools/career_sync_copy.py"),
-        record("localwf_c", "Security Audit", "DokumentenSystem", "07_AUTOMATION/security-audit.sh")
+        record(
+          "localwf_c",
+          "Security Audit",
+          "DokumentenSystem",
+          "07_AUTOMATION/security-audit.sh"
+        )
       ]
     }
 
@@ -39,7 +44,12 @@ defmodule ShadowOpsCore.WorkflowCurationTest do
 
   test "production readiness fails closed until runtime, test and governance evidence all exist" do
     base =
-      record("localwf_runtime", "GitHub Sync", "actions-runner-host", ".github/workflows/sync.yml")
+      record(
+        "localwf_runtime",
+        "GitHub Sync",
+        "actions-runner-host",
+        ".github/workflows/sync.yml"
+      )
 
     normalized = WorkflowCuration.snapshot(%{records: [base]}).records |> hd()
     assert normalized.lifecycle_status == "NORMALIZED"

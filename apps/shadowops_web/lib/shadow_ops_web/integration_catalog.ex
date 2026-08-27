@@ -1,7 +1,13 @@
 defmodule ShadowOpsWeb.IntegrationCatalog do
   @moduledoc "Evidence-backed catalog projection for ShadowOps production integrations."
 
-  alias ShadowOpsCore.{LocalIntegrationCandidates, LocalWorkflowRegistry, WorkflowCuration}
+  alias ShadowOpsCore.{
+    LocalIntegrationCandidates,
+    LocalWorkflowRegistry,
+    RuntimeSources,
+    WorkflowCuration
+  }
+
   alias ShadowOpsWeb.{RuntimeOverview, SourceRegistry}
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
@@ -23,7 +29,12 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     local_discovery = LocalIntegrationCandidates.snapshot()
     local_workflows = LocalWorkflowRegistry.snapshot()
     workflow_curation = WorkflowCuration.snapshot(local_workflows)
-    knowledge = value(overview, :knowledge, %{})
+
+    knowledge =
+      overview
+      |> value(:knowledge, %{})
+      |> measured_knowledge()
+
     knowledge_sources = knowledge_sources(knowledge)
 
     core =
@@ -167,6 +178,20 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       error_message: nil
     }
   end
+
+  defp measured_knowledge(knowledge) when is_map(knowledge) do
+    case value(knowledge, :sources, []) do
+      sources when is_list(sources) and sources != [] ->
+        knowledge
+
+      _ ->
+        RuntimeSources.knowledge()
+    end
+  rescue
+    _ -> knowledge
+  end
+
+  defp measured_knowledge(_), do: RuntimeSources.knowledge()
 
   defp knowledge_sources(knowledge) do
     knowledge

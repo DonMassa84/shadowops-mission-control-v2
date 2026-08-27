@@ -148,6 +148,7 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
     end)
     |> Enum.uniq()
     |> Enum.filter(&regular_file?/1)
+    |> Enum.reject(&excluded_discovery_path?(&1, root))
     |> Enum.reject(&MapSet.member?(fixed_paths, &1))
     |> Enum.sort()
     |> Enum.take(@max_auto_records)
@@ -222,6 +223,42 @@ defmodule ShadowOpsCore.LocalIntegrationCandidates do
       true ->
         {"LOCAL_ARTIFACT", infer_domain(lower), "LOW"}
     end
+  end
+
+  defp excluded_discovery_path?(path, root) do
+    relative =
+      path
+      |> Path.relative_to(root)
+      |> String.downcase()
+
+    basename = Path.basename(relative)
+    segments = Path.split(relative)
+
+    ignored_segments = [
+      "test",
+      "tests",
+      "fixtures",
+      "deps",
+      "_build",
+      "node_modules",
+      "vendor",
+      ".venv",
+      "venv",
+      "site-packages",
+      "__pycache__",
+      ".pytest_cache",
+      ".mypy_cache",
+      ".ruff_cache",
+      ".tox",
+      "dist",
+      "build"
+    ]
+
+    Enum.any?(segments, &(&1 in ignored_segments)) or
+      basename == "__init__.py" or
+      String.ends_with?(basename, "_test.py") or
+      String.ends_with?(basename, "_test.exs") or
+      String.starts_with?(basename, "test_")
   end
 
   defp infer_domain(lower) do

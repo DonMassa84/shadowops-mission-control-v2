@@ -48,7 +48,8 @@ defmodule ShadowOpsWeb.LocalWorkflowRegistryUiTest do
     assert response.status == 200
     assert response.resp_body =~ "Workflow IDs"
     assert response.resp_body =~ "Registered local workflow IDs"
-    assert response.resp_body =~ "Evidence-first integration"
+    assert response.resp_body =~ "Capability library"
+    assert response.resp_body =~ "Workflow production readiness funnel"
     assert response.resp_body =~ "REFERENCE_ONLY"
     assert response.resp_body =~ "inventory records, not executable workflow grants"
   end

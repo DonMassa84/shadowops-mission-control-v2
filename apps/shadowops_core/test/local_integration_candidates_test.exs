@@ -128,4 +128,39 @@ defmodule ShadowOpsCore.LocalIntegrationCandidatesTest do
     assert {:error, :service_not_allowlisted} =
              RuntimeSources.service_action("user:bot-gateway.service", "restart")
   end
+
+  test "folder discovery rejects virtual environments and tests", %{root: root} do
+    real =
+      Path.join(
+        root,
+        "DokumentenSystem/09_BOT_GATEWAY/workflows/real_worker.py"
+      )
+
+    venv =
+      Path.join(
+        root,
+        "DokumentenSystem/09_BOT_GATEWAY/.venv/lib/python3.12/site-packages/httpx/_auth.py"
+      )
+
+    test_file =
+      Path.join(
+        root,
+        "DokumentenSystem/09_BOT_GATEWAY/tests/unit/test_config.py"
+      )
+
+    for path <- [real, venv, test_file] do
+      File.mkdir_p!(Path.dirname(path))
+      File.write!(path, "fixture")
+    end
+
+    snapshot = LocalIntegrationCandidates.snapshot(root)
+
+    refs = Enum.map(snapshot.records, & &1.source_ref)
+
+    assert "DokumentenSystem/09_BOT_GATEWAY/workflows/real_worker.py" in refs
+
+    refute Enum.any?(refs, &String.contains?(&1, "/.venv/"))
+    refute Enum.any?(refs, &String.contains?(&1, "/site-packages/"))
+    refute Enum.any?(refs, &String.contains?(&1, "/tests/"))
+  end
 end

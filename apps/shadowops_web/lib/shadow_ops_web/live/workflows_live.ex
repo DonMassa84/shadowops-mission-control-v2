@@ -227,7 +227,9 @@ defmodule ShadowOpsWeb.WorkflowsLive do
   defp compact(values),
     do: values |> Enum.filter(&(is_binary(&1) and &1 != "")) |> Enum.uniq() |> Enum.sort()
 
-  defp canonical?(w), do: w["source_kind"] not in ["external_runtime_set", "local_workflow_evidence"]
+  defp canonical?(w),
+    do: w["source_kind"] not in ["external_runtime_set", "local_workflow_evidence"]
+
   defp external?(w), do: w["source_kind"] == "external_runtime_set"
   defp local_evidence?(w), do: w["source_kind"] == "local_workflow_evidence"
 
@@ -239,8 +241,13 @@ defmodule ShadowOpsWeb.WorkflowsLive do
   end
 
   defp approval_status(%{"source_kind" => "local_workflow_evidence"}), do: "REVIEW"
-  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => true}), do: "REVIEW"
-  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => false}), do: "READY"
+
+  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => true}),
+    do: "REVIEW"
+
+  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => false}),
+    do: "READY"
+
   defp approval_status(%{"source_kind" => "external_runtime_set"}), do: "UNAVAILABLE"
   defp approval_status(_), do: "REVIEW"
 

@@ -86,15 +86,26 @@ defmodule ShadowOpsCore.WorkflowCuration do
   end
 
   defp lifecycle_status(record) do
-    connected = record.runtime_verified == true and record.real_data == true and record.reachable == true
+    connected =
+      record.runtime_verified == true and record.real_data == true and record.reachable == true
+
     tested = connected and truthy?(record, :execution_tested)
 
     cond do
-      tested and record.governance_mapped == true and record.executable == true -> "PRODUCTION_READY"
-      tested -> "TESTED"
-      connected -> "CONNECTED"
-      normalized?(record) -> "NORMALIZED"
-      true -> "DISCOVERED"
+      tested and record.governance_mapped == true and record.executable == true ->
+        "PRODUCTION_READY"
+
+      tested ->
+        "TESTED"
+
+      connected ->
+        "CONNECTED"
+
+      normalized?(record) ->
+        "NORMALIZED"
+
+      true ->
+        "DISCOVERED"
     end
   end
 
@@ -120,14 +131,54 @@ defmodule ShadowOpsCore.WorkflowCuration do
     lower = identity(record)
 
     cond do
-      contains_any?(lower, ["career", "bewerb", "income", "job"]) -> "CAREER"
-      contains_any?(lower, ["security", "audit", "policy", "governance", "zero-trust", "zero_trust"]) -> "SECURITY"
-      contains_any?(lower, ["report", "summary", "dashboard", "status", "health"]) -> "REPORTING"
-      contains_any?(lower, ["agent", "assistant", "bot", "openclaw"]) -> "AGENT"
-      contains_any?(lower, ["ai", "model", "llm", "rag", "research"]) -> "AI"
-      contains_any?(lower, ["sync", "import", "export", "archive", "backup", "data", "document", "dokument"]) -> "DATA"
-      contains_any?(lower, ["mail", "gmail", "calendar", "github", "whatsapp", "telegram", "customer", "business"]) -> "BUSINESS"
-      true -> "SYSTEM"
+      contains_any?(lower, ["career", "bewerb", "income", "job"]) ->
+        "CAREER"
+
+      contains_any?(lower, [
+        "security",
+        "audit",
+        "policy",
+        "governance",
+        "zero-trust",
+        "zero_trust"
+      ]) ->
+        "SECURITY"
+
+      contains_any?(lower, ["report", "summary", "dashboard", "status", "health"]) ->
+        "REPORTING"
+
+      contains_any?(lower, ["agent", "assistant", "bot", "openclaw"]) ->
+        "AGENT"
+
+      contains_any?(lower, ["ai", "model", "llm", "rag", "research"]) ->
+        "AI"
+
+      contains_any?(lower, [
+        "sync",
+        "import",
+        "export",
+        "archive",
+        "backup",
+        "data",
+        "document",
+        "dokument"
+      ]) ->
+        "DATA"
+
+      contains_any?(lower, [
+        "mail",
+        "gmail",
+        "calendar",
+        "github",
+        "whatsapp",
+        "telegram",
+        "customer",
+        "business"
+      ]) ->
+        "BUSINESS"
+
+      true ->
+        "SYSTEM"
     end
   end
 
@@ -135,11 +186,51 @@ defmodule ShadowOpsCore.WorkflowCuration do
     lower = identity(record)
 
     cond do
-      contains_any?(lower, ["deploy", "push", "delete", "cleanup", "stop", "restart", "shutdown", "safe-off", "send", "publish"]) -> "L3"
-      contains_any?(lower, ["write", "sync", "import", "export", "backup", "archive", "install", "update", "trigger"]) -> "L2"
-      contains_any?(lower, ["scan", "audit", "health", "status", "report", "read", "show", "list", "check"]) -> "L0"
-      record.kind in ["SYSTEMD_SERVICE", "SYSTEMD_TIMER"] -> "L2"
-      true -> "L1"
+      contains_any?(lower, [
+        "deploy",
+        "push",
+        "delete",
+        "cleanup",
+        "stop",
+        "restart",
+        "shutdown",
+        "safe-off",
+        "send",
+        "publish"
+      ]) ->
+        "L3"
+
+      contains_any?(lower, [
+        "write",
+        "sync",
+        "import",
+        "export",
+        "backup",
+        "archive",
+        "install",
+        "update",
+        "trigger"
+      ]) ->
+        "L2"
+
+      contains_any?(lower, [
+        "scan",
+        "audit",
+        "health",
+        "status",
+        "report",
+        "read",
+        "show",
+        "list",
+        "check"
+      ]) ->
+        "L0"
+
+      record.kind in ["SYSTEMD_SERVICE", "SYSTEMD_TIMER"] ->
+        "L2"
+
+      true ->
+        "L1"
     end
   end
 
@@ -184,7 +275,9 @@ defmodule ShadowOpsCore.WorkflowCuration do
     "#{category}:#{family}:#{stem}"
   end
 
-  defp kind_family(kind) when kind in ["SYSTEMD_SERVICE", "SYSTEMD_TIMER"], do: "SCHEDULED_RUNTIME"
+  defp kind_family(kind) when kind in ["SYSTEMD_SERVICE", "SYSTEMD_TIMER"],
+    do: "SCHEDULED_RUNTIME"
+
   defp kind_family("GITHUB_ACTION"), do: "EXTERNAL_CI"
   defp kind_family(_), do: "LOCAL_WORKFLOW"
 

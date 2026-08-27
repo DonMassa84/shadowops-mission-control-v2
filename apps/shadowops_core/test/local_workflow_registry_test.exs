@@ -5,7 +5,10 @@ defmodule ShadowOpsCore.LocalWorkflowRegistryTest do
 
   setup do
     root =
-      Path.join(System.tmp_dir!(), "shadowops_local_workflows_#{System.unique_integer([:positive])}")
+      Path.join(
+        System.tmp_dir!(),
+        "shadowops_local_workflows_#{System.unique_integer([:positive])}"
+      )
 
     File.mkdir_p!(root)
     on_exit(fn -> File.rm_rf!(root) end)
@@ -79,7 +82,9 @@ defmodule ShadowOpsCore.LocalWorkflowRegistryTest do
   end
 
   test "paths outside the configured home and symlinks are rejected", %{root: root} do
-    outside = Path.join(System.tmp_dir!(), "shadowops-outside-#{System.unique_integer([:positive])}.sh")
+    outside =
+      Path.join(System.tmp_dir!(), "shadowops-outside-#{System.unique_integer([:positive])}.sh")
+
     File.write!(outside, "fixture")
     on_exit(fn -> File.rm(outside) end)
 
@@ -109,5 +114,63 @@ defmodule ShadowOpsCore.LocalWorkflowRegistryTest do
     assert snapshot.status == "NOT_CONFIGURED"
     assert snapshot.counts.registered == 0
     assert snapshot.counts.rejected == 2
+  end
+
+  test "virtual environments and dependency internals are rejected", %{root: root} do
+    real = Path.join(root, "DokumentenSystem/07_AUTOMATION/real/run_sync.py")
+
+    venv =
+      Path.join(
+        root,
+        "DokumentenSystem/project/.venv/lib/python3.12/site-packages/httpx/_auth.py"
+      )
+
+    tests =
+      Path.join(
+        root,
+        "DokumentenSystem/09_BOT_GATEWAY/tests/unit/test_config.py"
+      )
+
+    fixture =
+      Path.join(
+        root,
+        "Projects/example/fixtures/demo.py"
+      )
+
+    for path <- [real, venv, tests, fixture] do
+      File.mkdir_p!(Path.dirname(path))
+      File.write!(path, "fixture")
+    end
+
+    report =
+      Path.join(
+        root,
+        "reports/shadowops/workflow_correlation_20260827_140000"
+      )
+
+    File.mkdir_p!(report)
+
+    File.write!(
+      Path.join(report, "entrypoints.tsv"),
+      Enum.join(
+        [
+          "SOURCE\tTYPE\tPATH",
+          "DokumentenSystem\tPYTHON_WORKFLOW\t#{real}",
+          "DokumentenSystem\tPYTHON_WORKFLOW\t#{venv}",
+          "DokumentenSystem\tPYTHON_WORKFLOW\t#{tests}",
+          "Projects\tPYTHON_WORKFLOW\t#{fixture}"
+        ],
+        "\n"
+      )
+    )
+
+    snapshot = LocalWorkflowRegistry.snapshot(root)
+
+    assert snapshot.counts.registered == 1
+    assert snapshot.counts.rejected == 3
+
+    assert Enum.map(snapshot.records, & &1.source_ref) == [
+             "DokumentenSystem/07_AUTOMATION/real/run_sync.py"
+           ]
   end
 end

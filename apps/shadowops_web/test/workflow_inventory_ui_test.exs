@@ -25,7 +25,7 @@ defmodule ShadowOpsWeb.WorkflowInventoryUITest do
     assert workflows.status == 200
     assert workflows.resp_body =~ "Total workflow slots"
     assert workflows.resp_body =~ "External runtime coverage"
-    assert workflows.resp_body =~ "Named workflows"
+    assert workflows.resp_body =~ "Named in source"
     assert workflows.resp_body =~ "shadowmaker_tasks"
     assert workflows.resp_body =~ "whatsapp_agent_pack"
     assert workflows.resp_body =~ "opencode_standard"

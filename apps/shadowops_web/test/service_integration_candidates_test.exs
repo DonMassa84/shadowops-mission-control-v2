@@ -45,7 +45,7 @@ defmodule ShadowOpsWeb.ServiceIntegrationCandidatesTest do
     response = ShadowOpsWeb.Endpoint.call(conn, [])
 
     assert response.status == 200
-    assert response.resp_body =~ "Local functions"
+    assert response.resp_body =~ "Workflow IDs"
     assert response.resp_body =~ "Local function inventory"
     assert response.resp_body =~ "Reference only"
   end

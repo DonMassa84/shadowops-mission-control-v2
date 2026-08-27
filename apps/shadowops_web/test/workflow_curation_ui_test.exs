@@ -13,6 +13,7 @@ defmodule ShadowOpsWeb.WorkflowCurationUiTest do
     assert is_map(curation)
     assert curation["source_type"] == "LOCAL_WORKFLOW_CURATION"
     assert curation["synthetic"] == false
+
     assert curation["lifecycle"] == [
              "DISCOVERED",
              "NORMALIZED",
