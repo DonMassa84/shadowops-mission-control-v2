@@ -2,6 +2,7 @@ defmodule ShadowOpsWeb.WorkflowsLive do
   use Phoenix.LiveView
   import ShadowOpsWeb.MissionControlComponents
   alias ShadowOpsApi
+  alias ShadowOpsCore.LocalWorkflowRegistry
   alias ShadowOpsWeb.OneClick
   alias WorkflowEngine.{Inventory, Registry}
 
@@ -10,7 +11,11 @@ defmodule ShadowOpsWeb.WorkflowsLive do
     {:ok, registry} = Registry.load()
 
     inventory = Inventory.summary(registry)
-    workflows = (canonical ++ Inventory.external_workflows(registry)) |> Enum.sort_by(& &1["id"])
+    local_registry = LocalWorkflowRegistry.snapshot()
+
+    workflows =
+      (canonical ++ Inventory.external_workflows(registry) ++ local_rows(local_registry))
+      |> Enum.sort_by(& &1["id"])
 
     filters = %{
       "search" => "",
@@ -26,6 +31,7 @@ defmodule ShadowOpsWeb.WorkflowsLive do
        workflows: workflows,
        visible: workflows,
        inventory: inventory,
+       local_registry: local_registry,
        filters: filters,
        one_click_ready: OneClick.available?(),
        updated_at: now()
@@ -66,19 +72,29 @@ defmodule ShadowOpsWeb.WorkflowsLive do
 
   def render(assigns) do
     ~H"""
-    <.app_shell title="Workflows" subtitle="Canonical + external runtime inventory" active="/workflows" updated_at={@updated_at}>
-      <.source_meta source="workflow_registry_v2.yaml" updated_at={@updated_at} availability="AVAILABLE" />
+    <.app_shell
+      title="Workflows"
+      subtitle="Canonical execution, external runtimes and registered local workflow evidence"
+      active="/workflows"
+      updated_at={@updated_at}
+    >
+      <.source_meta
+        source="workflow registry + local correlation evidence"
+        updated_at={@updated_at}
+        availability="AVAILABLE"
+      />
 
       <section class="mc-grid" aria-label="Workflow inventory metrics">
         <.metric_card label="Total workflow slots" value={@inventory["total_count"]} status="AVAILABLE" source="registry v2 + external runtime sets" />
-        <.metric_card label="Canonical" value={@inventory["canonical_count"]} status="AVAILABLE" source="workflows map" />
-        <.metric_card label="External" value={@inventory["external_count"]} status="AVAILABLE" source="external_runtime_sets" />
+        <.metric_card label="Canonical" value={@inventory["canonical_count"]} status="AVAILABLE" source="governed workflows map" />
+        <.metric_card label="External" value={@inventory["external_count"]} status="AVAILABLE" source="external runtime sets" />
+        <.metric_card label="Local IDs" value={@local_registry.counts.registered} status={@local_registry.status} source="stable localwf_* IDs · reference only" />
         <.metric_card label="Named in source" value={@inventory["named_count"]} status="AVAILABLE" source="explicit workflow IDs only" />
         <.metric_card label="IDs not imported" value={@inventory["unresolved_count"]} status={if(@inventory["unresolved_count"] > 0, do: "DEGRADED", else: "AVAILABLE")} source="source counts without individual IDs" />
       </section>
 
       <p class="mc-callout">
-        One-click mode: <strong>{if(@one_click_ready, do: "READY", else: "WRITE TOKEN REQUIRED")}</strong> · a click is the explicit operator decision; L2 approvals are persisted before execution.
+        <strong>Safe registry:</strong> local discoveries receive deterministic <span class="mc-mono">localwf_*</span> IDs and appear in this inventory immediately, but remain <strong>REFERENCE_ONLY</strong> and non-executable until runtime and governance mapping are proven.
       </p>
 
       <.panel title="External runtime coverage" description="Counts are source-backed. Included domain packs are not double-counted; missing IDs remain unresolved instead of being invented.">
@@ -95,17 +111,21 @@ defmodule ShadowOpsWeb.WorkflowsLive do
         </tbody></table></div>
       </.panel>
 
-      <.panel title="Named workflows" description="Executable canonical rows run directly from this table. External registry-only rows remain read-only until a real runtime adapter exists.">
+      <.panel
+        title="Workflow registry"
+        description="Canonical workflows can execute through governance. External and local evidence rows stay read-only until their execution boundary is proven."
+      >
         <form id="workflow-filters" class="mc-filter" phx-change="filter" phx-submit="filter">
           <label>Search<input name="search" value={@filters["search"]} placeholder="ID or name" /></label>
           <label>Category<select name="category"><option value="">All</option><option :for={v <- values(@workflows, "type")} value={v} selected={@filters["category"] == v}>{v}</option></select></label>
-          <label>Domain / set<select name="domain"><option value="">All</option><option :for={v <- values(@workflows, "domain")} value={v} selected={@filters["domain"] == v}>{v}</option></select></label>
+          <label>Domain / source<select name="domain"><option value="">All</option><option :for={v <- values(@workflows, "domain")} value={v} selected={@filters["domain"] == v}>{v}</option></select></label>
           <label>Status<select name="status"><option value="">All</option><option :for={v <- values(@workflows, "status")} value={v} selected={@filters["status"] == v}>{v}</option></select></label>
           <label>Runtime<select name="runtime"><option value="">All</option><option :for={v <- values(@workflows, "runtime")} value={v} selected={@filters["runtime"] == v}>{v}</option></select></label>
-          <label>Sort<select name="sort"><option value="id">ID</option><option value="domain" selected={@filters["sort"] == "domain"}>Domain</option><option value="status" selected={@filters["sort"] == "status"}>Status</option></select></label>
+          <label>Sort<select name="sort"><option value="id">ID</option><option value="domain" selected={@filters["sort"] == "domain"}>Source</option><option value="status" selected={@filters["sort"] == "status"}>Status</option></select></label>
           <button class="mc-button" type="button" phx-click="clear">Clear filters</button>
         </form>
-        <div class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Workflow</th><th>Category</th><th>Domain / set</th><th>Status</th><th>Runtime</th><th>Risk</th><th>Last run</th><th>Approval</th><th>One click</th></tr></thead><tbody>
+
+        <div class="mc-table-wrap"><table class="mc-table"><thead><tr><th>Workflow / ID</th><th>Category</th><th>Domain / source</th><th>Status</th><th>Runtime</th><th>Risk</th><th>Last run</th><th>Approval</th><th>Action</th></tr></thead><tbody>
           <tr :for={w <- @visible}>
             <td>
               <a :if={canonical?(w)} href={"/workflows/#{w["id"]}"}><strong>{display_name(w)}</strong><br/><span class="mc-mono mc-muted">{w["id"]}</span></a>
@@ -131,7 +151,8 @@ defmodule ShadowOpsWeb.WorkflowsLive do
                 ✓ Approve & run
               </button>
               <a :if={canonical?(w) and !workflow_runnable?(w)} class="mc-button" href={"/workflows/#{w["id"]}"}>Review</a>
-              <a :if={!canonical?(w)} class="mc-button" href="/integrations">Open source</a>
+              <a :if={local_evidence?(w)} class="mc-button" href="/integrations">Evidence</a>
+              <a :if={external?(w)} class="mc-button" href="/integrations">Open source</a>
             </td>
           </tr>
         </tbody></table></div>
@@ -144,15 +165,41 @@ defmodule ShadowOpsWeb.WorkflowsLive do
   defp refresh_inventory(socket) do
     {:ok, canonical} = ShadowOpsApi.list_workflows()
     {:ok, registry} = Registry.load()
-    workflows = (canonical ++ Inventory.external_workflows(registry)) |> Enum.sort_by(& &1["id"])
+    local_registry = LocalWorkflowRegistry.snapshot()
+
+    workflows =
+      (canonical ++ Inventory.external_workflows(registry) ++ local_rows(local_registry))
+      |> Enum.sort_by(& &1["id"])
 
     assign(socket,
       workflows: workflows,
       visible: filter(workflows, socket.assigns.filters),
       inventory: Inventory.summary(registry),
+      local_registry: local_registry,
       one_click_ready: OneClick.available?(),
       updated_at: now()
     )
+  end
+
+  defp local_rows(%{records: records}) do
+    Enum.map(records, fn record ->
+      %{
+        "id" => record.id,
+        "display_name" => record.name,
+        "type" => record.kind,
+        "domain" => record.source,
+        "status" => record.status,
+        "execution_status" => record.execution_status,
+        "target_runtime" => "REFERENCE_ONLY",
+        "runtime" => nil,
+        "risk_level" => record.risk_level,
+        "last_run" => nil,
+        "approval_required" => true,
+        "executable" => false,
+        "source_kind" => record.source_kind,
+        "source_ref" => record.source_ref
+      }
+    end)
   end
 
   defp filter(rows, f) do
@@ -180,7 +227,9 @@ defmodule ShadowOpsWeb.WorkflowsLive do
   defp compact(values),
     do: values |> Enum.filter(&(is_binary(&1) and &1 != "")) |> Enum.uniq() |> Enum.sort()
 
-  defp canonical?(w), do: w["source_kind"] != "external_runtime_set"
+  defp canonical?(w), do: w["source_kind"] not in ["external_runtime_set", "local_workflow_evidence"]
+  defp external?(w), do: w["source_kind"] == "external_runtime_set"
+  defp local_evidence?(w), do: w["source_kind"] == "local_workflow_evidence"
 
   defp workflow_runnable?(w) do
     status = w["execution_status"] || w["status"] || "UNAVAILABLE"
@@ -189,14 +238,14 @@ defmodule ShadowOpsWeb.WorkflowsLive do
       status not in ["UNAVAILABLE", "DISABLED", "DISABLED_BY_CONFIGURATION", "NOT_CONNECTED"]
   end
 
-  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => true}),
-    do: "REVIEW"
-
-  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => false}),
-    do: "READY"
-
+  defp approval_status(%{"source_kind" => "local_workflow_evidence"}), do: "REVIEW"
+  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => true}), do: "REVIEW"
+  defp approval_status(%{"source_kind" => "external_runtime_set", "approval_required" => false}), do: "READY"
   defp approval_status(%{"source_kind" => "external_runtime_set"}), do: "UNAVAILABLE"
   defp approval_status(_), do: "REVIEW"
+
+  defp approval_label(%{"source_kind" => "local_workflow_evidence"}),
+    do: "governance not mapped"
 
   defp approval_label(%{"source_kind" => "external_runtime_set", "approval_required" => true}),
     do: "source approval required"
