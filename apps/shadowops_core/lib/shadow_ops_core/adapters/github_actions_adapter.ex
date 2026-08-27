@@ -11,8 +11,10 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
   @safe_input_key ~r/^[A-Za-z0-9_-]+$/
 
   @impl true
-  def discover(_opts \\ []) do
-    with {:ok, registry} <- WorkflowSource.load() do
+  def discover(opts \\ []) do
+    overlay = Keyword.get(opts, :local_workflow_overlay)
+
+    with {:ok, registry} <- WorkflowSource.load(overlay) do
       rows =
         registry["workflows"]
         |> Enum.flat_map(fn {id, workflow} ->
@@ -45,8 +47,9 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
 
         %{
           state:
-            if(configured != [] and definitions_valid == length(configured) and
-                 match?({:ok, _}, connectivity),
+            if(
+              configured != [] and definitions_valid == length(configured) and
+                match?({:ok, _}, connectivity),
               do: "READY",
               else: "DEGRADED"
             ),
@@ -87,32 +90,12 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
       when decision in ["AUTO", "APPROVED"] and is_map(input) do
     opts = runtime_opts(input, context)
 
-    with :ok <- validate(manifest),
-         :ok <- reject_synthetic(manifest),
-         {:ok, repository} <- repository(opts),
-         {:ok, ref} <- resolve_ref(input, opts),
-         {:ok, input_args} <- workflow_input_args(input),
-         definition when is_binary(definition) <- manifest.metadata.definition,
-         {:ok, _output} <-
-           gh(
-             ["workflow", "run", definition, "--repo", repository, "--ref", ref] ++ input_args,
-             opts
-           ) do
-      {:ok,
-       %{
-         accepted: true,
-         workflow: manifest.id,
-         definition: definition,
-         repository: repository,
-         ref: ref,
-         transport: "gh workflow run",
-         real_data: true,
-         synthetic: false
-       }}
-    else
-      nil -> {:error, :github_workflow_definition_missing}
-      {:error, _} = error -> error
-      other -> {:error, {:github_dispatch_failed, other}}
+    case run_workflow(manifest, input, opts) do
+      {:ok, result} ->
+        {:ok, Map.put(result, :accepted, true)}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -155,6 +138,64 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
       ],
       "canonical workflow registry plus repository file plus authenticated GitHub CLI API probe"
     )
+  end
+
+  defp run_workflow(manifest, input, opts) do
+    with :ok <- validate(manifest),
+         :ok <- reject_synthetic(manifest),
+         {:ok, repository} <- repository(opts),
+         {:ok, ref} <- resolve_ref(input, opts),
+         {:ok, definition} <- resolve_definition(manifest),
+         {:ok, input_args} <- workflow_input_args(input),
+         {:ok, _output} <-
+           gh(
+             ["workflow", "run", definition, "--repo", repository, "--ref", ref] ++ input_args,
+             opts
+           ) do
+      {:ok,
+       %{
+         workflow: manifest.id,
+         definition: definition,
+         repository: repository,
+         ref: ref,
+         transport: "gh workflow run",
+         real_data: true,
+         synthetic: false
+       }}
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp resolve_definition(%WorkflowManifest{metadata: %{definition: definition}})
+       when is_binary(definition) and definition != "",
+       do: {:ok, definition}
+
+  defp resolve_definition(_), do: {:error, :github_workflow_definition_missing}
+
+  defp workflow_input_args(input) do
+    inputs = value(input, :inputs, %{})
+
+    cond do
+      not is_map(inputs) ->
+        {:error, :github_workflow_inputs_must_be_a_map}
+
+      Enum.all?(inputs, fn {key, value} -> safe_input?(key, value) end) ->
+        {:ok,
+         Enum.flat_map(inputs, fn {key, value} ->
+           ["-f", "#{key}=#{value}"]
+         end)}
+
+      true ->
+        {:error, :invalid_github_workflow_input}
+    end
+  end
+
+  defp safe_input?(key, value) do
+    key = to_string(key)
+
+    Regex.match?(@safe_input_key, key) and
+      (is_binary(value) or is_integer(value) or is_float(value) or is_boolean(value))
   end
 
   defp github_probe(opts) do
@@ -206,7 +247,8 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
 
   defp resolve_ref(input, opts) do
     candidate =
-      value(input, :ref) || Keyword.get(opts, :ref) || System.get_env(@ref_env) || current_ref(opts)
+      value(input, :ref) || Keyword.get(opts, :ref) || System.get_env(@ref_env) ||
+        current_ref(opts)
 
     cond do
       not is_binary(candidate) or candidate == "" -> {:error, :github_ref_required}
@@ -220,31 +262,6 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
       {:ok, ref} -> String.trim(ref)
       {:error, _} -> nil
     end
-  end
-
-  defp workflow_input_args(input) do
-    inputs = value(input, :inputs, %{})
-
-    cond do
-      not is_map(inputs) ->
-        {:error, :github_workflow_inputs_must_be_a_map}
-
-      Enum.all?(inputs, fn {key, value} -> safe_input?(key, value) end) ->
-        {:ok,
-         Enum.flat_map(inputs, fn {key, value} ->
-           ["-f", "#{key}=#{value}"]
-         end)}
-
-      true ->
-        {:error, :invalid_github_workflow_input}
-    end
-  end
-
-  defp safe_input?(key, value) do
-    key = to_string(key)
-
-    Regex.match?(@safe_input_key, key) and
-      (is_binary(value) or is_integer(value) or is_float(value) or is_boolean(value))
   end
 
   defp runtime_opts(input, context) do
@@ -273,7 +290,9 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
     end
   end
 
-  defp reject_synthetic(%WorkflowManifest{synthetic: true}), do: {:error, :synthetic_workflow_blocked}
+  defp reject_synthetic(%WorkflowManifest{synthetic: true}),
+    do: {:error, :synthetic_workflow_blocked}
+
   defp reject_synthetic(_), do: :ok
 
   defp disabled?(%WorkflowManifest{metadata: %{registry_status: status}}),
@@ -295,8 +314,11 @@ defmodule ShadowOpsCore.Adapters.GitHubActionsAdapter do
 
   defp status_reason(_configured, _definitions_valid, {:ok, _}), do: nil
 
-  defp value(map, key, default \\ nil) when is_map(map),
-    do: Map.get(map, key, Map.get(map, Atom.to_string(key), default))
+  defp value(map, key, default \\ nil)
+
+  defp value(map, key, default) when is_map(map) do
+    Map.get(map, key, Map.get(map, Atom.to_string(key), default))
+  end
 
   defp value(_, _, default), do: default
 

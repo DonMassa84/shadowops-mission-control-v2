@@ -92,7 +92,7 @@ workflows:
     domain: ci
     status: active
     runtime: github_actions
-    definition: .github/workflows/quality.yml
+    definition: .github/workflows/product-release-gate.yml
     responsibility:
       - python_install
       - syntax
@@ -104,7 +104,10 @@ workflows:
   finance_quality_gate:
     type: system
     domain: ci
-    status: active
+    status: DISABLED_BY_CONFIGURATION
+    optional: true
+    configuration_status: NOT_CONFIGURED
+    disabled_reason: github_workflow_definition_missing_in_release
     runtime: github_actions
     definition: .github/workflows/finanzabgleich-gate.yml
     responsibility:

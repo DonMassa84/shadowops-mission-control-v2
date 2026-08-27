@@ -24,9 +24,6 @@ defmodule Mix.Tasks.Shadowops.Projects.Seed do
 
         %{error_code: code, error_message: message} ->
           Mix.raise("PROJECT_CATALOG_SEED=BLOCKED code=#{code} message=#{message}")
-
-        _ ->
-          Mix.raise("PROJECT_CATALOG_SEED=BLOCKED code=UNKNOWN message=Unexpected catalog state")
       end
 
     discovery_mode =

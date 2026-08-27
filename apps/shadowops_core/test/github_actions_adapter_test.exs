@@ -64,12 +64,36 @@ defmodule ShadowOpsCore.GitHubActionsAdapterTest do
   end
 
   test "real GitHub connectivity cannot hide registry definition drift" do
+    # Create a local overlay with drift: workflow configured but definition file missing
+    drift_overlay = %{
+      "workflows" => %{
+        "drift_test" => %{
+          "type" => "system",
+          "domain" => "ci",
+          "status" => "active",
+          "runtime" => "github_actions",
+          "definition" => ".github/workflows/nonexistent-workflow.yml",
+          "responsibility" => ["test_drift"]
+        }
+      }
+    }
+
+    drift_path = Path.join(System.tmp_dir!(), "drift_overlay_#{System.unique_integer()}.json")
+    File.write!(drift_path, Jason.encode!(drift_overlay))
+
     runner = fn
       "gh", ["api", "repos/#{@repository}", "--jq", ".full_name"], [stderr_to_stdout: true] ->
         {@repository <> "\n", 0}
     end
 
-    status = GitHubActionsAdapter.status(repository: @repository, runner: runner)
+    status =
+      GitHubActionsAdapter.status(
+        repository: @repository,
+        runner: runner,
+        local_workflow_overlay: drift_path
+      )
+
+    File.rm!(drift_path)
 
     assert status.state == "DEGRADED"
     assert status.repository == @repository

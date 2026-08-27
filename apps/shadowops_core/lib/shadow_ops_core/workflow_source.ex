@@ -1,9 +1,11 @@
 defmodule ShadowOpsCore.WorkflowSource do
   @moduledoc "Read-through access to the existing workflow_engine registry path."
 
-  def load do
+  def load, do: load(nil)
+
+  def load(overlay_path) do
     with {:ok, base} <- load_base() do
-      merge_local_overlay(base)
+      merge_local_overlay(base, overlay_path)
     end
   end
 
@@ -29,16 +31,13 @@ defmodule ShadowOpsCore.WorkflowSource do
 
   defp normalize(registry), do: registry
 
-  defp merge_local_overlay(base) do
-    case System.get_env("SHADOWOPS_LOCAL_WORKFLOW_OVERLAY") do
-      nil ->
-        {:ok, base}
+  defp merge_local_overlay(base, overlay_path) do
+    path = overlay_path || System.get_env("SHADOWOPS_LOCAL_WORKFLOW_OVERLAY")
 
-      "" ->
-        {:ok, base}
-
-      path ->
-        load_local_overlay(base, path)
+    case path do
+      nil -> {:ok, base}
+      "" -> {:ok, base}
+      path -> load_local_overlay(base, path)
     end
   end
 
