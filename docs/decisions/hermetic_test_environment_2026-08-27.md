@@ -50,6 +50,43 @@ DIRECT_HERMETIC_TEST=PASS
 
 The subsequent local-all run failed specifically at `QUALITY_GATE_PRODUCTION_ACCEPTANCE`, where `production_acceptance.sh` still executed its own non-hermetic test command and reproduced 93/117.
 
+## Resolution
+
+The nested test invocation in `scripts/production_acceptance.sh` was moved behind the same hermetic `env -i` boundary.
+
+The fix was committed as:
+
+```text
+097d73225cd96399f2e8de8c04987a50c605b210
+fix: isolate production acceptance test environment
+```
+
+Closure evidence from the local run:
+
+```text
+Result: 117 passed
+PASS tests
+PASS registry
+PASS prod_compile
+PASS dependency_audit
+PASS phoenix_security_scan
+PASS no_fake_state
+PASS secret_scan
+PASS runtime_health
+PASS layer_truthfulness
+PASS project_catalog_truthfulness
+PASS connector_truthfulness
+PASS audit_chain
+PASS_COUNT=43
+FAIL_COUNT=0
+FINAL_STATUS=PRODUCTION_ACCEPTANCE_PASS
+PRODUCTION_ACCEPTANCE_HERMETIC=PASS
+4013_MUTATED=NO
+SOURCE_PARITY=PASS
+```
+
+This confirms that the repeated 93/117 result was caused by orchestration environment contamination, not by 24 independent application regressions.
+
 ## Additional harness lessons
 
 Quality-gate commands must report a named failure reason instead of relying on an unlabelled `set -e` exit. Expected negative probes, such as finding no listener on an unused port, must be normalized as data rather than treated as fatal shell failures.
@@ -62,3 +99,5 @@ Quality-gate commands must report a named failure reason instead of relying on a
 4. Runtime configuration and test configuration are separate trust domains.
 5. A passing test suite does not authorize promotion of the stable runtime.
 6. Stable port 4013 remains unchanged until an explicit promotion decision.
+7. A certification harness must treat absence of an optional/stale runtime process as a normal state, not as a shell failure.
+8. Nested acceptance scripts must not silently re-enter a less isolated execution environment than their caller.
