@@ -4,7 +4,12 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStoreTest do
   alias ShadowOpsCore.{LocalWorkflowEvidenceStore, WorkflowCuration}
 
   setup do
-    path = Path.join(System.tmp_dir!(), "shadowops-workflow-evidence-#{System.unique_integer([:positive])}.json")
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "shadowops-workflow-evidence-#{System.unique_integer([:positive])}.json"
+      )
+
     previous = Application.get_env(:shadowops_core, :local_workflow_evidence_path)
     Application.put_env(:shadowops_core, :local_workflow_evidence_path, path)
 
@@ -23,7 +28,11 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStoreTest do
 
   test "unknown workflow IDs and mismatched source refs are rejected", %{registry: registry} do
     assert {:error, :error} =
-             LocalWorkflowEvidenceStore.put("localwf_missing", %{runtime_verified: true}, registry)
+             LocalWorkflowEvidenceStore.put(
+               "localwf_missing",
+               %{runtime_verified: true},
+               registry
+             )
 
     assert {:error, :source_ref_mismatch} =
              LocalWorkflowEvidenceStore.put(
@@ -58,7 +67,9 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStoreTest do
     assert LocalWorkflowEvidenceStore.snapshot(registry) == %{}
   end
 
-  test "curation advances only when every lifecycle evidence gate is explicit", %{registry: registry} do
+  test "curation advances only when every lifecycle evidence gate is explicit", %{
+    registry: registry
+  } do
     assert lifecycle(registry, "localwf_health") == "NORMALIZED"
 
     assert {:ok, _} =
