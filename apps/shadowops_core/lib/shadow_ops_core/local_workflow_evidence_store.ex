@@ -12,7 +12,7 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
 
   @path Path.expand("../../../../var/local_workflow_evidence.json", __DIR__)
   @boolean_fields ~w(runtime_verified real_data reachable execution_tested governance_mapped executable)a
-  @string_fields ~w(source_ref adapter capability risk_level verified_at verified_by)a
+  @string_fields ~w(source_ref adapter capability risk_level approval_ref verified_at verified_by)a
   @list_fields ~w(evidence_refs)a
   @allowed_fields MapSet.new(@boolean_fields ++ @string_fields ++ @list_fields)
   @risk_levels ~w(L0 L1 L2 L3)
@@ -76,7 +76,8 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
     with true <- source_ref == record.source_ref,
          {:ok, strings} <- normalize_strings(attrs),
          {:ok, refs} <- normalize_evidence_refs(Map.get(attrs, :evidence_refs, [])),
-         {:ok, risk} <- normalize_risk(Map.get(attrs, :risk_level, "L3")) do
+         {:ok, risk} <- normalize_risk(Map.get(attrs, :risk_level, "L3")),
+         :ok <- validate_execution_approval(attrs, strings, risk) do
       now = DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
 
       {:ok,
@@ -93,6 +94,7 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
          capability: Map.get(strings, :capability),
          risk_level: risk,
          approval_required: risk in ~w(L2 L3),
+         approval_ref: Map.get(strings, :approval_ref),
          evidence_refs: refs,
          verified_at: Map.get(strings, :verified_at) || now,
          verified_by: Map.get(strings, :verified_by) || "shadowops"
@@ -143,6 +145,17 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
     end)
   end
 
+  defp validate_execution_approval(attrs, strings, risk) do
+    executable = truthy?(attrs, :executable)
+    approval_ref = Map.get(strings, :approval_ref)
+
+    if executable and risk in ~w(L2 L3) and not nonempty_string?(approval_ref) do
+      {:error, :approval_required_for_execution}
+    else
+      :ok
+    end
+  end
+
   defp normalize_evidence_refs(refs) when is_list(refs) and length(refs) <= @max_evidence_refs do
     if Enum.all?(refs, &(is_binary(&1) and byte_size(&1) <= @max_string)) do
       {:ok, refs |> Enum.uniq() |> Enum.sort()}
@@ -169,6 +182,7 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
   defp known_key(_), do: nil
 
   defp truthy?(attrs, key), do: Map.get(attrs, key, false) == true
+  defp nonempty_string?(value), do: is_binary(value) and String.trim(value) != ""
 
   defp registry_records(registry) do
     registry
@@ -176,7 +190,13 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
     |> Map.new(&{&1.id, &1})
   end
 
-  defp fetch_registry_record(records, "localwf_" <> _ = id), do: Map.fetch(records, id)
+  defp fetch_registry_record(records, "localwf_" <> _ = id) do
+    case Map.fetch(records, id) do
+      {:ok, record} -> {:ok, record}
+      :error -> {:error, :unknown_workflow_id}
+    end
+  end
+
   defp fetch_registry_record(_, _), do: {:error, :invalid_workflow_id}
 
   defp value(map, key), do: Map.get(map, key) || Map.get(map, Atom.to_string(key))
