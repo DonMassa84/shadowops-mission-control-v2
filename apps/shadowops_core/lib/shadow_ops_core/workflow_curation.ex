@@ -8,15 +8,21 @@ defmodule ShadowOpsCore.WorkflowCuration do
   runtime/governance evidence on the underlying record and therefore fail closed.
   """
 
-  alias ShadowOpsCore.LocalWorkflowRegistry
+  alias ShadowOpsCore.{LocalWorkflowEvidenceStore, LocalWorkflowRegistry}
 
   @categories ~w(BUSINESS SECURITY CAREER DATA AI AGENT SYSTEM REPORTING)
   @terminal_statuses ~w(DISCOVERED NORMALIZED CONNECTED TESTED PRODUCTION_READY)
+  @risk_levels ~w(L0 L1 L2 L3)
 
   @spec snapshot(map() | nil) :: map()
   def snapshot(registry \\ nil) do
     registry = registry || LocalWorkflowRegistry.snapshot()
-    records = Map.get(registry, :records, [])
+    evidence = LocalWorkflowEvidenceStore.snapshot(registry)
+
+    records =
+      registry
+      |> Map.get(:records, [])
+      |> Enum.map(&apply_evidence(&1, Map.get(evidence, &1.id)))
 
     curated = Enum.map(records, &curate/1)
     duplicate_groups = duplicate_groups(curated)
@@ -59,7 +65,7 @@ defmodule ShadowOpsCore.WorkflowCuration do
 
   defp curate(record) do
     category = classify(record)
-    risk = infer_risk(record)
+    risk = stronger_risk(infer_risk(record), Map.get(record, :risk_level))
     systems = required_systems(record)
     lifecycle_status = lifecycle_status(record)
 
@@ -77,12 +83,41 @@ defmodule ShadowOpsCore.WorkflowCuration do
       runtime_verified: record.runtime_verified == true,
       governance_mapped: record.governance_mapped == true,
       executable: record.executable == true,
+      execution_tested: truthy?(record, :execution_tested),
       integration_mode: record.integration_mode,
       lifecycle_status: lifecycle_status,
       dedupe_key: dedupe_key(record, category),
       duplicate_candidate: false,
-      production_ready: lifecycle_status == "PRODUCTION_READY"
+      production_ready: lifecycle_status == "PRODUCTION_READY",
+      adapter: Map.get(record, :adapter),
+      capability: Map.get(record, :capability),
+      approval_required: Map.get(record, :approval_required, risk in ~w(L2 L3)),
+      evidence_refs: Map.get(record, :evidence_refs, []),
+      verified_at: Map.get(record, :verified_at),
+      verified_by: Map.get(record, :verified_by)
     }
+  end
+
+  defp apply_evidence(record, nil), do: record
+
+  defp apply_evidence(record, evidence) when is_map(evidence) do
+    keys = [
+      :runtime_verified,
+      :real_data,
+      :reachable,
+      :execution_tested,
+      :governance_mapped,
+      :executable,
+      :adapter,
+      :capability,
+      :risk_level,
+      :approval_required,
+      :evidence_refs,
+      :verified_at,
+      :verified_by
+    ]
+
+    Map.merge(record, Map.take(evidence, keys))
   end
 
   defp lifecycle_status(record) do
@@ -233,6 +268,13 @@ defmodule ShadowOpsCore.WorkflowCuration do
         "L1"
     end
   end
+
+  defp stronger_risk(inferred, explicit) when inferred in @risk_levels and explicit in @risk_levels do
+    if risk_rank(explicit) > risk_rank(inferred), do: explicit, else: inferred
+  end
+
+  defp stronger_risk(inferred, _), do: inferred
+  defp risk_rank(level), do: Enum.find_index(@risk_levels, &(&1 == level)) || 0
 
   defp required_systems(record) do
     lower = identity(record)
