@@ -20,24 +20,104 @@ defmodule ShadowOpsWeb.IntegrationsLive do
     ~H"""
     <.app_shell
       title="Integrations"
-      subtitle="Real sources, workflow evidence and governed connector readiness"
+      subtitle="Real sources, curated workflow capabilities and governed connector readiness"
       active="/integrations"
       availability={@catalog.status}
       updated_at={@updated_at}
     >
       <div class="mc-grid">
         <.metric_card label="Required core" value={"#{@catalog.required_core_ready_count}/#{@catalog.required_core_count}"} status={@catalog.status} source={@catalog.source} note="Required control-plane sources determine overall integration health" />
-        <.metric_card label="Optional ready" value={"#{@catalog.optional_ready_count}/#{@catalog.optional_count}"} status={optional_status(@catalog)} note="Optional connectors and discoveries cannot mark required core healthy" />
         <.metric_card label="Connectors" value={@catalog.external_count} status={scope_status(@external)} note="External source adapters" />
-        <.metric_card label="Imports" value={@catalog.import_count} status={scope_status(@imports)} note="Bounded local import sources; truth fields fail closed" />
-        <.metric_card label="Local functions" value={@catalog.local_discovered_count} status={@catalog.local_discovery.status} note={"#{@catalog.local_auto_discovered_count} auto-discovered beyond the fixed inventory"} />
-        <.metric_card label="Workflow IDs" value={@catalog.local_workflow_registered_count} status={@catalog.local_workflow_registry.status} note={"Stable localwf_* IDs · #{@catalog.local_workflow_rejected_count} filtered/rejected · reference only"} />
-        <.metric_card label="Knowledge docs" value={@catalog.knowledge_document_count} status={knowledge_status(@catalog)} note={"#{@catalog.knowledge_available_source_count}/#{@catalog.knowledge_source_count} measured local sources available; RAG readiness remains separate"} />
+        <.metric_card label="Workflow IDs" value={@catalog.local_workflow_registered_count} status={@catalog.local_workflow_registry.status} note={"Stable localwf_* IDs · #{@catalog.local_workflow_rejected_count} filtered/rejected"} />
+        <.metric_card label="Unique workflows" value={@catalog.workflow_unique_count} status={curation_status(@catalog.workflow_unique_count)} note={"#{@catalog.workflow_potential_duplicate_count} potential duplicate records"} />
+        <.metric_card label="Production ready" value={@catalog.workflow_production_ready_count} status={production_status(@catalog)} note={"#{@catalog.workflow_tested_count} tested · #{@catalog.workflow_connected_count} connected"} />
+        <.metric_card label="Knowledge docs" value={@catalog.knowledge_document_count} status={knowledge_status(@catalog)} note={"#{@catalog.knowledge_available_source_count}/#{@catalog.knowledge_source_count} measured local sources; RAG readiness remains separate"} />
       </div>
 
       <p class="mc-callout">
-        <strong>Evidence-first integration:</strong> discovered local workflows receive stable IDs and become visible immediately, but no discovery result gains execution rights until runtime and governance mapping are independently proven.
+        <strong>Capability library:</strong> discovery creates stable IDs and normalized metadata only. A workflow becomes production-ready only after real-source connectivity, execution testing and governance mapping are independently proven.
       </p>
+
+      <section class="mc-curation-funnel" aria-label="Workflow production readiness funnel">
+        <div class="mc-curation-stage">
+          <span>01 · Found</span>
+          <strong>{@catalog.workflow_found_count}</strong>
+          <small>source-backed IDs</small>
+        </div>
+        <div class="mc-curation-stage">
+          <span>02 · Unique</span>
+          <strong>{@catalog.workflow_unique_count}</strong>
+          <small>conservative dedupe</small>
+        </div>
+        <div class="mc-curation-stage">
+          <span>03 · Normalized</span>
+          <strong>{@catalog.workflow_normalized_count}</strong>
+          <small>category + risk + systems</small>
+        </div>
+        <div class="mc-curation-stage">
+          <span>04 · Connected</span>
+          <strong>{@catalog.workflow_connected_count}</strong>
+          <small>real runtime/source proof</small>
+        </div>
+        <div class="mc-curation-stage">
+          <span>05 · Tested</span>
+          <strong>{@catalog.workflow_tested_count}</strong>
+          <small>execution evidence</small>
+        </div>
+        <div class="mc-curation-stage is-ready">
+          <span>06 · Production ready</span>
+          <strong>{@catalog.workflow_production_ready_count}</strong>
+          <small>governed E2E proof</small>
+        </div>
+      </section>
+
+      <.panel
+        title="Curated workflow library"
+        description="Normalized local workflow capabilities. Duplicate detection is conservative and never deletes or merges records automatically."
+      >
+        <div class="mc-statline">
+          <.status_badge status="AVAILABLE" label={"#{@catalog.workflow_found_count} found"} />
+          <.status_badge status="AVAILABLE" label={"#{@catalog.workflow_unique_count} unique"} />
+          <.status_badge status={duplicate_status(@catalog)} label={"#{@catalog.workflow_duplicate_group_count} duplicate groups"} />
+          <.status_badge status={production_status(@catalog)} label={"#{@catalog.workflow_production_ready_count} production ready"} />
+        </div>
+
+        <div class="mc-table-wrap mc-curation-table">
+          <table class="mc-table">
+            <thead>
+              <tr>
+                <th>Workflow / ID</th>
+                <th>Category</th>
+                <th>Risk</th>
+                <th>Required systems</th>
+                <th>Lifecycle</th>
+                <th>Duplicate</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={record <- curated_rows(@catalog)}>
+                <td>
+                  <strong>{record.name}</strong><br />
+                  <span class="mc-mono mc-muted">{record.id}</span>
+                </td>
+                <td><span class="mc-category-chip">{record.category}</span></td>
+                <td><.status_badge status={risk_status(record.risk_level)} label={record.risk_level} /></td>
+                <td>{systems(record.required_systems)}</td>
+                <td><.status_badge status={record.lifecycle_status} /></td>
+                <td>{if(record.duplicate_candidate, do: "Review group", else: "Unique key")}</td>
+                <td>
+                  {record.source}<br />
+                  <span class="mc-mono mc-muted">{record.source_ref}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p :if={@catalog.workflow_curation.records == []} class="mc-empty">
+          No local workflow correlation evidence is available to curate.
+        </p>
+      </.panel>
 
       <.panel title="Source catalog" description="A source is not promoted to healthy unless runtime evidence explicitly says it is real and reachable.">
         <div class="mc-table-wrap">
@@ -147,17 +227,31 @@ defmodule ShadowOpsWeb.IntegrationsLive do
     )
   end
 
+  defp curated_rows(catalog), do: Enum.take(catalog.workflow_curation.records, 150)
+
+  defp systems([]), do: "No external system inferred"
+  defp systems(values), do: Enum.join(values, " · ")
+
   defp scope_status([]), do: "NOT_CONFIGURED"
 
   defp scope_status(records),
     do: if(Enum.any?(records, &IntegrationCatalog.positive?/1), do: "READY", else: "DEGRADED")
 
-  defp optional_status(%{optional_count: 0}), do: "NOT_CONFIGURED"
+  defp curation_status(0), do: "NOT_CONFIGURED"
+  defp curation_status(_), do: "AVAILABLE"
 
-  defp optional_status(%{optional_ready_count: ready, optional_count: total}) when ready == total,
-    do: "READY"
+  defp production_status(%{workflow_production_ready_count: ready}) when ready > 0, do: "READY"
+  defp production_status(%{workflow_tested_count: tested}) when tested > 0, do: "DEGRADED"
+  defp production_status(_), do: "REVIEW"
 
-  defp optional_status(_), do: "DEGRADED"
+  defp duplicate_status(%{workflow_potential_duplicate_count: 0}), do: "READY"
+  defp duplicate_status(_), do: "REVIEW"
+
+  defp risk_status("L0"), do: "READY"
+  defp risk_status("L1"), do: "AVAILABLE"
+  defp risk_status("L2"), do: "REVIEW"
+  defp risk_status("L3"), do: "ERROR"
+  defp risk_status(_), do: "REVIEW"
 
   defp knowledge_status(%{knowledge_source_count: 0}), do: "NOT_CONFIGURED"
 
