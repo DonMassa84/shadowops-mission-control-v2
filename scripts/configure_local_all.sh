@@ -79,22 +79,15 @@ write_env_line() {
 }
 
 run_isolated_test_suite() {
-  env \
-    -u PORT \
-    -u SHADOWOPS_PUBLIC_HOST \
-    -u SHADOWOPS_SECRET_KEY_BASE \
-    -u SHADOWOPS_READ_TOKEN \
-    -u SHADOWOPS_WRITE_TOKEN \
-    -u SHADOWOPS_STATE_DIR \
-    -u SHADOWOPS_DOMAIN_DIR \
-    -u SHADOWOPS_PROJECT_CATALOG \
-    -u SHADOWOPS_DB_HOST \
-    -u SHADOWOPS_DB_USER \
-    -u SHADOWOPS_DB_PASSWORD \
-    -u SHADOWOPS_DB_NAME \
-    -u SHADOWOPS_DB_POOL_SIZE \
-    -u RELEASE_NODE \
-    -u RELEASE_COOKIE \
+  local clean_user="${USER:-$(id -un)}"
+  local clean_lang="${LANG:-C.UTF-8}"
+
+  env -i \
+    HOME="$HOME" \
+    USER="$clean_user" \
+    LOGNAME="$clean_user" \
+    PATH="$PATH" \
+    LANG="$clean_lang" \
     MIX_ENV=test \
     SHADOWOPS_START_PERSISTENCE=false \
     mix test --seed 12345
@@ -247,22 +240,22 @@ fi
 echo
 echo "=== QUALITY GATE ==="
 export SHADOWOPS_START_PERSISTENCE=false
-mix deps.get
-git diff --exit-code -- mix.lock
-mix archive.install hex sobelow 0.15.0 --force
-mix format --check-formatted
-mix compile --warnings-as-errors
-run_isolated_test_suite
-mix shadowops.registry validate
-mix shadowops.workflow_ids.validate
-mix hex.audit
-git diff --check
-SHADOWOPS_RUNTIME_REQUIRED=0 bash scripts/production_acceptance.sh
+mix deps.get || fail "QUALITY_GATE_DEPS_GET"
+git diff --exit-code -- mix.lock || fail "QUALITY_GATE_MIX_LOCK_CHANGED"
+mix archive.install hex sobelow 0.15.0 --force || fail "QUALITY_GATE_SOBELOW_INSTALL"
+mix format --check-formatted || fail "QUALITY_GATE_FORMAT"
+mix compile --warnings-as-errors || fail "QUALITY_GATE_COMPILE"
+run_isolated_test_suite || fail "QUALITY_GATE_TESTS"
+mix shadowops.registry validate || fail "QUALITY_GATE_REGISTRY"
+mix shadowops.workflow_ids.validate || fail "QUALITY_GATE_WORKFLOW_IDS"
+mix hex.audit || fail "QUALITY_GATE_HEX_AUDIT"
+git diff --check || fail "QUALITY_GATE_DIFF_CHECK"
+SHADOWOPS_RUNTIME_REQUIRED=0 bash scripts/production_acceptance.sh || fail "QUALITY_GATE_PRODUCTION_ACCEPTANCE"
 pass "quality_gate"
 
 echo
 echo "=== PRODUCTION RELEASE ==="
-MIX_ENV=prod mix release shadowops --overwrite
+MIX_ENV=prod mix release shadowops --overwrite || fail "PRODUCTION_RELEASE_BUILD_FAILED"
 [[ -x "$RELEASE_BIN" ]] || fail "PRODUCTION_RELEASE_MISSING"
 pass "production_release"
 
