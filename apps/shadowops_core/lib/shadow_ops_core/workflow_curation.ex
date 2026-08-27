@@ -269,7 +269,8 @@ defmodule ShadowOpsCore.WorkflowCuration do
     end
   end
 
-  defp stronger_risk(inferred, explicit) when inferred in @risk_levels and explicit in @risk_levels do
+  defp stronger_risk(inferred, explicit)
+       when inferred in @risk_levels and explicit in @risk_levels do
     if risk_rank(explicit) > risk_rank(inferred), do: explicit, else: inferred
   end
 
