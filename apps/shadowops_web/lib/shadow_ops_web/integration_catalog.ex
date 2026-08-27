@@ -1,7 +1,7 @@
 defmodule ShadowOpsWeb.IntegrationCatalog do
   @moduledoc "Evidence-backed catalog projection for ShadowOps production integrations."
 
-  alias ShadowOpsCore.{LocalIntegrationCandidates, LocalWorkflowRegistry}
+  alias ShadowOpsCore.{LocalIntegrationCandidates, LocalWorkflowRegistry, WorkflowCuration}
   alias ShadowOpsWeb.{RuntimeOverview, SourceRegistry}
 
   @positive ~w(READY ONLINE CONNECTED AVAILABLE)
@@ -22,6 +22,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
     connectors = value(overview, :connectors, %{})
     local_discovery = LocalIntegrationCandidates.snapshot()
     local_workflows = LocalWorkflowRegistry.snapshot()
+    workflow_curation = WorkflowCuration.snapshot(local_workflows)
     knowledge = value(overview, :knowledge, %{})
     knowledge_sources = knowledge_sources(knowledge)
 
@@ -70,7 +71,7 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       status: health.status,
       health: health.health,
       source:
-        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery + stable local workflow evidence registry + measured local knowledge sources",
+        "bounded cached runtime overview + canonical connector adapters + local import evidence + bounded local folder discovery + stable local workflow evidence registry + curated workflow readiness funnel + measured local knowledge sources",
       source_type: "CONTROL_PLANE_PROJECTION",
       real_data: Enum.any?(records, & &1.real_data),
       synthetic: false,
@@ -85,6 +86,15 @@ defmodule ShadowOpsWeb.IntegrationCatalog do
       local_workflow_registered_count: local_workflows.counts.registered,
       local_workflow_rejected_count: local_workflows.counts.rejected,
       local_workflow_registry: local_workflows,
+      workflow_found_count: workflow_curation.counts.found,
+      workflow_unique_count: workflow_curation.counts.unique,
+      workflow_potential_duplicate_count: workflow_curation.counts.potential_duplicates,
+      workflow_duplicate_group_count: workflow_curation.counts.duplicate_groups,
+      workflow_normalized_count: workflow_curation.counts.normalized,
+      workflow_connected_count: workflow_curation.counts.connected,
+      workflow_tested_count: workflow_curation.counts.tested,
+      workflow_production_ready_count: workflow_curation.counts.production_ready,
+      workflow_curation: workflow_curation,
       knowledge_source_count: length(knowledge_sources),
       knowledge_available_source_count:
         Enum.count(knowledge_sources, &(&1.availability == "AVAILABLE")),
