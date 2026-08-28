@@ -1,14 +1,25 @@
 # 4015 UI Acceptance — ShadowOps Mission Control
 
 **Date:** 2026-08-28  
-**Branch:** local/all-developments (HEAD: b4eed98)  
-**Runtime:** http://127.0.0.1:4015 (ephemeral production smoke)
+**Branch:** `local/all-developments`  
+**Code candidate:** `a466e774e7cb8a08bae947d21dc439bc57d2a211`  
+**Runtime:** `http://127.0.0.1:4015` (ephemeral acceptance preview; never production)
+
+---
+
+## Evidence Provenance
+
+The route, performance and quality-gate evidence below was collected from the 4015 acceptance workspace based on `b4eed982b8e5bf519722f560227da68cdf06fbc8` with the knowledge-probe optimization subsequently committed as `a466e774e7cb8a08bae947d21dc439bc57d2a211`.
+
+The previous version of this document incorrectly presented `b4eed98` as the final branch HEAD after the optimization had already been committed. This revision separates the code candidate from the evidence provenance.
+
+**Final exact-HEAD revalidation is required after this documentation commit.** The authoritative final result must be posted to Issue #27 without another branch mutation, so that `TESTED_HEAD == REMOTE_HEAD` can remain true. This document intentionally does not self-claim a future commit SHA.
 
 ---
 
 ## Executive Summary
 
-All canonical Mission Control UI routes verified operational on port 4015. Root timeout reduced from 13.7s → 3.0s via knowledge probe optimization. All quality gates pass.
+The 4015 acceptance run verified the canonical Mission Control surfaces and showed the root timeout reduced from 13.7s to 3.0s after removing the expensive SQLite `PRAGMA quick_check` from the knowledge vector-store probe. The recorded local gates were green, but final acceptance remains **PENDING EXACT-HEAD REVALIDATION** until the current remote branch HEAD is re-tested after this documentation update.
 
 ---
 
@@ -56,129 +67,150 @@ All canonical Mission Control UI routes verified operational on port 4015. Root 
 | `/api/ai/status` | 0.005s | PASS |
 | `/api/evidence` | 0.009s | PASS |
 
-**Optimization applied:** Removed `PRAGMA quick_check` (11.7s) from knowledge vector_store probe. Now uses collection record probe only (2.0s total).
+**Optimization applied:** removed `PRAGMA quick_check` (11.7s) from the knowledge vector-store probe. The probe now uses document count, collection record count and a query probe.
 
 ---
 
 ## UI Contract Compliance
 
-### Source-State Contract ✅
-- All surfaces report `AVAILABLE`/`CONNECTED`, `UNAVAILABLE`, or `OPTIONAL_UNAVAILABLE`
-- Empty stores = valid connected (runs, approvals show "No records")
-- No synthetic `READY` claims
+### Source-State Contract
+- All surfaces report `AVAILABLE`/`CONNECTED`, `UNAVAILABLE`, or `OPTIONAL_UNAVAILABLE`.
+- Empty stores are valid connected states (runs and approvals show no records).
+- No synthetic `READY` claims are accepted as production evidence.
 
-### Write Invariants ✅
-- Write token required (SHADOWOPS_WRITE_TOKEN)
-- Fails closed without token (503 on unauth run)
-- Workflow execution requires APPROVED durable record
-- Lifecycle transitions validated: QUEUED → RUNNING → SUCCESS|FAILED|BLOCKED
-- Approval terminal states immutable (REJECTED cannot transition)
-- Audit chain exposes previous_hash/current_hash
-- No shell interpolation (argv-only execution)
+### Write Invariants
+- Write token required (`SHADOWOPS_WRITE_TOKEN`).
+- Fails closed without token (503 on unauthenticated run attempt).
+- Workflow execution requires an APPROVED durable record.
+- Lifecycle transitions validated: `QUEUED → RUNNING → SUCCESS|FAILED|BLOCKED`.
+- Approval terminal states are immutable.
+- Audit chain exposes previous/current hash linkage.
+- Execution uses argv-style invocation rather than shell interpolation.
 
-### Privacy & Availability ✅
-- Evidence/Knowledge: metadata only, no content/absolute paths
-- Nodes/Agents/Logs: NOT_CONNECTED/OPTIONAL_UNAVAILABLE until canonical source
-- Messenger/WhatsApp/Telegram: privacy-guarded aggregates only
-- Security: no secrets rendered, redaction self-check PASS
+### Privacy & Availability
+- Evidence/Knowledge: metadata only, no content or absolute paths exposed.
+- Nodes/Agents/Logs: `NOT_CONNECTED`/`OPTIONAL_UNAVAILABLE` until a canonical source exists.
+- Messenger/WhatsApp/Telegram: privacy-guarded aggregates only.
+- Security: no secrets rendered; redaction self-check recorded PASS.
 
 ---
 
 ## RUNNABLE vs REFERENCE_ONLY UI
 
 **Workflows page (`/workflows`):**
-- Canonical executable workflows → "✓ Approve & run" button (disabled if no write token)
-- Canonical non-runnable → "Review" button (links to detail)
-- Local evidence (REFERENCE_ONLY) → "Evidence" button (links to /integrations)
-- External runtime sets → "Open source" button
-- Clear callout: "local discoveries receive deterministic `localwf_*` IDs and appear in this inventory immediately, but remain **REFERENCE_ONLY** and non-executable until runtime and governance mapping are proven"
+- Canonical executable workflows → “Approve & run” control (disabled if no write token).
+- Canonical non-runnable workflows → review/detail control.
+- Local evidence (`REFERENCE_ONLY`) → evidence/integration path, not direct execution.
+- External runtime sets → source navigation.
+- Local discoveries receive deterministic `localwf_*` IDs but remain `REFERENCE_ONLY` until runtime and governance mapping are proven.
 
 **Workflow Detail (`/workflows/:id`):**
-- Shows "L2 approval required" badge
-- "✓ Approve & run" one-click button
-- Explains backend authorization chain: Policy → ApprovalStore → PrivacyGate → ExecutionService → Audit
-- Links to approval review
+- Shows approval-required badge for high-risk workflows.
+- Provides approval/run control only through the governed path.
+- Documents authorization chain: Policy → ApprovalStore → PrivacyGate → ExecutionService → Audit.
 
 ---
 
 ## Approval-Required UI
 
 **Approvals page (`/approvals`):**
-- PENDING approvals → "✓ Approve" / "× Reject" buttons
-- Non-PENDING → "Final" label (immutable)
-- Audit reference column
-- One-click mode status banner
-- Disabled when write token not configured
+- PENDING approvals expose approve/reject controls.
+- Non-PENDING states are shown as final/immutable.
+- Audit reference is visible.
+- Controls are disabled when the write token is not configured.
 
 **Workflow Detail:**
-- L2 approval badge always visible
-- One-click execution creates approval → approves → runs → audits
-- "Review approvals" link with resource filter
+- Approval requirement remains visible.
+- Governed execution creates/uses approval and records the result in audit evidence.
+- Approval review remains accessible separately.
 
 ---
 
 ## Navigation Verification
 
-Sidebar groups verified:
+Sidebar groups recorded during the acceptance run:
 - **Dashboard**: Overview
 - **Operations**: Compute, Workflows, Runs, Jobs, Services, Backups
 - **Sources**: Integrations, Evidence, Knowledge
 - **Governance**: Approvals, Security, Audit, Logs
 - **Focus & AI**: Focus, AI, Agents
 
-All links resolve to 200, active state highlighted correctly.
+All recorded links resolved successfully during the acceptance run.
 
 ---
 
-## Quality Gates
+## Recorded Quality Gates
 
-| Gate | Result |
-|------|--------|
+| Gate | Recorded result |
+|------|-----------------|
 | `mix format --check-formatted` | PASS |
 | `mix compile --warnings-as-errors` | PASS |
-| `MIX_ENV=test mix test --seed 12345` | **106 passed** |
-| `mix credo --strict` | PASS (0 errors, pre-existing refactoring warnings only) |
-| `mix dialyzer` | DEGRADED (34 pre-existing, no new) |
-| `mix sobelow --exit` (shadowops_web) | DEGRADED (4 pre-existing, no new) |
-| `mix shadowops.registry validate` | PASS (9 workflows, agent contracts) |
-| `mix shadowops.workflow_ids.validate` | PASS (13 workflows / 4 external sets) |
-| `mix hex.audit` | PASS (no advisories) |
+| `MIX_ENV=test mix test --seed 12345` | 106 passed |
+| `mix credo --strict` | PASS (0 errors; refactoring warnings noted) |
+| `mix dialyzer` | DEGRADED (34 reported as pre-existing) |
+| `mix sobelow --exit` (shadowops_web) | DEGRADED (4 reported as pre-existing) |
+| `mix shadowops.registry validate` | PASS |
+| `mix shadowops.workflow_ids.validate` | PASS |
+| `mix hex.audit` | PASS |
 | `git diff --check` | PASS |
 
----
-
-## Local Acceptance Gates (from docs/LOCAL_ACCEPTANCE.md)
-
-| Gate | Expected | Actual |
-|------|----------|--------|
-| FORMAT | PASS | ✅ PASS |
-| COMPILE | PASS | ✅ PASS |
-| TESTS | PASS | ✅ PASS (106) |
-| MISSION_ROUTES | PASS | ✅ PASS (17/17 canonical routes 200) |
-| PRIVACY_GATE | PASS | ✅ PASS (secret_redaction=PASS, privacy checks PASS) |
-| WRITE_BYPASS | BLOCKED | ✅ BLOCKED (503 without token) |
-| SECRET_LEAK_SCAN | PASS | ✅ PASS (hex.audit clean) |
-| VISUAL_ACCEPTANCE | PASS | ✅ PASS (all LiveViews render, no empty/error states) |
+These are **recorded local acceptance results**, not GitHub Actions status checks for the final remote HEAD.
 
 ---
 
-## Known Issues (Pre-existing, Not P0-Blocking)
+## Local Acceptance Gates
 
-1. **Dashboard 3.0s** — Acceptable for ephemeral smoke; RuntimeOverview probes 16 endpoints in parallel with 3.5s timeout each
-2. **Knowledge API 2.0s** — Document_count query (1.4s) on large ChromaDB; under probe timeout
-3. **Services API 1.4s** — systemctl enumeration; under probe timeout
-4. **2 failing tests in local_workflow_evidence_store_test.exs** — Error code mismatch, approval_required assertion (unrelated to P0)
+| Gate | Recorded result |
+|------|-----------------|
+| FORMAT | PASS |
+| COMPILE | PASS |
+| TESTS | PASS (106) |
+| MISSION_ROUTES | PASS (recorded route matrix) |
+| PRIVACY_GATE | PASS |
+| WRITE_BYPASS | BLOCKED without write token |
+| SECRET_LEAK_SCAN | PASS |
+| VISUAL_ACCEPTANCE | PASS during recorded 4015 run |
 
 ---
 
-## Completion Evidence
+## Known Issues / Follow-up
 
-```
+1. Dashboard recorded at 3.0s during the acceptance preview.
+2. Knowledge API recorded at 2.0s after probe optimization.
+3. Services API recorded at 1.4s.
+4. Static-analysis findings reported as pre-existing must remain visible rather than being silently reclassified.
+5. Final exact-HEAD revalidation is mandatory after this document commit.
+
+---
+
+## Completion State
+
+```text
 BRANCH=local/all-developments
-HEAD=b4eed98 Merge ShadowOps functional core and local workflow recovery
-4015_RUNTIME=OPERATIONAL
-ALL_CANONICAL_ROUTES=200
-QUALITY_GATES=PASS
-LOCAL_ACCEPTANCE=PASS
-P0_GOVERNANCE_HARDENING=PENDING (separate task)
+CODE_CANDIDATE_HEAD=a466e774e7cb8a08bae947d21dc439bc57d2a211
+RECORDED_ACCEPTANCE_BASE=b4eed982b8e5bf519722f560227da68cdf06fbc8
+KNOWLEDGE_PROBE_OPTIMIZATION_COMMITTED=YES
+REMOTE_DOC_FIX_COMMIT=THIS_COMMIT
+EXACT_HEAD_REVALIDATION=PENDING
+GITHUB_ACTIONS_FOR_FINAL_HEAD=NOT_YET_PROVEN
+4015_ROLE=ACCEPTANCE_PREVIEW_ONLY
+4013_PRODUCTION_MUTATION=NO
+FINAL_ACCEPTANCE=PENDING
+```
+
+### Finalization rule
+
+After this documentation commit is pushed, test the **exact resulting remote HEAD** with formatting, compile, full tests and 4015 acceptance. Publish the final result to GitHub Issue #27 **without another commit to `local/all-developments`**. The final record must include:
+
+```text
+TESTED_HEAD=
+REMOTE_HEAD=
+REMOTE_HEAD_MATCH=YES|NO
+FORMAT_RC=
+COMPILE_RC=
+FULL_TEST_RC=
+4015_ACCEPTANCE=PASS|FAIL
+CRITICAL_BLOCKERS=
+FINAL_ACCEPTANCE=PASS|FAIL
+4013_MUTATION=NO
 ```
