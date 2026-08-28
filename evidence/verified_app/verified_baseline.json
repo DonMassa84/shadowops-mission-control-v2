@@ -1,0 +1,18 @@
+{
+  "acceptance_port": 4015,
+  "approval_required": false,
+  "audit": "PASS",
+  "execution": "PASS",
+  "fail_closed": "PASS",
+  "generated_at": "2026-08-28T15:21:23.173278+00:00",
+  "health": "PASS",
+  "production_promotion": false,
+  "ready": "PASS",
+  "result_sha256": "cc6d52ddd6295690012b6ba11425d69161150a9ee2996e9aaed920a46ca0afe4",
+  "risk": "L0",
+  "run_id": "6e24d760-fd4e-4649-bb04-c58fcd1c092f",
+  "run_store": "PASS",
+  "schema": "shadowops-verified-baseline-v1",
+  "unverified_workflow_blocked": "PASS",
+  "workflow_id": "so:wf:v1:shadowops-verified-self-check"
+}

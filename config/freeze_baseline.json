@@ -1,0 +1,50 @@
+{
+  "schema": "shadowops-foundation-freeze-v1",
+  "status": "FROZEN",
+  "principle": "Fundament frozen. Produkt offen.",
+  "generated_at": "2026-08-28T15:21:23.073561+00:00",
+  "baseline_parent_sha": "cd32a458261cda018841d4071bbddd13f565c0b3",
+  "frozen": [
+    "github_pipeline_baseline",
+    "fail_closed",
+    "approval",
+    "audit",
+    "privacy_gate",
+    "evidence_gate",
+    "workflow_lifecycle",
+    "risk_L0_L3",
+    "4013_protection",
+    "importer_contract",
+    "canonical_ids",
+    "isolated_worker_model",
+    "ui_base"
+  ],
+  "product_open": [
+    "real_workflows",
+    "registry_contents",
+    "real_sources",
+    "connectors",
+    "execution",
+    "runs",
+    "results",
+    "audit_ui",
+    "bugfixes",
+    "performance",
+    "useful_ux"
+  ],
+  "freeze_exceptions": [
+    "REPRODUCIBLE_PRODUCT_BUG",
+    "SECURITY_DEFECT",
+    "RELEASE_BLOCKER"
+  ],
+  "ports": {
+    "dev": 4014,
+    "acceptance": 4015,
+    "production": 4013
+  },
+  "production": {
+    "automatic_promotion": false,
+    "explicit_approval_required": true,
+    "force_push": false
+  }
+}

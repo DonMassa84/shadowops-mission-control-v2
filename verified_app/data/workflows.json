@@ -1,0 +1,6 @@
+{
+  "schema": "shadowops-verified-app-v1",
+  "policy": "fail-closed",
+  "count": 0,
+  "workflows": []
+}

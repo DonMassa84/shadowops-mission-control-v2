@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-08-28T15:21:23.277727+00:00",
+  "parent_head": "cd32a458261cda018841d4071bbddd13f565c0b3",
+  "records": [
+    {
+      "bytes": 1521,
+      "file": "docs/governance/FREEZE_BASELINE.md",
+      "sha256": "9b033cb55c8470a391ef8ddae1528123cc23a01c8dcae7b73135319c2d77cce5"
+    },
+    {
+      "bytes": 327,
+      "file": "docs/governance/PRODUCT_FIRST.md",
+      "sha256": "a83612f8675b245811d63175a794ab3ebb92782b397adfb875fec7296452fb1a"
+    },
+    {
+      "bytes": 1072,
+      "file": "config/freeze_baseline.json",
+      "sha256": "783f9acbbf9dd1ace8b152fed86d22ba47b1f5da0b02c0d385693e096f064f22"
+    },
+    {
+      "bytes": 1146,
+      "file": "scripts/freeze_gate.py",
+      "sha256": "4728a2ed3c015db80d77eb6dfbb1df6ecc1e8cb5ce3bfa2e45dd92e88c853698"
+    },
+    {
+      "bytes": 13532,
+      "file": "verified_app/server.py",
+      "sha256": "735fdf8948524ef869c761b5cf126dab8af0b5394dc064dce79921a8b4c0ff54"
+    },
+    {
+      "bytes": 3470,
+      "file": "verified_app/static/index.html",
+      "sha256": "35d9d90a014f59f3a783538afc0981ad7f3cd10c1fb12a4fa38615395bd4d47c"
+    },
+    {
+      "bytes": 4908,
+      "file": "verified_app/static/app.css",
+      "sha256": "0231e734239c270489b7898fecea586fb4ef8319671856f989a5568fde3992c7"
+    },
+    {
+      "bytes": 4383,
+      "file": "verified_app/static/app.js",
+      "sha256": "8d4dd16215701b9e84195d3627c3ad2bb7e0387dd2f24f804ea7d81204a3ce8a"
+    },
+    {
+      "bytes": 1847,
+      "file": "verified_app/tests/test_verified_app.py",
+      "sha256": "125511eeb254982f69f4a57696b031e2d97a2286286147d5081bab30a74641f6"
+    },
+    {
+      "bytes": 1555,
+      "file": "verified_app/tests/test_verified_e2e.py",
+      "sha256": "e8069e657a40a00ec27d8c4242b174ef57ea54420d26576d4622f208b56463b6"
+    },
+    {
+      "bytes": 577,
+      "file": "evidence/verified_app/verified_baseline.json",
+      "sha256": "a3eed9ffdd32f082b5b241f7453a114270c1d3c8c49552ccafb1ee68040093ea"
+    },
+    {
+      "bytes": 65,
+      "file": "evidence/verified_app/verified_baseline.sha256",
+      "sha256": "f7af1d57e2512d452ffc02a04acb4b1e034305853b9d6b42a31908fcf1968f28"
+    }
+  ],
+  "schema": "shadowops-freeze-evidence-v1"
+}

@@ -47,3 +47,11 @@ erl_crash.dump
 .idea/
 .DS_Store
 Thumbs.db
+
+# ShadowOps Verified runtime artifacts
+verified_app/data/runs/*.json
+verified_app/data/audit/*.json
+evidence/verified_app/server-4014.log
+evidence/verified_app/server-4014.pid
+evidence/verified_app/server-4015.log
+evidence/verified_app/server-4015.pid

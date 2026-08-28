@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ShadowOps Verified</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="brand">
+      <div class="logo">S</div>
+      <div>
+        <strong>SHADOWOPS</strong>
+        <small>VERIFIED</small>
+      </div>
+    </div>
+
+    <nav>
+      <button class="active">◈ Dashboard</button>
+      <button>✓ Verified Workflows</button>
+      <button>▶ Runs</button>
+      <button>▣ Audit</button>
+    </nav>
+
+    <div class="sideStatus">
+      <span class="dot"></span>
+      LOCAL VERIFIED
+      <small>Fail-closed mode</small>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <h1>Mission Control</h1>
+        <p>Only proven capabilities are visible.</p>
+      </div>
+      <div class="systemReady">
+        <span class="dot"></span>
+        SYSTEM READY
+      </div>
+    </header>
+
+    <section class="metrics">
+      <article>
+        <small>REGISTERED</small>
+        <strong id="workflowCount">–</strong>
+        <span>concrete workflows</span>
+      </article>
+      <article>
+        <small>EXECUTION</small>
+        <strong id="executionCount">0</strong>
+        <span>verified end-to-end</span>
+      </article>
+      <article>
+        <small>POLICY</small>
+        <strong>FAIL CLOSED</strong>
+        <span>unknown means blocked</span>
+      </article>
+      <article>
+        <small>PRODUCTION</small>
+        <strong>PROTECTED</strong>
+        <span>:4013 untouched</span>
+      </article>
+    </section>
+
+    <section class="layout">
+      <article class="panel">
+        <div class="panelHead">
+          <div>
+            <small>VERIFIED INVENTORY</small>
+            <h2>Workflows</h2>
+          </div>
+          <input id="search" placeholder="Search workflow…">
+        </div>
+        <div id="workflowList"></div>
+      </article>
+
+      <article class="panel detail">
+        <div id="emptyState">
+          <div class="bigCheck">✓</div>
+          <h2>Select a workflow</h2>
+          <p>Only definitions backed by repository evidence are listed.</p>
+        </div>
+
+        <div id="detailState" hidden>
+          <span class="badge">REGISTERED</span>
+          <h2 id="detailName"></h2>
+          <code id="detailId"></code>
+
+          <div class="flow">
+            <div>Workflow</div>
+            <span>→</span>
+            <div>Gate</div>
+            <span>→</span>
+            <div>Executor</div>
+            <span>→</span>
+            <div>Result</div>
+            <span>→</span>
+            <div>Audit</div>
+          </div>
+
+          <dl>
+            <div>
+              <dt>Definition</dt>
+              <dd id="definitionStatus"></dd>
+            </div>
+            <div>
+              <dt>Execution</dt>
+              <dd id="executionStatus"></dd>
+            </div>
+            <div>
+              <dt>Risk</dt>
+              <dd id="riskStatus"></dd>
+            </div>
+          </dl>
+
+          <button id="startButton" class="start">
+            Execution not yet verified
+          </button>
+
+          <pre id="result"></pre>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <span>FAIL-CLOSED</span>
+      <span>NO INVENTED READINESS</span>
+      <span>4013 PROTECTED</span>
+      <span>LOCAL :4014</span>
+    </footer>
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
