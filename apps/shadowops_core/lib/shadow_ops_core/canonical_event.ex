@@ -9,6 +9,7 @@ defmodule ShadowOpsCore.CanonicalEvent do
     whatsapp.ingested whatsapp.analysis_completed workflow.started workflow.completed
     workflow.failed service.failed service.recovered node.online node.offline agent.started
     agent.completed agent.failed approval.requested approval.granted approval.rejected
+    approval.consumed
   )
   @privacy ~w(local_only metadata_only aggregate_only sanitized public)
   @forbidden_keys ~w(body content text message messages subject snippet sender recipient phone email attachment attachments raw)
