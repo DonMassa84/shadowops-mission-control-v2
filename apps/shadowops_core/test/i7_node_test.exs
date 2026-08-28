@@ -21,11 +21,13 @@ defmodule ShadowOpsCore.I7NodeTest do
     assert node.real_data
     refute node.synthetic
     assert node.metadata.cpu_count == 8
+
     assert node.metadata.verified_capabilities == [
              "supplementary_compute",
              "repository_change",
              "qa"
            ]
+
     refute node.metadata.arbitrary_shell
     refute node.metadata.arbitrary_systemd
     refute node.metadata.production_control_plane
