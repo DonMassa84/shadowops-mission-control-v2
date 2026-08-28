@@ -91,7 +91,7 @@ defmodule ShadowOpsCore.WorkflowCuration do
       production_ready: lifecycle_status == "PRODUCTION_READY",
       adapter: Map.get(record, :adapter),
       capability: Map.get(record, :capability),
-      approval_required: Map.get(record, :approval_required, risk in ~w(L2 L3)),
+      approval_required: risk in ~w(L2 L3),
       evidence_refs: Map.get(record, :evidence_refs, []),
       verified_at: Map.get(record, :verified_at),
       verified_by: Map.get(record, :verified_by)
@@ -111,7 +111,6 @@ defmodule ShadowOpsCore.WorkflowCuration do
       :adapter,
       :capability,
       :risk_level,
-      :approval_required,
       :evidence_refs,
       :verified_at,
       :verified_by
