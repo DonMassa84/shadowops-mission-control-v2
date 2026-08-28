@@ -1,4 +1,6 @@
 defmodule ShadowOpsWeb.Application do
+  @moduledoc "Application supervisor for the ShadowOps web interface."
+
   use Application
 
   @impl true
