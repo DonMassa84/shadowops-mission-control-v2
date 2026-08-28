@@ -1,0 +1,17 @@
+{
+  "tcc_path": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json",
+  "tcc_exists": true,
+  "tcc_total_workflows": 48,
+  "tcc_whatsapp_count": 16,
+  "agent_exists": true,
+  "maintenance_exists": true,
+  "worker_exists": true,
+  "verified_app_path": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+  "verified_app_count": 16,
+  "specs_count": 16,
+  "capabilities_known": [
+    "WHATSAPP_MAINTENANCE",
+    "WHATSAPP_ACTION",
+    "WHATSAPP_MONITORING"
+  ]
+}

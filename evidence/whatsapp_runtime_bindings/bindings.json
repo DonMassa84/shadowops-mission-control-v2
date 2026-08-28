@@ -1,0 +1,544 @@
+{
+  "generated_at": "2026-08-28T22:05:24.591223+00:00",
+  "count": 16,
+  "bindings": [
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-status",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "status"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 120,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-sync-status",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "sync-status"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 60,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-worker-status",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "worker-status"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 60,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-queue",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "queue"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 60,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-doctor",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "doctor"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 120,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "BLOCKED",
+      "BLOCK_REASONS": [
+        "META_NOT_CONFIGURED_AND_ADMIN_API_UNAVAILABLE"
+      ],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": false,
+      "START_ENABLED": false,
+      "STATUS": "BLOCKED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-contacts",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "contacts"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 60,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-report",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "report"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 300,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-meta-status",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "meta-status"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 120,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "BLOCKED",
+      "BLOCK_REASONS": [
+        "META_PHONE_NUMBER_ID_PLACEHOLDER"
+      ],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": false,
+      "START_ENABLED": false,
+      "STATUS": "BLOCKED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-maintenance-15min",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/run-maintenance.sh",
+      "EXECUTOR_ARGV": [
+        "15min"
+      ],
+      "CAPABILITY": "WHATSAPP_MONITORING",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 300,
+      "RISK": "L0",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/run-maintenance.sh",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-maintenance-hourly",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/run-maintenance.sh",
+      "EXECUTOR_ARGV": [
+        "hourly"
+      ],
+      "CAPABILITY": "WHATSAPP_MAINTENANCE",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 600,
+      "RISK": "L1",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/run-maintenance.sh",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-maintenance-daily",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/run-maintenance.sh",
+      "EXECUTOR_ARGV": [
+        "daily"
+      ],
+      "CAPABILITY": "WHATSAPP_MAINTENANCE",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 900,
+      "RISK": "L1",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/run-maintenance.sh",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-backup",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "backup"
+      ],
+      "CAPABILITY": "WHATSAPP_MAINTENANCE",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 300,
+      "RISK": "L1",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-worker-drain",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/run-worker.sh",
+      "EXECUTOR_ARGV": [
+        "--once"
+      ],
+      "CAPABILITY": "WHATSAPP_MAINTENANCE",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 600,
+      "RISK": "L1",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/run-worker.sh",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-retry-all",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "retry-all"
+      ],
+      "CAPABILITY": "WHATSAPP_MAINTENANCE",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 120,
+      "RISK": "L1",
+      "APPROVAL_REQUIRED": false,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "RUNNABLE",
+      "BLOCK_REASONS": [],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": true,
+      "START_ENABLED": true,
+      "STATUS": "ACCEPTED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-purge-expired",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "purge-expired",
+        "--confirm"
+      ],
+      "CAPABILITY": "WHATSAPP_ACTION",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 300,
+      "RISK": "L2",
+      "APPROVAL_REQUIRED": true,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "BLOCKED",
+      "BLOCK_REASONS": [
+        "APPROVAL_REQUIRED"
+      ],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": false,
+      "START_ENABLED": false,
+      "STATUS": "BLOCKED"
+    },
+    {
+      "WORKFLOW_ID": "so:wf:v1:whatsapp-meta-subscribe",
+      "SOURCE": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json",
+      "PROVENANCE": "EVIDENCED_IN_EXTERNAL_RUNTIME",
+      "RUNTIME": "TCC",
+      "EXECUTOR": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+      "EXECUTOR_ARGV": [
+        "meta-subscribe",
+        "--confirm"
+      ],
+      "CAPABILITY": "WHATSAPP_ACTION",
+      "INPUT_CONTRACT": [],
+      "TIMEOUT_SECONDS": 120,
+      "RISK": "L2",
+      "APPROVAL_REQUIRED": true,
+      "EVIDENCE": {
+        "tcc_file": "/home/schattenmacher/.config/shadowmaker-tasks/workflows.json EXISTS",
+        "tcc_contains_name": true,
+        "executor_path": "/home/schattenmacher/whatsapp-agent/scripts/whatsapp-agent",
+        "executor_exists": true,
+        "spec_in_tcc_adapter": true,
+        "verified_app_inventory": "/home/schattenmacher/Projects/shadowops-whatsapp-bindings/verified_app/data/workflows.json:16",
+        "registry_source": "workflow_registry_v2.external_runtime_sets.whatsapp_agent_pack",
+        "risk_match_spec_vs_inventory": true,
+        "capability_known": true,
+        "synthetic": false
+      },
+      "STATE": "BLOCKED",
+      "BLOCK_REASONS": [
+        "APPROVAL_REQUIRED"
+      ],
+      "DEFINITION_VERIFIED": true,
+      "EXECUTION_VERIFIED": false,
+      "START_ENABLED": false,
+      "STATUS": "BLOCKED"
+    }
+  ]
+}
