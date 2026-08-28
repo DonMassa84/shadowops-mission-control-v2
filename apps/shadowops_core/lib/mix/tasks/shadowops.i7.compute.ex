@@ -18,9 +18,7 @@ defmodule Mix.Tasks.Shadowops.I7.Compute do
         execute(String.to_existing_atom(job), sha)
 
       _ ->
-        Mix.raise(
-          "usage: mix shadowops.i7.compute <#{Enum.join(@jobs, "|")}> --sha <40-hex-sha>"
-        )
+        Mix.raise("usage: mix shadowops.i7.compute <#{Enum.join(@jobs, "|")}> --sha <40-hex-sha>")
     end
   end
 
