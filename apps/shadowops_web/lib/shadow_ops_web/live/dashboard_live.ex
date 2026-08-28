@@ -154,13 +154,13 @@ defmodule ShadowOpsWeb.DashboardLive do
         </div>
         <strong>{@card.value}</strong>
         <p :if={@card.note}>{@card.note}</p>
-        <dl>
-          <div><dt>Health</dt><dd>{@card.health}</dd></div>
-          <div><dt>Real data</dt><dd>{to_string(@card.real_data)}</dd></div>
-          <div><dt>Synthetic</dt><dd>{to_string(@card.synthetic)}</dd></div>
-          <div><dt>Reachable</dt><dd>{to_string(@card.reachable)}</dd></div>
-          <div><dt>Record count</dt><dd>{@card.record_count}</dd></div>
-          <div><dt>Source type</dt><dd>{@card.source_type}</dd></div>
+        <dl class="mc-dl">
+          <dt>Health</dt><dd>{@card.health}</dd>
+          <dt>Real data</dt><dd>{to_string(@card.real_data)}</dd>
+          <dt>Synthetic</dt><dd>{to_string(@card.synthetic)}</dd>
+          <dt>Reachable</dt><dd>{to_string(@card.reachable)}</dd>
+          <dt>Record count</dt><dd>{@card.record_count}</dd>
+          <dt>Source type</dt><dd>{@card.source_type}</dd>
         </dl>
         <p :if={@card.error} class="mc-muted">Reason: {@card.error}</p>
         <small>Source: {@card.source}</small>
