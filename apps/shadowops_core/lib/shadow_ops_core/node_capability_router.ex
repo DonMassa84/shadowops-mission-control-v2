@@ -65,6 +65,8 @@ defmodule ShadowOpsCore.NodeCapabilityRouter do
 
   @doc "Routes a capability over an explicit node collection."
   def route(capability, nodes, context \\ %{})
+
+  def route(capability, nodes, context)
       when is_binary(capability) and is_list(nodes) and is_map(context) do
     with :ok <- capability_allowed(capability),
          :ok <- target_guard(capability, context),
