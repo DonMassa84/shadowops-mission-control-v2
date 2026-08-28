@@ -91,6 +91,36 @@ if state_dir = System.get_env("SHADOWOPS_STATE_DIR") do
     run_path: Path.join(state_dir, "runs.jsonl")
 end
 
+# Determine bind IP: production is loopback-only; 4015 acceptance may
+# explicitly bind to a libvirt/shadowlab bridge via SHADOWOPS_BIND_IP.
+port = parse_integer!.("PORT", System.get_env("PORT", "4013"), 1..65_535)
+
+bind_ip =
+  if port == 4015 do
+    case System.get_env("SHADOWOPS_BIND_IP") do
+      nil ->
+        {127, 0, 0, 1}
+
+      bind_env ->
+        case String.split(bind_env, ".") do
+          [a, b, c, d] when is_binary(a) and is_binary(b) and is_binary(c) and is_binary(d) ->
+            case {Integer.parse(a), Integer.parse(b), Integer.parse(c), Integer.parse(d)} do
+              {{a_int, ""}, {b_int, ""}, {c_int, ""}, {d_int, ""}}
+              when a_int in 0..255 and b_int in 0..255 and c_int in 0..255 and d_int in 0..255 ->
+                {a_int, b_int, c_int, d_int}
+
+              _ ->
+                raise "SHADOWOPS_BIND_IP must be a valid IPv4 address, got: #{bind_env}"
+            end
+
+          _ ->
+            raise "SHADOWOPS_BIND_IP must be a valid IPv4 address, got: #{bind_env}"
+        end
+    end
+  else
+    {127, 0, 0, 1}
+  end
+
 if runtime_env == :prod do
   secret_key_base = required_secret!.("SHADOWOPS_SECRET_KEY_BASE", 64)
   read_token = required_secret!.("SHADOWOPS_READ_TOKEN", 32)
@@ -101,8 +131,6 @@ if runtime_env == :prod do
     end
   end
 
-  port = parse_integer!.("PORT", System.get_env("PORT", "4013"), 1..65_535)
-
   config :shadowops_web, read_token: read_token
 
   # ShadowOps is a local control plane. Production remains loopback-only; remote
@@ -111,5 +139,15 @@ if runtime_env == :prod do
     server: true,
     url: [host: System.get_env("SHADOWOPS_PUBLIC_HOST", "localhost"), port: port, scheme: "http"],
     http: [ip: {127, 0, 0, 1}, port: port],
+    secret_key_base: secret_key_base
+else
+  # Dev/acceptance (4014, 4015): apply the computed bind_ip (127.0.0.1 default,
+  # or explicit SHADOWOPS_BIND_IP for 4015)
+  secret_key_base = System.get_env("SHADOWOPS_SECRET_KEY_BASE") || String.duplicate("0", 64)
+
+  config :shadowops_web, ShadowOpsWeb.Endpoint,
+    server: true,
+    url: [host: System.get_env("SHADOWOPS_PUBLIC_HOST", "localhost"), port: port, scheme: "http"],
+    http: [ip: bind_ip, port: port],
     secret_key_base: secret_key_base
 end
