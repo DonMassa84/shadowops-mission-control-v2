@@ -20,6 +20,8 @@ defmodule ShadowOpsCore.NodeComputeDispatcher do
   }
 
   def dispatch(job, expected_sha, context \\ %{})
+
+  def dispatch(job, expected_sha, context)
       when is_atom(job) and is_binary(expected_sha) and is_map(context) do
     with {:ok, capability} <- capability_for(job),
          nodes <- current_nodes(),
