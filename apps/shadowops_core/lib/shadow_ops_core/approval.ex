@@ -28,7 +28,9 @@ defmodule ShadowOpsCore.Approval do
     :expires_at,
     :risk,
     :correlation_id,
-    :evidence_ref
+    :evidence_ref,
+    :consumed_at,
+    :consumed_by
   ]
 
   def new(attrs) do
@@ -72,6 +74,26 @@ defmodule ShadowOpsCore.Approval do
   end
 
   def decide(%__MODULE__{status: status}, _decision, _actor),
+    do: {:error, {:invalid_transition, status}}
+
+  def consume(%__MODULE__{status: "APPROVED"} = approval, actor)
+      when is_binary(actor) and actor != "" do
+    if expired?(approval) do
+      {:error, :expired}
+    else
+      {:ok,
+       %{
+         approval
+         | status: "CONSUMED",
+           consumed_at: DateTime.utc_now(),
+           consumed_by: actor
+       }}
+    end
+  end
+
+  def consume(%__MODULE__{status: "APPROVED"}, _actor), do: {:error, :valid_actor_required}
+
+  def consume(%__MODULE__{status: status}, _actor),
     do: {:error, {:invalid_transition, status}}
 
   def evaluate(%__MODULE__{} = approval, action, resource, risk \\ nil) do
