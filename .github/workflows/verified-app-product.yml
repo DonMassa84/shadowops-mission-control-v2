@@ -69,11 +69,43 @@ jobs:
           assert sum(x["risk"] == "L0" for x in w) == 9
           assert sum(x["risk"] == "L1" for x in w) == 5
           assert sum(x["risk"] == "L2" for x in w) == 2
-          assert not any(x.get("execution_verified") for x in w)
-          assert not any(x.get("start_enabled") for x in w)
+
+          accepted = [x for x in w if x.get("status") == "ACCEPTED"]
+          runtime_blocked = [
+              x for x in w
+              if x.get("status") == "BLOCKED"
+              and not x.get("approval_required")
+          ]
+          approval_gated = [
+              x for x in w
+              if x.get("approval_required")
+          ]
+
+          assert len(accepted) == 12
+          assert all(x.get("execution_verified") for x in accepted)
+          assert all(x.get("start_enabled") for x in accepted)
+
+          assert len(runtime_blocked) == 2
+          assert not any(x.get("execution_verified") for x in runtime_blocked)
+          assert not any(x.get("start_enabled") for x in runtime_blocked)
+
+          assert len(approval_gated) == 2
+          assert all(x.get("risk") == "L2" for x in approval_gated)
+          assert all(x.get("execution_status") == "APPROVAL_REQUIRED" for x in approval_gated)
+          assert not any(x.get("execution_verified") for x in approval_gated)
+          assert not any(x.get("start_enabled") for x in approval_gated)
+
+          assert d.get("acceptance") == {
+              "accepted": 12,
+              "runtime_blocked": 2,
+              "approval_gated": 2,
+          }
 
           print("INVENTORY=PASS")
-          print("FAKE_READY=0")
+          print("ACCEPTED=12")
+          print("RUNTIME_BLOCKED=2")
+          print("APPROVAL_GATED=2")
+          print("FAIL_CLOSED=PASS")
           PY
 
       - name: Set up Erlang and Elixir
