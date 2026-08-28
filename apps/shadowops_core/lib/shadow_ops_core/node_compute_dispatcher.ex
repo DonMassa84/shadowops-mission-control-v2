@@ -23,7 +23,8 @@ defmodule ShadowOpsCore.NodeComputeDispatcher do
       when is_atom(job) and is_binary(expected_sha) and is_map(context) do
     with {:ok, capability} <- capability_for(job),
          nodes <- current_nodes(),
-         {:ok, %{node_id: "i7"} = route} <- NodeCapabilityRouter.route(capability, nodes, context),
+         {:ok, %{node_id: "i7"} = route} <-
+           NodeCapabilityRouter.route(capability, nodes, context),
          {:ok, result} <- I7RemoteExecutor.execute(job, expected_sha) do
       {:ok, %{route: route, execution: result}}
     else
