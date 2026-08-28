@@ -26,18 +26,24 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-d = json.loads(
-    Path("verified_app/data/workflows.json").read_text()
-)
-
+d = json.loads(Path("verified_app/data/workflows.json").read_text())
 w = d["workflows"]
 
 assert len(w) == 16
 assert len({x["id"] for x in w}) == 16
-assert not any(x.get("execution_verified") for x in w)
-assert not any(x.get("start_enabled") for x in w)
+assert sum(bool(x.get("execution_verified")) for x in w) == 12
+assert sum(bool(x.get("start_enabled")) for x in w) == 12
+assert sum(bool(x.get("approval_required")) for x in w) == 2
+assert all(not x.get("start_enabled") for x in w if x.get("risk") == "L2")
+assert all(not x.get("execution_verified") for x in w if x.get("risk") == "L2")
+
+blocked = {x["name"] for x in w if x.get("status") == "BLOCKED" and x.get("risk") != "L2"}
+assert blocked == {"whatsapp-doctor", "whatsapp-meta-status"}
 
 print("INVENTORY=PASS")
+print("REAL_ACCEPTED=12")
+print("RUNTIME_BLOCKED=2")
+print("APPROVAL_GATED=2")
 print("FAIL_CLOSED=PASS")
 PY
 
