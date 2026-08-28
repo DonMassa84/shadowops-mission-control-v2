@@ -1,0 +1,16 @@
+{
+  "node_id": "i7",
+  "id": "node-i7",
+  "name": "i7 node",
+  "status": "OPTIONAL_UNAVAILABLE",
+  "health": "UNAVAILABLE",
+  "source": "/home/schattenmacher/.local/bin/i7-status",
+  "source_type": "AUTHORIZED_LOCAL_PROBE",
+  "real_data": false,
+  "synthetic": false,
+  "enabled": true,
+  "reachable": false,
+  "error_code": "NODE_UNREACHABLE",
+  "error_message": "Authorized i7 status probe did not confirm reachability",
+  "latency_ms": 1005
+}

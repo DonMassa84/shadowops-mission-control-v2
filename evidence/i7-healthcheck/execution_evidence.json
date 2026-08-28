@@ -1,0 +1,23 @@
+{
+  "workflow_id": "i7.healthcheck",
+  "node_id": "i7",
+  "node_reachable": false,
+  "executor": "ScriptAdapter (canonical_workflow)",
+  "bounded_command": "/home/schattenmacher/.local/bin/i7-status",
+  "arbitrary_command_path": 0,
+  "risk_level": "L0",
+  "approval_required": false,
+  "direct_execution": {
+    "context": {"risk_level": "L0", "workflow_id": "i7.healthcheck"},
+    "result": {"exit_code": 1, "summary": "AUS/OFFLINE (10.42.0.44)\n"},
+    "audit_ref": "audit_a8f9ca65ec0051ac79b2ba17",
+    "status": "execution_failed (i7 offline - expected)"
+  },
+  "tracker_execution": {
+    "run_id": "run_8c58c213dd458694ed0a7c91",
+    "status": "BLOCKED",
+    "result": "approval_required",
+    "audit_ref": "audit_1539c6a7de27ba3ed06bfbd7",
+    "blocker": "ExecutionTracker.authorize_workflow hardcodes capability risk L2 for workflow.execute"
+  }
+}

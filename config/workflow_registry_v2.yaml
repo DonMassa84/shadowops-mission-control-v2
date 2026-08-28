@@ -1,12 +1,10 @@
 schema_version: 2
 registry_name: shadowops-workflows
 status: migration_candidate
-
 compatibility:
   legacy_registry: config/workflow_registry.yaml
   cutover_policy: keep_v1_until_elixir_loader_and_gates_validate_v2
   source_of_truth_during_migration: dual_registry
-
 workflows:
   finanzabgleich:
     type: business
@@ -20,31 +18,30 @@ workflows:
     master: docs/finanzen/Soll-Ist-Abgleich_VfB-AFBG-KfW-IHK-Jobcenter.md
     orchestrator: config/agents/finanzen/finanzabgleich_orchestrator.yaml
     agents:
-      - id: finanz_quellen_agent
-        path: config/agents/finanzen/finanz_quellen_agent.yaml
-        order: 10
-        required: true
-      - id: finanz_zahlungsketten_agent
-        path: config/agents/finanzen/finanz_zahlungsketten_agent.yaml
-        order: 20
-        required: true
-      - id: finanz_foerderkontroll_agent
-        path: config/agents/finanzen/finanz_foerderkontroll_agent.yaml
-        order: 30
-        required: true
-      - id: finanz_master_sync_agent
-        path: config/agents/finanzen/finanz_master_sync_agent.yaml
-        order: 40
-        required: true
+    - id: finanz_quellen_agent
+      path: config/agents/finanzen/finanz_quellen_agent.yaml
+      order: 10
+      required: true
+    - id: finanz_zahlungsketten_agent
+      path: config/agents/finanzen/finanz_zahlungsketten_agent.yaml
+      order: 20
+      required: true
+    - id: finanz_foerderkontroll_agent
+      path: config/agents/finanzen/finanz_foerderkontroll_agent.yaml
+      order: 30
+      required: true
+    - id: finanz_master_sync_agent
+      path: config/agents/finanzen/finanz_master_sync_agent.yaml
+      order: 40
+      required: true
     internal_statuses:
-      - BELEGT
-      - RECHNERISCH
-      - OFFEN
-      - WIDERSPRUCH
+    - BELEGT
+    - RECHNERISCH
+    - OFFEN
+    - WIDERSPRUCH
     quality_gates:
-      - finance_quality_gate
+    - finance_quality_gate
     migration_priority: 1
-
   career_email_only:
     type: business
     domain: career
@@ -53,26 +50,25 @@ workflows:
     target_runtime: elixir
     definition: config/career_email_only_workflow.yaml
     pipeline:
-      - DISCOVER
-      - VERIFY_EMAIL
-      - DEDUPE_ADDRESS
-      - DEDUPE_COMPANY
-      - FIT_CHECK
-      - COMPANY_RESEARCH
-      - CUSTOMIZE_COVER_LETTER
-      - CUSTOMIZE_CV
-      - SELECT_EVIDENCE
-      - PDF_QA
-      - SEND_EMAIL
-      - VERIFY_SENT
-      - WRITE_GITHUB_REPORT
-      - WRITE_OBSIDIAN_NOTE
-      - FOLLOW_UP
+    - DISCOVER
+    - VERIFY_EMAIL
+    - DEDUPE_ADDRESS
+    - DEDUPE_COMPANY
+    - FIT_CHECK
+    - COMPANY_RESEARCH
+    - CUSTOMIZE_COVER_LETTER
+    - CUSTOMIZE_CV
+    - SELECT_EVIDENCE
+    - PDF_QA
+    - SEND_EMAIL
+    - VERIFY_SENT
+    - WRITE_GITHUB_REPORT
+    - WRITE_OBSIDIAN_NOTE
+    - FOLLOW_UP
     external_side_effects:
-      - SEND_EMAIL
+    - SEND_EMAIL
     approval_policy: to_define_for_product_runtime
     migration_priority: 2
-
   document_ai:
     type: business
     domain: documents
@@ -82,11 +78,10 @@ workflows:
     worker_runtime: python
     orchestration_target: elixir
     source_components:
-      - app/ihk_ai.py
-      - app/cli.py
+    - app/ihk_ai.py
+    - app/cli.py
     registry_definition_status: planned
     migration_priority: 3
-
   repository_quality:
     type: system
     domain: ci
@@ -94,13 +89,12 @@ workflows:
     runtime: github_actions
     definition: .github/workflows/product-release-gate.yml
     responsibility:
-      - python_install
-      - syntax
-      - tests
-      - repository_hygiene
-      - secret_guard
-      - quality_gate
-
+    - python_install
+    - syntax
+    - tests
+    - repository_hygiene
+    - secret_guard
+    - quality_gate
   finance_quality_gate:
     type: system
     domain: ci
@@ -111,23 +105,21 @@ workflows:
     runtime: github_actions
     definition: .github/workflows/finanzabgleich-gate.yml
     responsibility:
-      - finance_required_files
-      - legacy_registry_validation
-      - finance_agent_chain
-      - finance_master_structure
-      - privacy_gate
-
+    - finance_required_files
+    - legacy_registry_validation
+    - finance_agent_chain
+    - finance_master_structure
+    - privacy_gate
   agent_state_sync:
     type: system
     domain: system
     status: VERIFIED_EXECUTABLE
     runtime: /usr/bin/flock
     argv:
-      - "-n"
-      - /home/schattenmacher/.local/state/agent-state-hub/sync.lock
-      - /home/schattenmacher/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync
+    - -n
+    - /home/schattenmacher/.local/state/agent-state-hub/sync.lock
+    - /home/schattenmacher/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync
     definition: /home/schattenmacher/.config/systemd/user/agent-state-sync.service
-
   career_funnel_ihk:
     type: business
     domain: career
@@ -137,7 +129,6 @@ workflows:
     runtime: /home/schattenmacher/.local/bin/career-funnel
     definition: /home/schattenmacher/.config/systemd/user/career-funnel-ihk.service
     disabled_reason: configured IHK project directory is not present
-
   daily_digest:
     type: system
     domain: reporting
@@ -145,7 +136,6 @@ workflows:
     runtime: /home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh
     argv: []
     definition: /home/schattenmacher/.config/systemd/user/daily-digest.service
-
   shadow_system_overnight_audit:
     type: system
     domain: security
@@ -153,7 +143,128 @@ workflows:
     runtime: /home/schattenmacher/03_scripts/system_overnight_audit.sh
     argv: []
     definition: /home/schattenmacher/.config/systemd/user/shadow-system-overnight-audit.service
-
+  gmail_read:
+    type: system
+    domain: communication
+    status: active
+    runtime: gmail
+    definition: lib/shadow_ops_core/adapters/gmail_adapter.ex
+    responsibility:
+    - inbox_discovery
+    - sent_discovery
+    - thread_discovery
+    - message_metadata
+    - attachment_metadata
+    privacy:
+      raw_data: local_only
+      gmail: metadata_only
+    evidence_required: true
+    synthetic: false
+  gmail_classify:
+    type: system
+    domain: communication
+    status: active
+    runtime: gmail
+    definition: lib/shadow_ops_core/adapters/gmail_adapter.ex
+    responsibility:
+    - message_classification
+    - pii_detection
+    - priority_scoring
+    privacy:
+      raw_data: local_only
+      gmail: metadata_only
+    evidence_required: true
+    synthetic: false
+  gmail_attachment:
+    type: system
+    domain: communication
+    status: active
+    runtime: gmail
+    definition: lib/shadow_ops_core/adapters/gmail_adapter.ex
+    responsibility:
+    - attachment_metadata
+    - content_hash
+    - mime_verification
+    privacy:
+      raw_data: local_only
+      gmail: metadata_only
+    evidence_required: true
+    synthetic: false
+  pdf_governance:
+    type: system
+    domain: documents
+    class: READ_EVIDENCE_ONLY
+    status: READY
+    source: /mnt/nvme-data/openclaw_training/workflows
+    source_type: LOCAL_FIXED_PATH
+    real_data: true
+    synthetic: false
+    reachable: true
+    evidence:
+      pdf_total: 2756
+      text_extracted: 2174
+      record_count: 2756
+      artifact_count: 5
+      artifact_status: ALL_PRESENT
+      hash_verified: true
+    capabilities:
+    - pdf_governance.read
+    privacy:
+      raw_data: local_only
+      classification: DOCUMENT_GOVERNANCE
+    approval_required: false
+    executable: false
+    runtime: local_fixed_path
+    definition: /home/schattenmacher/openclaw_training/data/workflow_status/pdf_governance_status.json
+  repo_governance:
+    type: system
+    domain: repositories
+    class: READ_EVIDENCE_ONLY
+    status: READY
+    source: /mnt/nvme-data/openclaw_training
+    source_type: LOCAL_FIXED_PATH
+    real_data: true
+    synthetic: false
+    reachable: true
+    evidence:
+      raw_repo_entries: 225
+      canonical_repo_groups: 130
+      priority_p0: 18
+      priority_p1: 38
+      priority_p2: 46
+      priority_p3: 28
+      priority_check: PASS
+      dirty_groups: 0
+      multi_copy_groups: 0
+      no_remote_groups: 0
+      artifact_count: 6
+      artifact_status: ALL_PRESENT
+      hash_verified: true
+    capabilities:
+    - repo_governance.read
+    privacy:
+      raw_data: local_only
+      classification: REPOSITORY_GOVERNANCE
+    approval_required: false
+    executable: false
+    runtime: local_fixed_path
+    definition: /home/schattenmacher/openclaw_training/data/workflow_status/repo_governance_status.json
+  i7.healthcheck:
+    type: system
+    domain: infrastructure
+    status: VERIFIED_EXECUTABLE
+    runtime: /home/schattenmacher/.local/bin/i7-status
+    argv: []
+    definition: /home/schattenmacher/.local/bin/i7-status
+    risk_level: L0
+    evidence:
+      required: true
+    inputs: []
+    outputs: []
+    privacy:
+      raw_data: local_only
+      github: metadata_only
+    synthetic: false
 agent_contracts:
   finanzabgleich:
     version: 1
@@ -164,13 +275,13 @@ agent_contracts:
       runtime_binding: elixir
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs: []
     produced_outputs:
-      - reconciliation_evidence
+    - reconciliation_evidence
     permissions:
-      - local_read
-      - local_state
+    - local_read
+    - local_state
     timeout_seconds: 900
     retry_policy:
       max_attempts: 1
@@ -178,15 +289,14 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - workflow_execution
+      - workflow_execution
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
   career_email_only:
     version: 1
     agent_spec:
@@ -196,14 +306,13 @@ agent_contracts:
       runtime_binding: elixir
       approval_required: true
     capabilities:
-      - workflow.run
-    required_inputs:
-      - application_context
+    - workflow.run
+    required_inputs: []
     produced_outputs:
-      - application_evidence
+    - application_evidence
     permissions:
-      - local_read
-      - external_email
+    - local_read
+    - external_email
     timeout_seconds: 1800
     retry_policy:
       max_attempts: 1
@@ -211,15 +320,185 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - external_side_effect
+      - external_side_effect
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
+  gmail_read:
+    version: 1
+    agent_spec:
+      executor: gmail
+      capability: gmail.read
+      risk_level: L0
+      runtime_binding: gmail
+      approval_required: false
+    capabilities:
+    - gmail.read
+    required_inputs:
+    - account_ref
+    produced_outputs:
+    - inbox_metadata
+    - sent_metadata
+    - thread_metadata
+    - message_metadata
+    permissions:
+    - gmail_read
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: false
+      triggers: []
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - message_count
+      - thread_count
+      - provenance
+      - real_data
+  gmail_classify:
+    version: 1
+    agent_spec:
+      executor: gmail
+      capability: gmail.classify
+      risk_level: L0
+      runtime_binding: gmail
+      approval_required: false
+    capabilities:
+    - gmail.classify
+    required_inputs:
+    - message_ids
+    produced_outputs:
+    - classification_evidence
+    - pii_evidence
+    - priority_scores
+    permissions:
+    - gmail_read
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: false
+      triggers: []
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - classification_result
+      - pii_flags
+      - provenance
+  gmail_attachment:
+    version: 1
+    agent_spec:
+      executor: gmail
+      capability: gmail.attachment
+      risk_level: L0
+      runtime_binding: gmail
+      approval_required: false
+    capabilities:
+    - gmail.attachment
+    required_inputs:
+    - message_id
+    produced_outputs:
+    - attachment_metadata
+    - content_hash
+    - mime_verification
+    permissions:
+    - gmail_read
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: false
+      triggers: []
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - attachment_count
+      - sha256
+      - mime_type
+      - size_match
+  pdf_governance:
+    version: 1
+    agent_spec:
+      executor: local_evidence
+      capability: pdf_governance.read
+      risk_level: L1
+      runtime_binding: local_runtime
+      approval_required: false
+    capabilities:
+    - pdf_governance.read
+    required_inputs: []
+    produced_outputs:
+    - pdf_evidence
+    permissions:
+    - local_read
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: false
+      triggers: []
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - pdf_total
+      - text_extracted
+      - record_count
+      - artifact_count
+      - artifact_status
+      - hash_verified
+      - real_data
+      - synthetic
+  repo_governance:
+    version: 1
+    agent_spec:
+      executor: local_evidence
+      capability: repo_governance.read
+      risk_level: L1
+      runtime_binding: local_runtime
+      approval_required: false
+    capabilities:
+    - repo_governance.read
+    required_inputs: []
+    produced_outputs:
+    - repo_evidence
+    permissions:
+    - local_read
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: false
+      triggers: []
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - raw_repo_entries
+      - canonical_repo_groups
+      - priority_p0
+      - priority_p1
+      - priority_p2
+      - priority_p3
+      - priority_check
+      - artifact_count
+      - artifact_status
+      - hash_verified
+      - real_data
+      - synthetic
   document_ai:
     version: 1
     agent_spec:
@@ -229,14 +508,14 @@ agent_contracts:
       runtime_binding: hybrid
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs:
-      - document_ref
+    - document_ref
     produced_outputs:
-      - extraction_evidence
+    - extraction_evidence
     permissions:
-      - local_read
-      - local_state
+    - local_read
+    - local_state
     timeout_seconds: 1800
     retry_policy:
       max_attempts: 1
@@ -244,15 +523,14 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - workflow_execution
+      - workflow_execution
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
   repository_quality:
     version: 1
     agent_spec:
@@ -262,13 +540,13 @@ agent_contracts:
       runtime_binding: github_actions
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs:
-      - repository_ref
+    - repository_ref
     produced_outputs:
-      - quality_gate_evidence
+    - quality_gate_evidence
     permissions:
-      - github_ci
+    - github_ci
     timeout_seconds: 1800
     retry_policy:
       max_attempts: 1
@@ -276,15 +554,14 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - external_runtime
+      - external_runtime
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
   finance_quality_gate:
     version: 1
     agent_spec:
@@ -294,13 +571,13 @@ agent_contracts:
       runtime_binding: github_actions
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs:
-      - repository_ref
+    - repository_ref
     produced_outputs:
-      - finance_gate_evidence
+    - finance_gate_evidence
     permissions:
-      - github_ci
+    - github_ci
     timeout_seconds: 1800
     retry_policy:
       max_attempts: 1
@@ -308,46 +585,14 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - external_runtime
+      - external_runtime
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
-  agent_state_sync:
-    version: 1
-    agent_spec:
-      executor: canonical_workflow
-      capability: workflow.run
-      risk_level: L2
-      runtime_binding: /usr/bin/flock
-      approval_required: true
-    capabilities:
-      - workflow.run
-    required_inputs: []
-    produced_outputs:
-      - sync_evidence
-    permissions:
-      - local_state
-    timeout_seconds: 300
-    retry_policy:
-      max_attempts: 1
-      backoff: none
-    human_review_policy:
-      required: true
-      triggers:
-        - workflow_execution
-    evidence_policy:
-      required: true
-      audit_required: true
-      fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
   career_funnel_ihk:
     version: 1
     agent_spec:
@@ -357,14 +602,14 @@ agent_contracts:
       runtime_binding: /home/schattenmacher/.local/bin/career-funnel
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs:
-      - project_dir
+    - project_dir
     produced_outputs:
-      - funnel_evidence
+    - funnel_evidence
     permissions:
-      - local_read
-      - external_email
+    - local_read
+    - external_email
     timeout_seconds: 1800
     retry_policy:
       max_attempts: 1
@@ -372,15 +617,14 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - external_side_effect
+      - external_side_effect
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
   daily_digest:
     version: 1
     agent_spec:
@@ -390,13 +634,13 @@ agent_contracts:
       runtime_binding: /home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs: []
     produced_outputs:
-      - digest_evidence
+    - digest_evidence
     permissions:
-      - local_read
-      - local_state
+    - local_read
+    - local_state
     timeout_seconds: 600
     retry_policy:
       max_attempts: 1
@@ -404,15 +648,14 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - workflow_execution
+      - workflow_execution
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
   shadow_system_overnight_audit:
     version: 1
     agent_spec:
@@ -422,13 +665,13 @@ agent_contracts:
       runtime_binding: /home/schattenmacher/03_scripts/system_overnight_audit.sh
       approval_required: true
     capabilities:
-      - workflow.run
+    - workflow.run
     required_inputs: []
     produced_outputs:
-      - security_audit_evidence
+    - security_audit_evidence
     permissions:
-      - local_read
-      - security_scan
+    - local_read
+    - security_scan
     timeout_seconds: 1800
     retry_policy:
       max_attempts: 1
@@ -436,15 +679,44 @@ agent_contracts:
     human_review_policy:
       required: true
       triggers:
-        - workflow_execution
+      - workflow_execution
     evidence_policy:
       required: true
       audit_required: true
       fields:
-        - status
-        - result
-        - audit_ref
-
+      - status
+      - result
+      - audit_ref
+  agent_state_sync:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: /usr/bin/flock
+      approval_required: true
+    capabilities:
+    - workflow.run
+    required_inputs: []
+    produced_outputs:
+    - sync_evidence
+    permissions:
+    - local_state
+    timeout_seconds: 300
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+      - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - status
+      - result
+      - audit_ref
 workflow_runs:
   career_wave_07:
     workflow: career_email_only
@@ -454,7 +726,6 @@ workflow_runs:
     input: config/career_wave_07.yaml
     applications_sent: 0
     migration_action: persist_as_workflow_run_not_workflow_definition
-
 external_runtime_sets:
   shadowmaker_tasks:
     runtime: TCC
@@ -493,7 +764,6 @@ external_runtime_sets:
         WHATSAPP_ACTION:
           risk_level: L2
           evidence_line: 30
-
   whatsapp_agent_pack:
     runtime: TCC
     relationship: domain_pack_within_shadowmaker_tasks
@@ -505,30 +775,30 @@ external_runtime_sets:
         capability: WHATSAPP_MONITORING
         approval_required: false
         workflows:
-          - whatsapp-status
-          - whatsapp-sync-status
-          - whatsapp-worker-status
-          - whatsapp-queue
-          - whatsapp-doctor
-          - whatsapp-contacts
-          - whatsapp-report
-          - whatsapp-meta-status
-          - whatsapp-maintenance-15min
+        - whatsapp-status
+        - whatsapp-sync-status
+        - whatsapp-worker-status
+        - whatsapp-queue
+        - whatsapp-doctor
+        - whatsapp-contacts
+        - whatsapp-report
+        - whatsapp-meta-status
+        - whatsapp-maintenance-15min
       L1:
         capability: WHATSAPP_MAINTENANCE
         approval_required: false
         workflows:
-          - whatsapp-maintenance-hourly
-          - whatsapp-maintenance-daily
-          - whatsapp-backup
-          - whatsapp-worker-drain
-          - whatsapp-retry-all
+        - whatsapp-maintenance-hourly
+        - whatsapp-maintenance-daily
+        - whatsapp-backup
+        - whatsapp-worker-drain
+        - whatsapp-retry-all
       L2:
         capability: WHATSAPP_ACTION
         approval_required: true
         workflows:
-          - whatsapp-purge-expired
-          - whatsapp-meta-subscribe
+        - whatsapp-purge-expired
+        - whatsapp-meta-subscribe
     verification:
       whatsapp-sync-status:
         dispatcher_status: done
@@ -537,67 +807,64 @@ external_runtime_sets:
         approval_gate_status: blocked
         approval_gate_reason: waiting_for_approval
         post_test_state: cancelled
-
   opencode_standard:
     relationship: separate_external_workflow_set
     workflow_count: 7
     included_in_shadowmaker_tasks_total: false
     workflow_ids: not_yet_imported
-
   telegram_workflow_controller:
     relationship: separate_external_workflow_set
     workflow_count: 6
     included_in_shadowmaker_tasks_total: false
     workflow_ids: not_yet_imported
-
 migration:
   current_phase: 5
   implementation_status: phase_5_implemented_pending_validation
   completed:
-    - phase_1_inventory_and_classification
-    - phase_2_schema_v2_registry_candidate
-    - phase_3_elixir_umbrella_bootstrap
-    - phase_4_yaml_registry_loader_hardening
+  - phase_1_inventory_and_classification
+  - phase_2_schema_v2_registry_candidate
+  - phase_3_elixir_umbrella_bootstrap
+  - phase_4_yaml_registry_loader_hardening
   phase_3_components:
     root: shadowops/
     apps:
-      - shadowops_core
-      - workflow_engine
-      - agent_runtime
-      - shadowops_web
+    - shadowops_core
+    - workflow_engine
+    - agent_runtime
+    - shadowops_web
     infrastructure:
-      - Phoenix
-      - Phoenix_LiveView_dependency
-      - Ecto_SQL
-      - Postgrex
-      - Oban
-      - YAML_registry_loader
+    - Phoenix
+    - Phoenix_LiveView_dependency
+    - Ecto_SQL
+    - Postgrex
+    - Oban
+    - YAML_registry_loader
   phase_4_components:
-    - typed_registry_errors
-    - schema_v2_validation
-    - workflow_definition_validation
-    - workflow_run_reference_validation
-    - external_runtime_integrity_validation
-    - risk_distribution_validation
-    - blocker_distribution_validation
-    - whatsapp_pack_integrity_validation
-    - registry_cli
-    - targeted_elixir_ci
+  - typed_registry_errors
+  - schema_v2_validation
+  - workflow_definition_validation
+  - workflow_run_reference_validation
+  - external_runtime_integrity_validation
+  - risk_distribution_validation
+  - blocker_distribution_validation
+  - whatsapp_pack_integrity_validation
+  - registry_cli
+  - targeted_elixir_ci
   phase_5_components:
-    - agent_spec
-    - version
-    - capabilities
-    - required_inputs
-    - produced_outputs
-    - permissions
-    - timeout
-    - retry_policy
-    - human_review_policy
-    - evidence_policy
-    - capability_registry_binding
-    - risk_policy_binding
-    - approval_policy_binding
-    - runtime_binding_validation
+  - agent_spec
+  - version
+  - capabilities
+  - required_inputs
+  - produced_outputs
+  - permissions
+  - timeout
+  - retry_policy
+  - human_review_policy
+  - evidence_policy
+  - capability_registry_binding
+  - risk_policy_binding
+  - approval_policy_binding
+  - runtime_binding_validation
   validation:
     shadowops_elixir:
       run_id: 31851602075
@@ -627,9 +894,9 @@ migration:
     id: 6
     name: local_workflow_service_integration
     target_components:
-      - discovery_dedup
-      - service_classification
-      - workflow_candidate_review
-      - generic_agent_contract_compatibility
-      - governed_runtime_binding
-      - evidence_backed_readiness
+    - discovery_dedup
+    - service_classification
+    - workflow_candidate_review
+    - generic_agent_contract_compatibility
+    - governed_runtime_binding
+    - evidence_backed_readiness

@@ -1,0 +1,27 @@
+{
+  "api_endpoint": "/api/workflows",
+  "workflow_visible": true,
+  "workflow_data": {
+    "id": "i7.healthcheck",
+    "status": "VERIFIED_EXECUTABLE",
+    "executable": true,
+    "execution_status": "EXECUTABLE",
+    "risk_level": "L0",
+    "runtime": "/home/schattenmacher/.local/bin/i7-status",
+    "argv": [],
+    "evidence": {"required": true},
+    "synthetic": false
+  },
+  "node_endpoint": "/api/nodes",
+  "node_visible": true,
+  "node_data": {
+    "node_id": "i7",
+    "status": "OPTIONAL_UNAVAILABLE",
+    "reachable": false,
+    "source": "/home/schattenmacher/.local/bin/i7-status",
+    "source_type": "AUTHORIZED_LOCAL_PROBE",
+    "synthetic": false
+  },
+  "server_port": 4013,
+  "note": "4015 acceptance port not running; API served on 4013 (production) during development"
+}

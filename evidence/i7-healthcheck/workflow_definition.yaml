@@ -1,0 +1,18 @@
+# i7.healthcheck workflow definition
+# Added to config/workflow_registry_v2.yaml on branch workflow/i7-safe-actions
+workflow_id: "i7.healthcheck"
+type: "system"
+domain: "infrastructure"
+status: "VERIFIED_EXECUTABLE"
+runtime: "/home/schattenmacher/.local/bin/i7-status"
+argv: []
+definition: "/home/schattenmacher/.local/bin/i7-status"
+risk_level: "L0"
+evidence:
+  required: true
+inputs: []
+outputs: []
+privacy:
+  raw_data: "local_only"
+  github: "metadata_only"
+synthetic: false

@@ -1,0 +1,23 @@
+{
+  "id": "i7.healthcheck",
+  "name": "I7.healthcheck",
+  "source": "local_script",
+  "runtime": {"type": "local_script", "value": "/home/schattenmacher/.local/bin/i7-status"},
+  "executor": "ScriptAdapter",
+  "target": "ryzen",
+  "risk_level": "L0",
+  "approval_required": false,
+  "inputs": [],
+  "outputs": [],
+  "connectors": {},
+  "privacy": {"github": "metadata_only", "raw_data": "local_only"},
+  "evidence_required": true,
+  "synthetic": false,
+  "metadata": {
+    "domain": "infrastructure",
+    "definition": "/home/schattenmacher/.local/bin/i7-status",
+    "registry_status": "VERIFIED_EXECUTABLE",
+    "trusted_argv": [],
+    "trusted_argv?": true
+  }
+}
