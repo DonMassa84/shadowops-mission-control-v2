@@ -1,16 +1,57 @@
 defmodule ShadowOpsCore.KaliNode do
   @moduledoc """
-  Bounded, read-only status adapter for the existing Kali security VM.
+  Bounded status adapter and capability profile for the existing Kali security VM.
 
-  The adapter intentionally exposes no free-form SSH execution and no lifecycle
-  mutation. Security audits and evidence collection remain governed workflows.
+  Kali is the preferred ShadowOps node for defensive security, network analysis,
+  vulnerability assessment and forensic workloads. Capabilities are descriptive
+  until a governed workflow supplies current runtime/tool evidence. The adapter
+  intentionally exposes no free-form SSH execution and no lifecycle mutation.
   """
 
   alias ShadowOpsCore.ConnectorState
 
   @default_target "kali-vm"
   @domain "kali-2026"
-  @capabilities ~w(healthcheck security_audit evidence_collection)
+
+  @capabilities ~w(
+    healthcheck
+    security_audit
+    evidence_collection
+    network_discovery
+    service_exposure_audit
+    http_security_audit
+    tls_audit
+    dns_audit
+    ssh_posture_audit
+    host_hardening_audit
+    package_audit
+    dependency_audit
+    sbom_analysis
+    secrets_scan
+    malware_scan
+    yara_scan
+    forensic_triage
+    log_analysis
+    pcap_analysis
+    file_hashing
+    integrity_check
+    attack_surface_inventory
+    vulnerability_assessment
+    container_security_audit
+    web_passive_assessment
+  )
+
+  @preferred_workloads ~w(
+    security
+    network_security
+    vulnerability_management
+    digital_forensics
+    incident_response
+    evidence_validation
+    attack_surface_review
+    protocol_analysis
+    hardening_review
+  )
 
   def status do
     target = System.get_env("SHADOWOPS_KALI_SSH_HOST", @default_target)
@@ -48,7 +89,7 @@ defmodule ShadowOpsCore.KaliNode do
     else
       ConnectorState.build(%{
         id: "node-kali",
-        name: "Kali security node",
+        name: "Kali security & forensics node",
         kind: "node",
         status: "READY",
         health: "HEALTHY",
@@ -95,7 +136,7 @@ defmodule ShadowOpsCore.KaliNode do
   defp unavailable(target, error_code, error_message, latency_ms) do
     ConnectorState.build(%{
       id: "node-kali",
-      name: "Kali security node",
+      name: "Kali security & forensics node",
       kind: "node",
       status: "OPTIONAL_UNAVAILABLE",
       health: "UNAVAILABLE",
@@ -123,11 +164,18 @@ defmodule ShadowOpsCore.KaliNode do
   defp metadata(target) do
     %{
       role: "security_node",
+      specialization: "security_forensics",
+      scheduler_priority: "preferred_for_matching_capability",
       domain: @domain,
       transport: "ssh",
       target: target,
       control_actions: ["status"],
       capabilities: @capabilities,
+      preferred_workloads: @preferred_workloads,
+      capability_activation: "requires_current_runtime_tool_evidence",
+      execution_policy: "bounded_workflows_only",
+      target_policy: "owned_or_explicitly_authorized_scope_only",
+      active_assessment_approval: "required_when_risk_is_l2_or_higher",
       arbitrary_shell: false,
       arbitrary_systemd: false,
       production_control_plane: false
