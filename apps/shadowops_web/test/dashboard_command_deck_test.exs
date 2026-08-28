@@ -52,6 +52,7 @@ defmodule ShadowOpsWeb.DashboardCommandDeckTest do
     assert evidence.synthetic == false
 
     evidence_card = source_card(body, "evidence")
+    assert evidence_card =~ ~s(<dl class="mc-dl">)
     assert evidence_card =~ "Source status: READY"
     assert evidence_card =~ "Artifacts available: #{available}"
     assert evidence_card =~ "Artifacts verified: #{verified}"
