@@ -51,6 +51,7 @@ defmodule ShadowOpsCore.RiskPolicy do
     "workflow.execute" => "L2",
     "github.export" => "L1",
     "github.sync" => "L2",
+    "pdf_governance.read" => "L0",
     "whatsapp.ingest" => "L0",
     "whatsapp.analysis" => "L0",
     "local_workflow.verify_runtime" => "L1",
