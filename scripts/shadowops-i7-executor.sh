@@ -47,17 +47,30 @@ cd "$ROOT_REAL"
 run_cpu_probe() {
   python3 - <<'PY'
 import hashlib
+import multiprocessing as mp
 import os
 import time
+
 workers = max(1, os.cpu_count() or 1)
+rounds = 120000
+
+
+def burn(worker_id: int) -> str:
+    h = f"shadowops-i7-cpu-probe-{worker_id}".encode()
+    for i in range(rounds):
+        h = hashlib.sha256(h + (i & 0xffff).to_bytes(2, "little")).digest()
+    return h.hex()
+
+
 started = time.monotonic()
-h = b"shadowops-i7-cpu-probe"
-for i in range(250000):
-    h = hashlib.sha256(h + (i & 0xffff).to_bytes(2, "little")).digest()
+with mp.Pool(processes=workers) as pool:
+    digests = pool.map(burn, range(workers))
 elapsed = time.monotonic() - started
+combined = hashlib.sha256("".join(digests).encode()).hexdigest()
 print(f"CPU_PROBE_CPUS={workers}")
+print(f"CPU_PROBE_ROUNDS_PER_CPU={rounds}")
 print(f"CPU_PROBE_SECONDS={elapsed:.6f}")
-print(f"CPU_PROBE_DIGEST={h.hex()}")
+print(f"CPU_PROBE_DIGEST={combined}")
 PY
 }
 
