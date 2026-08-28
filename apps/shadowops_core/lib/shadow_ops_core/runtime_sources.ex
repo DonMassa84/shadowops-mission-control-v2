@@ -1,6 +1,6 @@
 defmodule ShadowOpsCore.RuntimeSources do
   @moduledoc "Read-only adapters for actual local runtime and metadata sources."
-  alias ShadowOpsCore.{ConnectorState, OperationalSources}
+  alias ShadowOpsCore.{ConnectorState, KaliNode, OperationalSources}
 
   @service_action_allowlist ["user:shadowops-phoenix.service"]
   def services do
@@ -47,8 +47,21 @@ defmodule ShadowOpsCore.RuntimeSources do
   end
 
   def system, do: OperationalSources.system()
-  def nodes, do: OperationalSources.nodes()
+
+  def nodes do
+    nodes = OperationalSources.nodes()
+    records = Map.get(nodes, :records, []) ++ [KaliNode.status()]
+
+    nodes
+    |> Map.put(:records, records)
+    |> Map.put(:record_count, length(records))
+    |> Map.put(:source, "local probes, i7-status and bounded Kali SSH status")
+  end
+
+  def node("kali"), do: {:ok, KaliNode.status()}
   def node(id), do: OperationalSources.node(id)
+  def node_action("kali", "status"), do: {:ok, KaliNode.status()}
+  def node_action("kali", _action), do: {:error, :action_not_allowed}
   def node_action(id, action), do: OperationalSources.node_action(id, action)
   def agents, do: OperationalSources.agents(services())
   def ai, do: OperationalSources.ai()
