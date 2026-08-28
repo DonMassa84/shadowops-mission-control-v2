@@ -93,7 +93,7 @@ else
 fi
 
 if mix help sobelow >/dev/null 2>&1; then
-  if (cd "$ROOT/apps/shadowops_web" && mix sobelow --private --strict --exit high --threshold high) \
+  if mix sobelow --root apps/shadowops_web --private --strict --exit high --threshold high \
     >/tmp/shadowops-sobelow.log 2>&1; then
     ok phoenix_security_scan
   else
