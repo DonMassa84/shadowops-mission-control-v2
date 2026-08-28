@@ -213,7 +213,8 @@ defmodule ShadowOpsWeb.DashboardLive do
   defp ai_policy_status(o), do: if(ai_policy(o) == "REMOTE_ONLY", do: "READY", else: "DEGRADED")
 
   defp workflow_inventory_status(%{"canonical_count" => total})
-       when is_integer(total) and total > 0, do: "READY"
+       when is_integer(total) and total > 0,
+       do: "READY"
 
   defp workflow_inventory_status(_), do: "UNAVAILABLE"
 
