@@ -12,7 +12,7 @@ defmodule ShadowOpsCore.NodeCapabilityRouter do
   when the same capability is independently verified there.
   """
 
-  alias ShadowOpsCore.RuntimeSources
+  alias ShadowOpsCore.{I7Node, RuntimeSources}
 
   @security_capabilities ~w(
     security_audit
@@ -58,6 +58,8 @@ defmodule ShadowOpsCore.NodeCapabilityRouter do
     nodes =
       RuntimeSources.nodes()
       |> Map.get(:records, [])
+      |> Enum.reject(&(node_id(&1) == "i7"))
+      |> Kernel.++([I7Node.status()])
       |> enrich_ai_evidence(RuntimeSources.ai())
 
     route(capability, nodes, context)
