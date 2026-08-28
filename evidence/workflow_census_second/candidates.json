@@ -1,0 +1,303 @@
+{
+  "generated_utc": "2026-08-28T21:07:45.718540+00:00",
+  "criteria": "concrete file + executor + fixed args + target + risk known + no secret + no external side effect + no 4013/4014 + reproducible",
+  "safe_test_candidates": [
+    {
+      "canonical_id": "verified-app-tests",
+      "name": "verified_app python unittest suite",
+      "source": "verified_app/tests",
+      "risk": "L0",
+      "testable": true,
+      "reason": "stdlib-only, no port, no secret, passed 16/16",
+      "fixed_argv": "python3 -m unittest discover -s verified_app/tests"
+    },
+    {
+      "canonical_id": "registry-validate",
+      "name": "mix shadowops.registry validate",
+      "source": "apps/workflow_engine/lib/mix/tasks/shadowops.registry.ex",
+      "risk": "L0",
+      "testable": true,
+      "reason": "read-only registry validation; needs mix deps",
+      "fixed_argv": "mix shadowops.registry validate"
+    },
+    {
+      "canonical_id": "workflow-ids-validate",
+      "name": "mix shadowops.workflow_ids.validate",
+      "source": "apps/workflow_engine/lib/mix/tasks/shadowops.workflow_ids.validate.ex",
+      "risk": "L0",
+      "testable": true,
+      "reason": "read-only id validation; needs mix deps",
+      "fixed_argv": "mix shadowops.workflow_ids.validate"
+    },
+    {
+      "canonical_id": "mcp-readonly-tests",
+      "name": "ops/mcp read-only MCP tests",
+      "source": "ops/mcp/test_*.py",
+      "risk": "L0",
+      "testable": true,
+      "reason": "unittest discover, read-only",
+      "fixed_argv": "python3 -m unittest discover -s ops/mcp -p 'test_*.py'"
+    },
+    {
+      "canonical_id": "mcp-pycompile",
+      "name": "ops/mcp/shadowops_runtime_mcp.py compile",
+      "source": "ops/mcp/shadowops_runtime_mcp.py",
+      "risk": "L0",
+      "testable": true,
+      "reason": "py_compile read-only, passed",
+      "fixed_argv": "python3 -B -c 'compile(...)'"
+    },
+    {
+      "canonical_id": "local-all-contract",
+      "name": "local all-developments contract",
+      "source": "scripts/test_local_all_developments_contract.sh",
+      "risk": "L0",
+      "testable": true,
+      "reason": "read-only bash -n + grep contract; NOTE: failed on this isolated branch (KeyError model) - branch-context",
+      "fixed_argv": "bash scripts/test_local_all_developments_contract.sh"
+    },
+    {
+      "canonical_id": "coder-contract",
+      "name": "shadowops-coder contract",
+      "source": "scripts/test-shadowops-coder.sh",
+      "risk": "L0",
+      "testable": true,
+      "reason": "read-only launcher/marker checks; NOTE: 'protected branch gate failed' on this isolated branch",
+      "fixed_argv": "bash scripts/test-shadowops-coder.sh"
+    },
+    {
+      "canonical_id": "yaml-static",
+      "name": "config YAML static validation",
+      "source": "config/workflow_registry_v2.yaml, config/workflow_ids.yaml",
+      "risk": "L0",
+      "testable": true,
+      "reason": "yaml.safe_load passed",
+      "fixed_argv": "python3 -c yaml.safe_load"
+    },
+    {
+      "canonical_id": "json-static",
+      "name": "verified_app/data/workflows.json validation",
+      "source": "verified_app/data/workflows.json",
+      "risk": "L0",
+      "testable": true,
+      "reason": "json.load passed",
+      "fixed_argv": "python3 -c json.load"
+    },
+    {
+      "canonical_id": "ga-local-static-diagnostics",
+      "name": "Local Static Diagnostics (read-only)",
+      "source": "github:local-static-diagnostics.yml",
+      "risk": "CI",
+      "testable": true,
+      "reason": "credo/dialyzer/sobelow diagnostics, no deploy",
+      "fixed_argv": "gh workflow run local-static-diagnostics (manual, safe)"
+    },
+    {
+      "canonical_id": "ga-local-coder-contract",
+      "name": "Local Coder Contract (read-only)",
+      "source": "github:local-coder-contract.yml",
+      "risk": "CI",
+      "testable": true,
+      "reason": "read-only MCP unittest + config markers",
+      "fixed_argv": "gh workflow run local-coder-contract (manual, safe)"
+    },
+    {
+      "canonical_id": "ga-opencode-handoff-contract",
+      "name": "OpenCode Handoff Contract (read-only)",
+      "source": "github:opencode-handoff-contract.yml",
+      "risk": "CI",
+      "testable": true,
+      "reason": "read-only marker/grep checks",
+      "fixed_argv": "gh workflow run opencode-handoff-contract (manual, safe)"
+    },
+    {
+      "canonical_id": "ga-remote-ai-policy",
+      "name": "Remote AI Policy (read-only)",
+      "source": "github:remote-ai-policy.yml",
+      "risk": "CI",
+      "testable": true,
+      "reason": "read-only policy checks",
+      "fixed_argv": "gh workflow run remote-ai-policy (manual, safe)"
+    },
+    {
+      "canonical_id": "ga-local-all-contract",
+      "name": "Local All Developments Contract (read-only)",
+      "source": "github:local-all-developments-contract.yml",
+      "risk": "CI",
+      "testable": true,
+      "reason": "read-only contract test",
+      "fixed_argv": "gh workflow run local-all-developments-contract (manual, safe)"
+    },
+    {
+      "canonical_id": "ga-verified-product-gate",
+      "name": "Verified Product Gate (tests only, no 4013 start)",
+      "source": "github:verified-app-product.yml",
+      "risk": "CI",
+      "testable": true,
+      "reason": "runs verified_app unittests + mix test, checks 4013 before/after; does NOT start 4013",
+      "fixed_argv": "gh workflow run verified-app-product (on feature branch, safe)"
+    }
+  ],
+  "blocked_candidates": [
+    {
+      "canonical_id": "repository_quality",
+      "name": "repository_quality",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "definition file .github/workflows/quality.yml MISSING in repo",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "finance_quality_gate",
+      "name": "finance_quality_gate",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "definition file .github/workflows/finanzabgleich-gate.yml MISSING in repo",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "career_email_only",
+      "name": "career_email_only",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "definition config/career_email_only_workflow.yaml MISSING; external SEND_EMAIL side effect",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "finanzabgleich",
+      "name": "finanzabgleich",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "backing docs/finanzen/* and config/agents/finanzen/* MISSING in repo",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "document_ai",
+      "name": "document_ai",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "source app/ihk_ai.py, app/cli.py MISSING; registry_definition_status=planned",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "career_funnel_ihk",
+      "name": "career_funnel_ihk",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "DISABLED_BY_CONFIGURATION: IHK project dir not present",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "agent_state_sync",
+      "name": "agent_state_sync",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "external systemd unit outside repo; local_state side effect; not auto-runnable",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "daily_digest",
+      "name": "daily_digest",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "external script outside repo; not verifiable",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "shadow_system_overnight_audit",
+      "name": "shadow_system_overnight_audit",
+      "source": "config/workflow_registry_v2.yaml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "external script; security_scan permission; not safe to auto-run",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "whatsapp-doctor",
+      "name": "whatsapp-doctor",
+      "source": "verified_app/data/workflows.json",
+      "risk": "L0",
+      "testable": false,
+      "reason": "runtime BLOCKED: META_NOT_CONFIGURED_AND_ADMIN_API_UNAVAILABLE",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "whatsapp-meta-status",
+      "name": "whatsapp-meta-status",
+      "source": "verified_app/data/workflows.json",
+      "risk": "L0",
+      "testable": false,
+      "reason": "runtime BLOCKED: META_PHONE_NUMBER_ID_PLACEHOLDER",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "whatsapp-purge-expired",
+      "name": "whatsapp-purge-expired",
+      "source": "verified_app/data/workflows.json",
+      "risk": "L2",
+      "testable": false,
+      "reason": "approval-gated L2; never auto-execute",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "whatsapp-meta-subscribe",
+      "name": "whatsapp-meta-subscribe",
+      "source": "verified_app/data/workflows.json",
+      "risk": "L2",
+      "testable": false,
+      "reason": "approval-gated L2; never auto-execute",
+      "fixed_argv": null
+    },
+    {
+      "canonical_id": "elixir-production-gate-release",
+      "name": "elixir.yml release_runtime_gate",
+      "source": "github:elixir.yml",
+      "risk": "L2",
+      "testable": false,
+      "reason": "CAUTION: starts PORT 4013 via release_runtime_gate.sh; MUST NOT be manually triggered",
+      "fixed_argv": null
+    }
+  ],
+  "unknown_candidates": [
+    {
+      "set": "shadowmaker_tasks",
+      "count": 48,
+      "status": "EVIDENCED_BY_NAME_EXTERNAL",
+      "note": "external TCC runtime; not importable in this repo; whatsapp 16 subset"
+    },
+    {
+      "set": "opencode_standard",
+      "count": 7,
+      "status": "NOT_IMPORTED",
+      "note": "external set, ids not in repo"
+    },
+    {
+      "set": "telegram_workflow_controller",
+      "count": 6,
+      "status": "NOT_IMPORTED",
+      "note": "external set, ids not in repo"
+    },
+    {
+      "set": "federation",
+      "count": 4,
+      "status": "EXTERNAL_REFERENCE",
+      "note": "definitions live in DonMassa84/shadowops, absent from this repo"
+    }
+  ],
+  "new_high_value_findings": [
+    "repository_quality and finance_quality_gate reference .github/workflows/*.yml files that are ABSENT in this repo (definition_status REGISTERED but file NOT_CONFIGURED).",
+    "All 9 central-registry workflows lack verifiable backing implementation files inside this repo (only the registry YAML self-reference exists).",
+    "config/workflow_registry.yaml (legacy) is referenced by compatibility.legacy_registry but does NOT exist -> dual_registry cutover is currently single-source.",
+    "verified_app python unittest suite is a fully self-contained, port-free, secret-free acceptance test (16/16 PASS) and is the strongest in-repo runtime candidate.",
+    "8 GitHub Actions workflows are in-repo, static/diagnostic/safe; elixir.yml is the only one that would start PORT 4013 and must stay un-triggered.",
+    "PR #36 (feature/shadowops-verified-app) is OPEN, mergeable=CONFLICTING, and its Verified Product Gate is FAILURE; release is currently blocked upstream."
+  ]
+}
