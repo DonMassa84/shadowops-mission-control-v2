@@ -1,42 +1,49 @@
 # MiMo Governance Handoff
 
-BRANCH=ai/mimo-governance
-ROLE=Governance + Baseline Owner
-STATUS=READY_FOR_WORK
+## Current State
 
-## Scope
-- CapabilityRegistry / RiskPolicy consistency
-- LocalWorkflowEvidenceStore error contract
-- WorkflowCuration final-risk / approval invariants
-- WorkflowEngine AgentContract
-- Full repository baseline
+HEAD=f192d82 Harden workflow risk and approval governance
+MIMO_RECOVERY_SHA=706c7fb
+FINAL_HEAD=f192d82
 
-## Required invariants
-- effective risk cannot be lowered by evidence
-- L2/L3 always require approval
-- unknown local workflow IDs fail closed with the canonical specific error
-- pdf_governance.read is consistently registered and risk-mapped if referenced canonically
-- no fake runtime readiness
+## Work Completed
 
-## Report contract
-HEAD=
-FILES_CHANGED=
-FORMAT_RC=
-COMPILE_RC=
-GOVERNANCE_TEST_RC=
-WORKFLOW_ENGINE_RC=
-FULL_TEST_RC=
-PDF_GOVERNANCE=
-RISK_DOWNGRADE_BLOCKED=
-APPROVAL_BYPASS_BLOCKED=
-BLOCKERS=
-DEPENDENCIES=
-READY_FOR_INTEGRATION=NO
+workflow risk/approval hardening
+
+## Files Changed
+
+- workflow_curation.ex
+- local_workflow_evidence_store_test.exs
+
+## Quality Gates
+
+UNKNOWN_WORKFLOW_ERROR_CONTRACT=PASS
+RISK_DOWNGRADE_BLOCKED=PASS
+APPROVAL_BYPASS_BLOCKED=PASS
+
+FORMAT_RC=0
+COMPILE_RC=0
+TARGET_TEST_RC=0
+FULL_TEST_RC=0
+
+## Regression Tests
+
+- UNKNOWN_LOCAL_WORKFLOW_RETURNS_UNKNOWN_WORKFLOW_ID
+- EXPLICIT_LOW_RISK_CANNOT_LOWER_HIGHER_INFERRED_RISK
+- FINAL_L2_ALWAYS_REQUIRES_APPROVAL
+- FINAL_L3_ALWAYS_REQUIRES_APPROVAL
+- EVIDENCE_FALSE_APPROVAL_CANNOT_BYPASS_HIGH_RISK
+- HIGH_RISK_EXECUTABLE_REQUIRES_APPROVAL_EVIDENCE
 
 ## Safety
-MERGE=NO
-DEPLOY=NO
+
 PORT_4013_TOUCHED=NO
 PORT_4014_TOUCHED=NO
 PORT_4015_TOUCHED=NO
+
 EXTERNAL_WRITES=0
+MERGE=NO
+DEPLOY=NO
+PRODUCTION_MUTATION=NO
+
+READY_FOR_INTEGRATION=YES
