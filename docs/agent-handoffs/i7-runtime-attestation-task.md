@@ -1,6 +1,6 @@
-# i7 Runtime Attestation Worker Task
+# i7 Runtime Attestation + Compute Worker Task
 
-STATUS=ASSIGNED
+STATUS=IMPLEMENTATION_IN_PROGRESS
 WORKER=i7 Runtime Attestation Worker
 WORK_BRANCH=ai/i7-runtime-attestation-worker
 BASE_SHA=2872cfcb5fac8fa0f470fd80ea79e5eff1055fbe
@@ -10,38 +10,59 @@ TARGET_BASE=local/all-developments
 
 ## Mission
 
-Bring the i7 node to the same evidence-backed routing standard as Kali without broadening production control.
+Bring the i7 node to the same evidence-backed routing standard as Kali and **actually use its CPU for bounded ShadowOps QA/compute jobs**.
 
-The worker must prove real runtime reachability and current capabilities for QA/repository/supplementary-compute routing. Declared metadata alone is not sufficient.
+Required end-to-end path:
 
-## Required implementation / verification
+`ShadowOps task -> capability routing -> verified i7 -> bounded SSH executor -> CPU work on i7 -> exit code + evidence hash -> ShadowOps`.
 
-1. Inspect the current i7 runtime source and node projection on BASE_SHA.
-2. Add or harden an i7 node adapter only if current runtime evidence is not already represented truthfully.
-3. Evidence must be current, real, non-synthetic and bounded. Unknown/unreachable/stale evidence must never become READY.
-4. Prove these capabilities independently on the real i7 node where applicable:
-   - qa
-   - repository_change
-   - supplementary_compute
-5. Verify `ShadowOpsCore.NodeCapabilityRouter` selects:
-   - QA -> i7 when the i7 has verified `qa` evidence.
-   - repository_change -> i7 when verified.
-   - supplementary_compute -> i7 when verified.
-   - fallback only to another node with the same independently verified capability.
-   - no verified executor -> fail closed with `:no_verified_executor` or equivalent.
-6. Preserve security routing to Kali and AI/GPU routing to Ryzen.
-7. No arbitrary shell routing, no arbitrary systemd control, no production control plane.
-8. Add deterministic regression tests for READY/ONLINE, unreachable, synthetic, stale/unverified and fallback cases.
-9. Capture runtime evidence without committing credentials, SSH keys, tokens or machine secrets.
-10. Persist final handoff and exact HEAD/test evidence in GitHub.
+Declared metadata alone is not sufficient.
 
-## Runtime acceptance gates
+## Implemented on this branch
+
+- `ShadowOpsCore.I7Node`: fixed `shadowserver-i7` SSH target, read-only CPU/Git/Mix/workspace evidence, no fake READY.
+- `ShadowOpsCore.I7RemoteExecutor`: fixed remote runner and allow-listed jobs only.
+- `ShadowOpsCore.NodeComputeDispatcher`: routes through `NodeCapabilityRouter` and executes only when i7 has verified capability evidence.
+- `mix shadowops.i7.compute <job> --sha <sha>`: bounded operator path.
+- `scripts/shadowops-i7-executor.sh`: exact-head remote wrapper for `cpu_probe`, `format`, `compile`, `target_test`, `full_test`, `qa_bundle`, `diff_check`.
+- Regression tests for i7 evidence, job allowlist, exact-head and no-arbitrary-execution contract.
+
+The executor accepts no caller-selected host, executable path, systemd unit, port or shell fragment. Only a fixed job enum plus validated 40-hex SHA crosses the SSH boundary.
+
+## Real i7 worker actions required now
+
+1. Verify `shadowserver-i7` resolves only to the authorized i7.
+2. Ensure the authorized checkout exists at `$HOME/Projects/shadowops-mission-control-v2` or configure `SHADOWOPS_I7_WORKSPACE` locally on i7.
+3. Install the versioned wrapper unchanged:
+
+```bash
+install -d -m 0755 "$HOME/.local/bin"
+install -m 0755 scripts/shadowops-i7-executor.sh "$HOME/.local/bin/shadowops-i7-executor"
+```
+
+4. The i7 checkout HEAD must equal the supplied exact SHA. The executor must report `EXACT_HEAD_MISMATCH` rather than fetching/checking out automatically.
+5. Run local quality gates on the worker branch.
+6. Run real remote CPU jobs through ShadowOps:
+
+```bash
+mix shadowops.i7.compute cpu_probe --sha <EXACT_SHA>
+mix shadowops.i7.compute target_test --sha <EXACT_SHA>
+mix shadowops.i7.compute full_test --sha <EXACT_SHA>
+```
+
+7. Persist hostname, CPU count, exit code, duration and output SHA-256 evidence.
+8. Prove no verified i7 -> fail closed.
+9. Preserve Security -> Kali and AI/GPU -> Ryzen.
+10. No credentials/keys/tokens in repository evidence.
+
+## Required runtime gates
 
 ```text
 I7_SETUP=PASS
 I7_REACHABLE=PASS
 I7_REAL_DATA=PASS
 I7_SYNTHETIC=FALSE
+I7_CPU_COUNT=<real>
 I7_QA_CAPABILITY=PASS
 I7_REPOSITORY_CHANGE=PASS
 I7_SUPPLEMENTARY_COMPUTE=PASS
@@ -49,6 +70,12 @@ I7_NO_FAKE_READY=PASS
 QA_COMPUTE_TO_I7=PASS
 REPOSITORY_CHANGE_TO_I7=PASS
 SUPPLEMENTARY_COMPUTE_TO_I7=PASS
+I7_REMOTE_EXECUTOR=PASS
+I7_CPU_PROBE=PASS
+I7_TARGET_TEST_REMOTE=PASS
+I7_FULL_TEST_REMOTE=PASS
+I7_REMOTE_OUTPUT_SHA256=PASS
+I7_EXACT_HEAD_ENFORCEMENT=PASS
 NO_VERIFIED_EXECUTOR_FAIL_CLOSED=PASS
 SECURITY_TO_KALI_UNCHANGED=PASS
 AI_GPU_TO_RYZEN_UNCHANGED=PASS
@@ -58,7 +85,7 @@ ARBITRARY_SYSTEMD=BLOCKED
 4014_MUTATION=NO
 ```
 
-## Repository quality gates
+## Repository gates
 
 ```text
 FORMAT_RC=0
@@ -71,26 +98,11 @@ REMOTE_HEAD_MATCH=YES
 READY_FOR_INTEGRATION=YES
 ```
 
-If the full hardening workflow runs on the worker branch, report its exact run ID and result. Do not weaken or bypass any blocking gate.
-
 ## Governance
 
-- Fail closed.
-- Do not invent i7 capability evidence.
-- Evidence cannot lower risk.
-- No credentials or secrets in repo/evidence.
-- No destructive git operations.
-- NO_FORCE_PUSH.
-- NO_MERGE.
-- NO_DEPLOY.
-- NO_MAIN_WRITE.
-- NO_4013_MUTATION.
-- NO_4014_MUTATION.
-- Worker may commit/push only to `ai/i7-runtime-attestation-worker`.
+Fail closed. No invented evidence. No arbitrary remote shell. No destructive git. `NO_FORCE_PUSH`, `NO_MERGE`, `NO_DEPLOY`, `NO_MAIN_WRITE`, `NO_4013_MUTATION`, `NO_4014_MUTATION`. Worker commits/pushes only to `ai/i7-runtime-attestation-worker`.
 
 ## Final handoff
-
-Return exactly:
 
 ```text
 I7_WORKER_STATUS=PASS|FAIL|BLOCKED
@@ -100,6 +112,7 @@ REMOTE_HEAD_MATCH=YES|NO
 I7_SETUP=PASS|FAIL
 I7_REACHABLE=PASS|FAIL
 I7_REAL_DATA=PASS|FAIL
+I7_CPU_COUNT=
 I7_QA_CAPABILITY=PASS|FAIL
 I7_REPOSITORY_CHANGE=PASS|FAIL
 I7_SUPPLEMENTARY_COMPUTE=PASS|FAIL
@@ -107,6 +120,12 @@ I7_NO_FAKE_READY=PASS|FAIL
 QA_COMPUTE_TO_I7=PASS|FAIL
 REPOSITORY_CHANGE_TO_I7=PASS|FAIL
 SUPPLEMENTARY_COMPUTE_TO_I7=PASS|FAIL
+I7_REMOTE_EXECUTOR=PASS|FAIL
+I7_CPU_PROBE=PASS|FAIL
+I7_TARGET_TEST_REMOTE=PASS|FAIL
+I7_FULL_TEST_REMOTE=PASS|FAIL
+I7_REMOTE_OUTPUT_SHA256=PASS|FAIL
+I7_EXACT_HEAD_ENFORCEMENT=PASS|FAIL
 NO_VERIFIED_EXECUTOR_FAIL_CLOSED=PASS|FAIL
 SECURITY_TO_KALI_UNCHANGED=PASS|FAIL
 AI_GPU_TO_RYZEN_UNCHANGED=PASS|FAIL
