@@ -1,0 +1,30 @@
+{
+  "/health": {
+    "code": 200,
+    "ok": true
+  },
+  "/ready": {
+    "code": 200,
+    "ok": true
+  },
+  "/api/system": {
+    "code": 200,
+    "ok": true
+  },
+  "/api/workflows": {
+    "code": 200,
+    "ok": true
+  },
+  "/api/runs": {
+    "code": 200,
+    "ok": true
+  },
+  "/api/audit": {
+    "code": 200,
+    "ok": true
+  },
+  "workflows_count": 17,
+  "execution_verified_count": 13,
+  "4013_UNCHANGED": true,
+  "4014_UNCHANGED": true
+}

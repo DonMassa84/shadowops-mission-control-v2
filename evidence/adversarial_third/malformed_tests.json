@@ -1,0 +1,115 @@
+{
+  "empty_id": {
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "expected_4xx": true,
+    "no_stacktrace": true
+  },
+  "long_id": {
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "expected_4xx": true,
+    "no_stacktrace": true
+  },
+  "unicode": {
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "expected_4xx": true,
+    "no_stacktrace": true
+  },
+  "null_body": {
+    "code": 200,
+    "payload": {
+      "run_id": "da168d94-6bc2-4708-b3b9-99b11a85fff3",
+      "workflow_id": "so:wf:v1:whatsapp-status",
+      "status": "SUCCESS",
+      "created_at": "2026-08-28T21:29:57.356883+00:00",
+      "result": {
+        "workflow_id": "so:wf:v1:whatsapp-status",
+        "execution_type": "verified-static-argv",
+        "risk": "L0",
+        "approval_required": false,
+        "started_at": "2026-08-28T21:29:57.183278+00:00",
+        "finished_at": "2026-08-28T21:29:57.356855+00:00",
+        "status": "SUCCESS",
+        "exit_code": 0,
+        "stdout": "== Konfiguration ==\n  app_env: development\n  dry_run: True\n  openai_model: gpt-4o-mini\n  meta_configured: False\n  openai_configured: True\n  production_gate_active: False\n  allowed_send_numbers: []\n  contact_encryption_configured: True\n  contact_retention_days: 0\n  event_retention_days: 365\n  message_content_retention_days: 90\n  admin_host: 127.0.0.1\n  admin_port: 8089\n  backup_dir: /home/schattenmacher/whatsapp-agent/backups\n  backup_max: 14\n  worker_poll_interval: 1.0\n  worker_batch: 10\n  queue_retry_schedule: [5, 30, 120, 600, 1800]\n  store_raw_webhooks: False\n  raw_webhook_retention_days: 30\n  database_path: /home/schattenmacher/whatsapp-agent/data/whatsapp_agent.db\n  log_file: /home/schattenmacher/whatsapp-agent/logs/whatsapp_agent.log\n  rate_limit: 30/60s\n  default_mode_for_unknown: APPROVE\n  contacts_file: /home/schattenmacher/whatsapp-agent/data/contacts.json\n\n== Queue ==\n  Offene Freigaben: 9\n  Dry-Run: True\n  Production-Gate aktiv: False\n  Meta konfiguriert: False\n  OpenAI konfiguriert: True\n  Verschl\u00fcsselung konfiguriert: True\n  Kontakte in DB: 6\n",
+        "stderr": "",
+        "arbitrary_shell": false
+      },
+      "result_sha256": "5dd4e2bb615d981829d4f2da7bd3e60e1ecd7e1b3a7e3dd1f9d0ea7dec50dafa",
+      "audit": {
+        "event_id": "3bbe2d06-ad99-43a2-8baa-dafd2ed20a51",
+        "event": "workflow_run_completed",
+        "timestamp": "2026-08-28T21:29:57.357098+00:00",
+        "run_id": "da168d94-6bc2-4708-b3b9-99b11a85fff3",
+        "workflow_id": "so:wf:v1:whatsapp-status",
+        "status": "SUCCESS",
+        "result_sha256": "5dd4e2bb615d981829d4f2da7bd3e60e1ecd7e1b3a7e3dd1f9d0ea7dec50dafa",
+        "event_sha256": "11812090dd358da7d3594b26dcfff5074e69b5d8a60e3163bda1028063f6ee4a"
+      }
+    },
+    "no_exception_leak": true,
+    "no_stacktrace": true
+  },
+  "wrong_content_type": {
+    "code": 200,
+    "payload": {
+      "run_id": "32653e72-a2e4-4c67-aee7-d39e4f5aa8b1",
+      "workflow_id": "so:wf:v1:whatsapp-status",
+      "status": "SUCCESS",
+      "created_at": "2026-08-28T21:29:57.542083+00:00",
+      "result": {
+        "workflow_id": "so:wf:v1:whatsapp-status",
+        "execution_type": "verified-static-argv",
+        "risk": "L0",
+        "approval_required": false,
+        "started_at": "2026-08-28T21:29:57.358139+00:00",
+        "finished_at": "2026-08-28T21:29:57.542030+00:00",
+        "status": "SUCCESS",
+        "exit_code": 0,
+        "stdout": "== Konfiguration ==\n  app_env: development\n  dry_run: True\n  openai_model: gpt-4o-mini\n  meta_configured: False\n  openai_configured: True\n  production_gate_active: False\n  allowed_send_numbers: []\n  contact_encryption_configured: True\n  contact_retention_days: 0\n  event_retention_days: 365\n  message_content_retention_days: 90\n  admin_host: 127.0.0.1\n  admin_port: 8089\n  backup_dir: /home/schattenmacher/whatsapp-agent/backups\n  backup_max: 14\n  worker_poll_interval: 1.0\n  worker_batch: 10\n  queue_retry_schedule: [5, 30, 120, 600, 1800]\n  store_raw_webhooks: False\n  raw_webhook_retention_days: 30\n  database_path: /home/schattenmacher/whatsapp-agent/data/whatsapp_agent.db\n  log_file: /home/schattenmacher/whatsapp-agent/logs/whatsapp_agent.log\n  rate_limit: 30/60s\n  default_mode_for_unknown: APPROVE\n  contacts_file: /home/schattenmacher/whatsapp-agent/data/contacts.json\n\n== Queue ==\n  Offene Freigaben: 9\n  Dry-Run: True\n  Production-Gate aktiv: False\n  Meta konfiguriert: False\n  OpenAI konfiguriert: True\n  Verschl\u00fcsselung konfiguriert: True\n  Kontakte in DB: 6\n",
+        "stderr": "",
+        "arbitrary_shell": false
+      },
+      "result_sha256": "38e0988d704e4a8e9867bb222bf43337c3ad33b1cbe9f67e40472fc6373cbfaf",
+      "audit": {
+        "event_id": "4c32fada-a1d1-4f14-9a61-ed467aa4e80f",
+        "event": "workflow_run_completed",
+        "timestamp": "2026-08-28T21:29:57.542313+00:00",
+        "run_id": "32653e72-a2e4-4c67-aee7-d39e4f5aa8b1",
+        "workflow_id": "so:wf:v1:whatsapp-status",
+        "status": "SUCCESS",
+        "result_sha256": "38e0988d704e4a8e9867bb222bf43337c3ad33b1cbe9f67e40472fc6373cbfaf",
+        "event_sha256": "ed870041b2a8745d562903eb917ed727893eab889a8a180952f0960a10bea1d3"
+      }
+    },
+    "no_stacktrace": true
+  },
+  "extra_fields": {
+    "code": 409,
+    "payload": {
+      "status": "BLOCKED",
+      "workflow_id": "so:wf:v1:whatsapp-purge-expired",
+      "reason": "approval_required",
+      "risk": "L2",
+      "policy": "fail-closed"
+    },
+    "still_blocked": true,
+    "no_stacktrace": true
+  },
+  "unknown_path": {
+    "code": 404,
+    "expected_404": true,
+    "no_stacktrace": true
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "A_UNKNOWN": {
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "fail_closed": true
+  },
+  "B_L2_purge": {
+    "code": 409,
+    "payload": {
+      "status": "BLOCKED",
+      "workflow_id": "so:wf:v1:whatsapp-purge-expired",
+      "reason": "approval_required",
+      "risk": "L2",
+      "policy": "fail-closed"
+    },
+    "blocked": true
+  },
+  "C_L2_subscribe": {
+    "code": 409,
+    "payload": {
+      "status": "BLOCKED",
+      "workflow_id": "so:wf:v1:whatsapp-meta-subscribe",
+      "reason": "approval_required",
+      "risk": "L2",
+      "policy": "fail-closed"
+    },
+    "blocked": true
+  },
+  "D_doctor": {
+    "code": 409,
+    "payload": {
+      "status": "BLOCKED",
+      "workflow_id": "so:wf:v1:whatsapp-doctor",
+      "reason": "META_NOT_CONFIGURED_AND_ADMIN_API_UNAVAILABLE",
+      "policy": "fail-closed"
+    },
+    "blocked": true
+  },
+  "E_meta_status": {
+    "code": 409,
+    "payload": {
+      "status": "BLOCKED",
+      "workflow_id": "so:wf:v1:whatsapp-meta-status",
+      "reason": "META_PHONE_NUMBER_ID_PLACEHOLDER",
+      "policy": "fail-closed"
+    },
+    "blocked": true
+  },
+  "F_.._.._bin_sh": {
+    "id": "../../bin/sh",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F__bin_bash": {
+    "id": "/bin/bash",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_\"; id\"": {
+    "id": "\"; id\"",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_$(id)": {
+    "id": "$(id)",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_whatsapp-status;id": {
+    "id": "whatsapp-status;id",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_so:wf:v1:whatsapp-st": {
+    "id": "so:wf:v1:whatsapp-status;id",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_.._.._etc_passwd": {
+    "id": "../../etc/passwd",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_'; DROP TABLE runs;-": {
+    "id": "'; DROP TABLE runs;--",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  },
+  "F_so:wf:v1:.._.._bin_s": {
+    "id": "so:wf:v1:../../bin/sh",
+    "code": 404,
+    "payload": {
+      "status": "BLOCKED",
+      "reason": "workflow_not_found"
+    },
+    "blocked": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "pr": 36,
+  "state": "OPEN",
+  "isDraft": false,
+  "headRefName": "feature/shadowops-verified-app",
+  "headRefOid": "fda310acff54106c988801d5b36f67bc0791f6e7",
+  "baseRefName": "main",
+  "mergeable": "CONFLICTING",
+  "statusCheckRollup": [
+    {
+      "name": "Verified Product Gate",
+      "conclusion": "FAILURE",
+      "workflowName": "ShadowOps Verified Product Gate",
+      "detailsUrl": "https://github.com/DonMassa84/shadowops-mission-control-v2/actions/runs/33193759820/job/98925557954",
+      "completedAt": "2026-08-28T17:14:49Z",
+      "status": "COMPLETED"
+    }
+  ],
+  "classification": "TEST_BUG",
+  "reason": "mix format --check-formatted failed on apps/shadowops_core/lib/shadow_ops_core/adapters/tcc_adapter.ex unformatted. Same failure reproduced locally. Verified product logic (inventory, unittest 16 passed) is PASS. No product code change required beyond running mix format.",
+  "reproduction": "MIX_ENV=test SHADOWOPS_START_PERSISTENCE=false mix format --check-formatted => fails on tcc_adapter.ex line 142",
+  "evidence_cmd": "gh run view 33193759820 --repo DonMassa84/shadowops-mission-control-v2 --log-failed",
+  "github_ci": "FAIL (format gate)"
+}

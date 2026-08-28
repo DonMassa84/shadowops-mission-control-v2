@@ -1,0 +1,32 @@
+{
+  "THIRD_INSTANCE": "YES",
+  "BASE_SHA": "fda310acff54106c988801d5b36f67bc0791f6e7",
+  "WORKTREE": "/home/schattenmacher/Projects/shadowops-adversarial-third",
+  "ISOLATION": "PASS",
+  "BASELINE_TESTS": {
+    "unittest": "PASS (16 passed)",
+    "mix_format": "FAIL (tcc_adapter.ex unformatted) - pre-existing",
+    "mix_compile": "PASS (0 warnings)",
+    "mix_test": "PARTIAL (195/197 passed, 2 failures in workflow_fabric_contract_test) - pre-existing",
+    "freeze_gate": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "ports_before": {
+    "4013": "LISTEN 0      1024       127.0.0.1:4013       0.0.0.0:*    users:((\"beam.smp\",pid=1862,fd=18))    ",
+    "4014": "LISTEN 0      1024       127.0.0.1:4014       0.0.0.0:*    users:((\"beam.smp\",pid=1868,fd=19))    "
+  },
+  "ports_after": {
+    "4013": "LISTEN 0      1024       127.0.0.1:4013       0.0.0.0:*    users:((\"beam.smp\",pid=1862,fd=18))    ",
+    "4014": "LISTEN 0      1024       127.0.0.1:4014       0.0.0.0:*    users:((\"beam.smp\",pid=1868,fd=19))    ",
+    "4015": "LISTEN 0      5          127.0.0.1:4015       0.0.0.0:*    users:((\"python3\",pid=328165,fd=3))    "
+  },
+  "inventory": {
+    "TOTAL": 16,
+    "L0": 9,
+    "L1": 5,
+    "L2": 2,
+    "ACCEPTED": 12,
+    "RUNTIME_BLOCKED": 2,
+    "APPROVAL_GATED": 2
+  }
+}

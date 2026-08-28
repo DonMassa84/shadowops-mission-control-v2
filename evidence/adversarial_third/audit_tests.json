@@ -1,0 +1,20 @@
+{
+  "audit_code": 200,
+  "events_count": 36,
+  "found_event": true,
+  "event_fields": {
+    "event_id": true,
+    "event": true,
+    "timestamp": true,
+    "run_id": true,
+    "workflow_id": true,
+    "result_sha256": true,
+    "event_sha256": true
+  },
+  "event_sha256_stored": "a35a42b5716a5e4c9548998c66a092b1ded4055868dc61cb441c3739dd692c5f",
+  "event_sha256_computed": "a35a42b5716a5e4c9548998c66a092b1ded4055868dc61cb441c3739dd692c5f",
+  "event_sha256_match": true,
+  "tamper_hash": "594a6f21dd25a783a96f7e62ef39db59cded1aedb337df845b85203bcabeb218",
+  "tamper_detected": true,
+  "AUDIT_TAMPER_DETECTED": true
+}
