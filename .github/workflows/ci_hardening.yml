@@ -72,13 +72,34 @@ jobs:
 
       - name: Credo strict on changed hardening code
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          git fetch --no-tags --depth=1 origin hardening/production-ready-2026-08-25
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            base="$PR_BASE_SHA"
+          else
+            base="$PUSH_BEFORE"
+          fi
+
+          if [[ -z "$base" || "$base" =~ ^0+$ ]]; then
+            base="$(git rev-parse HEAD^ 2>/dev/null || true)"
+          fi
+
+          if [[ -z "$base" ]]; then
+            echo "No comparison base available; no changed Elixir sources to lint."
+            exit 0
+          fi
+
+          git fetch --no-tags --depth=1 origin "$base"
           mapfile -t changed < <(
-            git diff --name-only origin/hardening/production-ready-2026-08-25 HEAD -- '*.ex' '*.exs' \
+            git diff --name-only "$base" HEAD -- '*.ex' '*.exs' \
               | grep -E '^(apps|config|test)/' || true
           )
+
           if ((${#changed[@]} == 0)); then
             echo "No changed Elixir sources to lint."
           else
