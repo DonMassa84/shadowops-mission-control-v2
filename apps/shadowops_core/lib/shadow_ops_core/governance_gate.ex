@@ -13,8 +13,8 @@ defmodule ShadowOpsCore.GovernanceGate do
          {:ok, capability_spec} <- CapabilityRegistry.lookup(capability),
          {:ok, policy} <- Policy.evaluate(capability, actor, context),
          {:ok, _audit} <- audit_policy(actor, resource, capability, policy),
-         :ok <- approval(policy, capability, resource, context),
-         {:ok, :allowed} <- PrivacyGate.check(input) do
+         {:ok, :allowed} <- PrivacyGate.check(input),
+         :ok <- approval(policy, capability, resource, actor, context) do
       {:ok,
        %{
          capability: capability_spec,
@@ -35,13 +35,19 @@ defmodule ShadowOpsCore.GovernanceGate do
     end
   end
 
-  defp approval(%{approval_required: false}, _capability, _resource, _context), do: :ok
+  defp approval(%{approval_required: false}, _capability, _resource, _actor, _context), do: :ok
 
-  defp approval(%{approval_required: true, risk_level: risk}, capability, resource, context) do
+  defp approval(
+         %{approval_required: true, risk_level: risk},
+         capability,
+         resource,
+         actor,
+         context
+       ) do
     approval_id = value(context, :approval_id)
 
     if is_binary(approval_id) and approval_id != "" do
-      case ApprovalStore.validate(approval_id, capability, resource, risk) do
+      case ApprovalStore.consume(approval_id, capability, resource, risk, actor) do
         {:ok, _approval} -> :ok
         {:blocked, reason} -> {:error, {:approval_blocked, reason}}
         {:error, reason} -> {:error, {:approval_invalid, reason}}
