@@ -74,6 +74,7 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "gmail.delete" => %{id: "gmail.delete", executor: :gmail, args: [:thread_ref]},
     "github.export" => %{id: "github.export", executor: :github_data, args: []},
     "github.sync" => %{id: "github.sync", executor: :github_data, args: []},
+    "pdf_governance.read" => %{id: "pdf_governance.read", executor: :not_connected, args: []},
     "local_workflow.verify_runtime" => %{
       id: "local_workflow.verify_runtime",
       executor: :not_connected,
