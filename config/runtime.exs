@@ -136,7 +136,7 @@ if runtime_env == :prod do
   # ShadowOps is a local control plane. Production remains loopback-only; remote
   # access must be provided by an authenticated tunnel/reverse proxy.
   config :shadowops_web, ShadowOpsWeb.Endpoint,
-    server: true,
+    server: System.get_env("MIX_ENV") != "test",
     url: [host: System.get_env("SHADOWOPS_PUBLIC_HOST", "localhost"), port: port, scheme: "http"],
     http: [ip: {127, 0, 0, 1}, port: port],
     secret_key_base: secret_key_base
@@ -146,7 +146,7 @@ else
   secret_key_base = System.get_env("SHADOWOPS_SECRET_KEY_BASE") || String.duplicate("0", 64)
 
   config :shadowops_web, ShadowOpsWeb.Endpoint,
-    server: true,
+    server: System.get_env("MIX_ENV") != "test",
     url: [host: System.get_env("SHADOWOPS_PUBLIC_HOST", "localhost"), port: port, scheme: "http"],
     http: [ip: bind_ip, port: port],
     secret_key_base: secret_key_base

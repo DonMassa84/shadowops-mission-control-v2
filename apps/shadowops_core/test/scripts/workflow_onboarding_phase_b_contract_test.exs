@@ -1,7 +1,7 @@
 defmodule WorkflowOnboardingPhaseBContractTest do
   use ExUnit.Case, async: true
 
-  @repo_root Path.expand("../..", __DIR__)
+  @repo_root Path.expand("../../../..", __DIR__)
   @script Path.join(@repo_root, "scripts/workflow_onboarding_phase_b.exs")
 
   test "phase B implementation exists" do
