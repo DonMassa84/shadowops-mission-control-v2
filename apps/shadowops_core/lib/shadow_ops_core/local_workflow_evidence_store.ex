@@ -47,7 +47,7 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStore do
   def get(id, registry) when is_binary(id) do
     case Map.fetch(snapshot(registry), id) do
       {:ok, evidence} -> {:ok, evidence}
-      :error -> {:error, :not_found}
+      :error -> {:error, :unknown_workflow_id}
     end
   end
 
