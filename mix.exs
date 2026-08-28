@@ -9,7 +9,8 @@ defmodule ShadowOps.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      releases: releases()
+      releases: releases(),
+      dialyzer: [plt_add_apps: [:mix]]
     ]
   end
 
