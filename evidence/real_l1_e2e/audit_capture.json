@@ -1,0 +1,24 @@
+{
+  "events": [
+    {
+      "event_id": "43409384-0e66-4827-b0e7-feac1001c83b",
+      "event": "workflow_run_completed",
+      "timestamp": "2026-08-28T22:04:29.026879+00:00",
+      "run_id": "ea5a7bbc-ae83-469f-ac6b-829eb0106115",
+      "workflow_id": "so:wf:v1:shadowops-verified-self-check",
+      "status": "FAILED",
+      "result_sha256": "031608693119d812107b1b0d9d278993a3b3ef43a17e77f5cc031581f8c605a8",
+      "event_sha256": "1e51369800fac4933c141b39f430858d4fe16d03a2f9462c6a9a796e6bcfe085"
+    },
+    {
+      "event_id": "6ac499c3-a93b-4c1e-8075-9cdce4039536",
+      "event": "workflow_run_completed",
+      "timestamp": "2026-08-28T22:04:03.138628+00:00",
+      "run_id": "6903a01e-d7b2-44ba-927b-e03731e67a8b",
+      "workflow_id": "so:wf:v1:shadowops-verified-self-check",
+      "status": "FAILED",
+      "result_sha256": "175599a37734bf747ee3a98c1cb6d376b1b5893917b59c4120391f6385b4a03a",
+      "event_sha256": "d750a10e80d73832a6105330ed116e0c4d8b910b47b8e8df85aefd38c48aa242"
+    }
+  ]
+}

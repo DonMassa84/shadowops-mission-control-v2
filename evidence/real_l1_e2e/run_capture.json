@@ -1,0 +1,59 @@
+{
+  "run_id": "ea5a7bbc-ae83-469f-ac6b-829eb0106115",
+  "workflow_id": "so:wf:v1:shadowops-verified-self-check",
+  "status": "FAILED",
+  "created_at": "2026-08-28T22:04:29.026656+00:00",
+  "result": {
+    "workflow_id": "so:wf:v1:shadowops-verified-self-check",
+    "workflow_name": "ShadowOps Verified Self Check",
+    "risk": "L0",
+    "approval_required": false,
+    "execution_type": "builtin-read-only",
+    "started_at": "2026-08-28T22:04:29.026627+00:00",
+    "finished_at": "2026-08-28T22:04:29.026635+00:00",
+    "status": "FAILED",
+    "checks": [
+      {
+        "check": "git_branch",
+        "passed": false,
+        "value": "workflow/real-l1-execution"
+      },
+      {
+        "check": "git_head",
+        "passed": true,
+        "value": "fda310acff54106c988801d5b36f67bc0791f6e7"
+      },
+      {
+        "check": "inventory_load",
+        "passed": true,
+        "value": 16
+      },
+      {
+        "check": "fail_closed_policy",
+        "passed": true,
+        "value": "fail-closed"
+      },
+      {
+        "check": "production_port_observed",
+        "passed": true,
+        "value": "LISTENING"
+      },
+      {
+        "check": "production_mutation",
+        "passed": true,
+        "value": "NO"
+      }
+    ]
+  },
+  "result_sha256": "031608693119d812107b1b0d9d278993a3b3ef43a17e77f5cc031581f8c605a8",
+  "audit": {
+    "event_id": "43409384-0e66-4827-b0e7-feac1001c83b",
+    "event": "workflow_run_completed",
+    "timestamp": "2026-08-28T22:04:29.026879+00:00",
+    "run_id": "ea5a7bbc-ae83-469f-ac6b-829eb0106115",
+    "workflow_id": "so:wf:v1:shadowops-verified-self-check",
+    "status": "FAILED",
+    "result_sha256": "031608693119d812107b1b0d9d278993a3b3ef43a17e77f5cc031581f8c605a8",
+    "event_sha256": "1e51369800fac4933c141b39f430858d4fe16d03a2f9462c6a9a796e6bcfe085"
+  }
+}
