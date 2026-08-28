@@ -1,0 +1,6 @@
+877674381883c0500c67c15e6a3c6ea30ec37e3b
+100644 27fdb8411c3bb0c3e6cb6a9694220bb17b357e1f 2	opencode.jsonc
+100644 d6d03e7c4d0baa0efc4b7b54f273d456439cf64c 3	opencode.jsonc
+
+automatischer Merge von opencode.jsonc
+KONFLIKT (hinzufügen/hinzufügen): Merge-Konflikt in opencode.jsonc

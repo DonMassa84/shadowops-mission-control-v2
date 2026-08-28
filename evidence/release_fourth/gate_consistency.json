@@ -1,0 +1,30 @@
+{
+  "date": "2026-08-28",
+  "sha": "fda310acff54106c988801d5b36f67bc0791f6e7",
+  "inventory": "/home/schattenmacher/Projects/shadowops-release-fourth/verified_app/data/workflows.json",
+  "gate_script": "/home/schattenmacher/Projects/shadowops-release-fourth/scripts/verified_product_gate.sh",
+  "gate_workflow": "/home/schattenmacher/Projects/shadowops-release-fourth/.github/workflows/verified-app-product.yml",
+  "consistency": "CONSISTENT",
+  "expected": {
+    "total": 16,
+    "accepted": 12,
+    "runtime_blocked": 2,
+    "approval_gated": 2,
+    "L0": 9,
+    "L1": 5,
+    "L2": 2
+  },
+  "actual": {
+    "total": 16,
+    "accepted": 12,
+    "runtime_blocked": 2,
+    "approval_gated": 2,
+    "L0": 9,
+    "L1": 5,
+    "L2": 2
+  },
+  "execution_verified": 12,
+  "start_enabled": 12,
+  "stale_assertions_removed": "NONE_STALE",
+  "acceptance": "dict passed"
+}

@@ -1,0 +1,1416 @@
+==> shadowops_core
+Running ExUnit with seed: 12345, max_cases: 32
+
+.......................................................................................................................................................................................
+
+  1) test registry adapters preserve existing IDs and unresolved OpenCode state (ShadowOpsCore.WorkflowFabricContractTest)
+     apps/shadowops_core/test/workflow_fabric_contract_test.exs:131
+     Assertion with in failed
+     code:  assert tcc_status.state in ["DEGRADED", "UNAVAILABLE"]
+     left:  "CONNECTED"
+     right: ["DEGRADED", "UNAVAILABLE"]
+     stacktrace:
+       test/workflow_fabric_contract_test.exs:165: (test)
+
+..
+
+  2) test TCC adapter discovers a real registry file shape without inventing workflows (ShadowOpsCore.WorkflowFabricContractTest)
+     apps/shadowops_core/test/workflow_fabric_contract_test.exs:104
+     Assertion with == failed
+     code:  assert workflow.id == "fixture-observation"
+     left:  "so:wf:v1:fixture-observation"
+     right: "fixture-observation"
+     stacktrace:
+       test/workflow_fabric_contract_test.exs:125: (test)
+
+..........
+Finished in 0.9 seconds (0.4s async, 0.4s sync)
+
+Result: 195/197 passed
+Failed: 2 tests
+==> workflow_engine
+Running ExUnit with seed: 12345, max_cases: 32
+
+................................
+Finished in 0.1 seconds (0.1s async, 0.00s sync)
+
+Result: 32 passed
+==> agent_runtime
+Running ExUnit with seed: 12345, max_cases: 32
+
+.........
+Finished in 0.07 seconds (0.07s async, 0.00s sync)
+
+Result: 9 passed
+==> shadowops_web
+Running ExUnit with seed: 12345, max_cases: 32
+
+.....
+23:26:39.145 [debug] Processing with ShadowOpsWeb.LegalController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+.
+23:26:39.345 [info] GET /projects
+
+23:26:39.349 [debug] Processing with ShadowOpsWeb.ProjectDomainsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.386 [info] Sent 200 in 41ms
+
+23:26:39.387 [info] GET /projects/finance
+
+23:26:39.387 [debug] Processing with ShadowOpsWeb.ProjectDomainLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.388 [info] Sent 200 in 1ms
+
+23:26:39.388 [info] GET /projects/investigations
+
+23:26:39.388 [debug] Processing with ShadowOpsWeb.ProjectDomainLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.389 [info] Sent 200 in 346µs
+
+23:26:39.389 [info] GET /projects/ihk
+
+23:26:39.389 [debug] Processing with ShadowOpsWeb.ProjectDomainLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.389 [info] Sent 200 in 331µs
+
+23:26:39.389 [info] GET /projects/community
+
+23:26:39.389 [debug] Processing with ShadowOpsWeb.ProjectDomainLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.389 [info] Sent 200 in 270µs
+..
+23:26:39.391 [info] GET /projects/chatgpt
+
+23:26:39.391 [debug] Processing with ShadowOpsWeb.ProjectDomainLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.392 [info] Sent 200 in 1ms
+..
+23:26:39.392 [info] GET /workflows
+
+23:26:39.392 [debug] Processing with ShadowOpsWeb.WorkflowsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:39.574 [info] Sent 200 in 181ms
+.
+23:26:39.574 [info] GET /integrations
+
+23:26:39.574 [debug] Processing with ShadowOpsWeb.IntegrationsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:43.480 [info] Sent 200 in 3905ms
+.
+23:26:43.481 [info] GET /api/integrations
+
+23:26:43.481 [debug] Processing with ShadowOpsWeb.IntegrationsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:26:44.150 [info] Sent 200 in 669ms
+.
+23:26:44.162 [info] GET /integrations
+
+23:26:44.162 [debug] Processing with ShadowOpsWeb.IntegrationsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:44.817 [info] Sent 200 in 654ms
+..
+23:26:44.818 [info] GET /api/integrations
+
+23:26:44.818 [debug] Processing with ShadowOpsWeb.IntegrationsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:26:45.481 [info] Sent 200 in 663ms
+.
+23:26:45.493 [info] GET /
+
+23:26:45.493 [debug] Processing with ShadowOpsWeb.DashboardLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:46.193 [info] Sent 200 in 699ms
+.
+23:26:46.193 [info] GET /
+
+23:26:46.193 [debug] Processing with ShadowOpsWeb.DashboardLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:46.877 [info] Sent 200 in 684ms
+.
+23:26:46.878 [info] GET /
+
+23:26:46.878 [debug] Processing with ShadowOpsWeb.DashboardLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:47.688 [info] Sent 200 in 810ms
+
+23:26:47.688 [info] GET /workflows
+
+23:26:47.688 [debug] Processing with ShadowOpsWeb.WorkflowsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:47.856 [info] Sent 200 in 168ms
+.
+23:26:47.858 [info] GET /services
+
+23:26:47.858 [debug] Processing with ShadowOpsWeb.ServicesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:49.370 [info] Sent 200 in 1511ms
+.
+23:26:49.371 [info] GET /integrations
+
+23:26:49.371 [debug] Processing with ShadowOpsWeb.IntegrationsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:50.062 [info] Sent 200 in 691ms
+.
+23:26:50.062 [info] GET /api/services
+
+23:26:50.063 [debug] Processing with ShadowOpsWeb.ServicesController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:26:50.945 [info] Sent 200 in 882ms
+.
+23:26:50.950 [info] GET /api/integrations
+
+23:26:50.951 [debug] Processing with ShadowOpsWeb.IntegrationsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:26:51.618 [info] Sent 200 in 667ms
+
+23:26:51.628 [info] GET /integrations
+
+23:26:51.628 [debug] Processing with ShadowOpsWeb.IntegrationsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:52.324 [info] Sent 200 in 695ms
+..
+23:26:52.327 [info] GET /workflows/repository_quality
+
+23:26:52.327 [debug] Processing with ShadowOpsWeb.WorkflowDetailLive.__live__/0
+  Parameters: %{"id" => "repository_quality"}
+  Pipelines: [:browser]
+
+23:26:52.336 [info] Sent 200 in 8ms
+
+23:26:52.336 [info] GET /services
+
+23:26:52.336 [debug] Processing with ShadowOpsWeb.ServicesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:53.269 [info] Sent 200 in 933ms
+
+23:26:53.270 [info] GET /compute
+
+23:26:53.270 [debug] Processing with ShadowOpsWeb.ComputeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:57.295 [info] Sent 200 in 4024ms
+
+23:26:57.295 [info] GET /workflows
+
+23:26:57.295 [debug] Processing with ShadowOpsWeb.WorkflowsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:57.425 [info] Sent 200 in 130ms
+
+23:26:57.425 [info] GET /services
+
+23:26:57.426 [debug] Processing with ShadowOpsWeb.ServicesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:26:58.447 [info] Sent 200 in 1021ms
+
+23:26:59.004 [info] GET /compute
+
+23:26:59.004 [debug] Processing with ShadowOpsWeb.ComputeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:03.023 [info] Sent 200 in 4018ms
+...
+23:27:15.083 [info] GET /nodes
+
+23:27:15.084 [debug] Processing with ShadowOpsWeb.NodesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:19.111 [info] Sent 200 in 4027ms
+..
+23:27:23.131 [info] GET /api/jobs
+
+23:27:23.131 [debug] Processing with ShadowOpsWeb.JobsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:27:23.133 [info] Sent 200 in 1ms
+
+23:27:23.133 [info] GET /api/integrations
+
+23:27:23.133 [debug] Processing with ShadowOpsWeb.IntegrationsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:27:27.425 [info] Sent 200 in 4291ms
+
+23:27:27.430 [info] GET /api/connectors
+
+23:27:27.430 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.connectors/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:27:29.138 [info] Sent 200 in 1708ms
+
+23:27:29.138 [info] GET /api/evidence
+
+23:27:29.138 [debug] Processing with ShadowOpsWeb.EvidenceController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:27:29.144 [info] Sent 200 in 5ms
+
+23:27:29.144 [info] GET /api/learning/plan
+
+23:27:29.144 [debug] Processing with ShadowOpsWeb.LearningController.plan/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:27:29.159 [info] Sent 200 in 15ms
+.
+23:27:29.160 [info] GET /integrations
+
+23:27:29.160 [debug] Processing with ShadowOpsWeb.IntegrationsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:29.915 [info] Sent 200 in 755ms
+.
+23:27:29.917 [info] GET /focus
+
+23:27:29.917 [debug] Processing with ShadowOpsWeb.FocusLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:29.929 [info] Sent 200 in 12ms
+.
+23:27:29.929 [info] GET /compute
+
+23:27:29.930 [debug] Processing with ShadowOpsWeb.ComputeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:33.951 [info] Sent 200 in 4021ms
+.
+23:27:37.427 [info] GET /compute
+
+23:27:37.427 [debug] Processing with ShadowOpsWeb.ComputeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:41.445 [info] Sent 200 in 4018ms
+
+23:27:41.445 [info] GET /jobs
+
+23:27:41.446 [debug] Processing with ShadowOpsWeb.JobsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:41.448 [info] Sent 200 in 2ms
+
+23:27:41.448 [info] GET /integrations
+
+23:27:41.448 [debug] Processing with ShadowOpsWeb.IntegrationsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:45.681 [info] Sent 200 in 4233ms
+
+23:27:45.682 [info] GET /focus
+
+23:27:45.682 [debug] Processing with ShadowOpsWeb.FocusLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:45.694 [info] Sent 200 in 12ms
+
+23:27:45.694 [info] GET /evidence
+
+23:27:45.695 [debug] Processing with ShadowOpsWeb.EvidenceLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:45.700 [info] Sent 200 in 5ms
+.
+23:27:45.700 [info] GET /compute
+
+23:27:45.701 [debug] Processing with ShadowOpsWeb.ComputeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:27:49.719 [info] Sent 200 in 4019ms
+.........
+23:28:01.871 [info] GET /projects/federated
+
+23:28:01.871 [debug] Processing with ShadowOpsWeb.ProjectCatalogLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:01.874 [info] Sent 200 in 2ms
+..
+23:28:01.874 [info] GET /workflows
+
+23:28:01.874 [debug] Processing with ShadowOpsWeb.WorkflowsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:02.041 [info] Sent 200 in 167ms
+
+23:28:02.087 [debug] MOUNT ShadowOpsWeb.WorkflowsLive
+  Parameters: %{}
+  Session: %{"_csrf_token" => "pJW-GxzQJ3Ah0fQtnO464fAU"}
+
+23:28:02.257 [debug] Replied in 170ms
+
+23:28:02.322 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{"category" => "", "domain" => "", "runtime" => "", "search" => "repository", "sort" => "id", "status" => ""}
+
+23:28:02.324 [debug] Replied in 1ms
+
+23:28:02.332 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{"category" => "system", "domain" => "", "runtime" => "", "search" => "", "sort" => "id", "status" => ""}
+
+23:28:02.333 [debug] Replied in 220µs
+
+23:28:02.335 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{"category" => "", "domain" => "finance", "runtime" => "", "search" => "", "sort" => "id", "status" => ""}
+
+23:28:02.335 [debug] Replied in 382µs
+
+23:28:02.337 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{"category" => "", "domain" => "", "runtime" => "", "search" => "", "sort" => "id", "status" => "active"}
+
+23:28:02.337 [debug] Replied in 268µs
+
+23:28:02.339 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{"category" => "", "domain" => "", "runtime" => "github_actions", "search" => "", "sort" => "id", "status" => ""}
+
+23:28:02.339 [debug] Replied in 293µs
+
+23:28:02.341 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{"category" => "", "domain" => "", "runtime" => "", "search" => "", "sort" => "domain", "status" => ""}
+
+23:28:02.341 [debug] Replied in 240µs
+
+23:28:02.378 [debug] HANDLE EVENT "clear" in ShadowOpsWeb.WorkflowsLive
+  Parameters: %{}
+
+23:28:02.379 [debug] Replied in 370µs
+.
+23:28:02.406 [info] GET /audit
+
+23:28:02.406 [debug] Processing with ShadowOpsWeb.AuditLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:02.408 [info] Sent 200 in 2ms
+
+23:28:02.408 [debug] MOUNT ShadowOpsWeb.AuditLive
+  Parameters: %{}
+  Session: %{"_csrf_token" => "hVk0Ueyy4SRvyiVqLCOZwuZ0"}
+
+23:28:02.409 [debug] Replied in 148µs
+
+23:28:02.409 [debug] HANDLE EVENT "filter" in ShadowOpsWeb.AuditLive
+  Parameters: %{"action" => "", "actor" => "alice", "date" => "", "result" => ""}
+
+23:28:02.409 [debug] Replied in 39µs
+
+23:28:02.410 [debug] HANDLE EVENT "verify" in ShadowOpsWeb.AuditLive
+  Parameters: %{}
+
+23:28:02.410 [debug] Replied in 157µs
+.
+23:28:02.411 [info] GET /
+
+23:28:02.411 [debug] Processing with ShadowOpsWeb.DashboardLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:03.033 [info] Sent 200 in 622ms
+
+23:28:03.036 [debug] MOUNT ShadowOpsWeb.DashboardLive
+  Parameters: %{}
+  Session: %{"_csrf_token" => "iLa9mmfMoSaa0Ky2wFjWgVj_"}
+
+23:28:03.725 [debug] Replied in 688ms
+.
+23:28:04.537 [info] GET /social/facebook
+
+23:28:04.537 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.550 [info] Sent 200 in 13ms
+
+23:28:04.551 [info] GET /social/review
+
+23:28:04.551 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.554 [info] Sent 200 in 3ms
+.
+23:28:04.554 [info] GET /social/review
+
+23:28:04.555 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.555 [info] Sent 200 in 814µs
+.
+23:28:04.556 [info] GET /social/facebook
+
+23:28:04.556 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.564 [info] Sent 200 in 8ms
+
+23:28:04.564 [info] GET /social/review
+
+23:28:04.564 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.565 [info] Sent 200 in 384µs
+
+23:28:04.565 [info] GET /social/facebook
+
+23:28:04.565 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.574 [info] Sent 200 in 9ms
+
+23:28:04.574 [info] GET /social/review
+
+23:28:04.574 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.574 [info] Sent 200 in 343µs
+
+23:28:04.574 [info] GET /social/facebook
+
+23:28:04.575 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.582 [info] Sent 200 in 7ms
+
+23:28:04.582 [info] GET /social/review
+
+23:28:04.582 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.583 [info] Sent 200 in 438µs
+
+23:28:04.583 [info] GET /social/facebook
+
+23:28:04.583 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.591 [info] Sent 200 in 8ms
+
+23:28:04.592 [info] GET /social/review
+
+23:28:04.592 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.592 [info] Sent 200 in 402µs
+
+23:28:04.592 [info] GET /social/facebook
+
+23:28:04.592 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.599 [info] Sent 200 in 7ms
+
+23:28:04.599 [info] GET /social/review
+
+23:28:04.600 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.600 [info] Sent 200 in 402µs
+
+23:28:04.600 [info] GET /social/facebook
+
+23:28:04.600 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.609 [info] Sent 200 in 8ms
+
+23:28:04.609 [info] GET /social/review
+
+23:28:04.609 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.609 [info] Sent 200 in 379µs
+
+23:28:04.609 [info] GET /social/facebook
+
+23:28:04.610 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.617 [info] Sent 200 in 7ms
+
+23:28:04.617 [info] GET /social/review
+
+23:28:04.617 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.617 [info] Sent 200 in 315µs
+
+23:28:04.617 [info] GET /social/facebook
+
+23:28:04.617 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.626 [info] Sent 200 in 8ms
+
+23:28:04.626 [info] GET /social/review
+
+23:28:04.626 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.626 [info] Sent 200 in 451µs
+.
+23:28:04.627 [info] GET /social/facebook
+
+23:28:04.627 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.636 [info] Sent 200 in 9ms
+.
+23:28:04.637 [info] GET /social/review
+
+23:28:04.637 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.638 [info] Sent 200 in 617µs
+..
+23:28:04.638 [info] GET /social/review
+
+23:28:04.638 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.638 [info] Sent 200 in 552µs
+.
+23:28:04.639 [info] GET /display/i7
+
+23:28:04.639 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.640 [info] Sent 200 in 1ms
+.
+23:28:04.641 [info] GET /display/i7
+
+23:28:04.641 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.642 [info] Sent 200 in 1ms
+
+23:28:04.642 [info] GET /api/learning/plan
+
+23:28:04.642 [debug] Processing with ShadowOpsWeb.LearningController.plan/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:04.643 [info] Sent 200 in 911µs
+..
+23:28:04.643 [info] GET /display/i7
+
+23:28:04.643 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.651 [info] Sent 200 in 8ms
+
+23:28:04.652 [info] GET /api/learning/plan
+
+23:28:04.652 [debug] Processing with ShadowOpsWeb.LearningController.plan/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:04.659 [info] Sent 200 in 7ms
+..
+23:28:04.661 [info] GET /display/i7
+
+23:28:04.661 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.661 [info] Sent 200 in 677µs
+
+23:28:04.662 [info] GET /display/i7
+
+23:28:04.662 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.662 [info] Sent 200 in 596µs
+
+23:28:04.663 [info] GET /display/i7
+
+23:28:04.663 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.663 [info] Sent 200 in 591µs
+
+23:28:04.664 [info] GET /display/i7
+
+23:28:04.664 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.665 [info] Sent 200 in 615µs
+
+23:28:04.665 [info] GET /display/i7
+
+23:28:04.665 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.666 [info] Sent 200 in 629µs
+
+23:28:04.666 [info] GET /display/i7
+
+23:28:04.666 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.667 [info] Sent 200 in 694µs
+.
+23:28:04.668 [info] HEAD /display/i7
+
+23:28:04.668 [debug] Processing with ShadowOpsWeb.I7ProbeController.head/2
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.669 [info] Sent 200 in 1ms
+
+23:28:04.669 [info] GET /display/i7
+
+23:28:04.669 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.677 [info] Sent 200 in 8ms
+
+23:28:04.678 [info] GET /api/learning/plan
+
+23:28:04.678 [debug] Processing with ShadowOpsWeb.LearningController.plan/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:04.686 [info] Sent 200 in 8ms
+.
+23:28:04.687 [info] GET /display/i7
+
+23:28:04.687 [debug] Processing with ShadowOpsWeb.I7DisplayLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:04.690 [info] Sent 200 in 2ms
+
+23:28:04.690 [info] GET /api/learning/plan
+
+23:28:04.690 [debug] Processing with ShadowOpsWeb.LearningController.plan/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:04.691 [info] Sent 200 in 1ms
+.....
+23:28:04.693 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.connectors/2
+  Parameters: %{}
+  Pipelines: [:api]
+..
+23:28:06.316 [debug] Processing with ShadowOpsWeb.HealthController.show/2
+  Parameters: %{}
+  Pipelines: [:api]
+.
+23:28:06.324 [debug] Processing with ShadowOpsWeb.HealthController.show/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:06.329 [debug] Processing with ShadowOpsWeb.ReadinessController.show/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:06.346 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.system/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:06.353 [debug] Processing with ShadowOpsWeb.WorkflowsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:06.363 [debug] Processing with ShadowOpsWeb.RunsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:06.364 [debug] Processing with ShadowOpsWeb.NodesController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:10.383 [debug] Processing with ShadowOpsWeb.ServicesController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:11.582 [debug] Processing with ShadowOpsWeb.AgentsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.143 [debug] Processing with ShadowOpsWeb.AIStatusController.status/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.144 [debug] Processing with ShadowOpsWeb.SecurityController.status/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.161 [debug] Processing with ShadowOpsWeb.ApprovalsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.162 [debug] Processing with ShadowOpsWeb.AuditController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.165 [debug] Processing with ShadowOpsWeb.LogsController.recent/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.167 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.connectors/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.884 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.whatsapp/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:12.896 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.social/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:13.476 [debug] Processing with ShadowOpsWeb.KnowledgeController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:14.020 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.backups/2
+  Parameters: %{}
+  Pipelines: [:api]
+.
+23:28:14.031 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.social/2
+  Parameters: %{}
+  Pipelines: [:api]
+..
+23:28:14.675 [info] POST /api/approvals
+
+23:28:14.681 [debug] Processing with ShadowOpsWeb.ApprovalsController.create/2
+  Parameters: %{}
+  Pipelines: [:control_plane_write]
+
+23:28:14.681 [info] Sent 400 in 5ms
+
+23:28:14.681 [debug] Phoenix.Router halted in :control_plane_write/2
+.
+23:28:14.681 [info] POST /api/workflows/repository_quality/run
+
+23:28:14.681 [debug] Processing with ShadowOpsWeb.WorkflowsController.run/2
+  Parameters: %{"id" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+
+23:28:14.690 [info] Sent 409 in 8ms
+....
+23:28:14.692 [info] GET /runtime
+
+23:28:14.692 [debug] Processing with Phoenix.LiveDashboard.PageLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser, :runtime_dashboard]
+
+23:28:14.693 [info] Sent 404 in 1ms
+.
+23:28:14.693 [debug] Phoenix.Router halted in :runtime_dashboard/2
+
+23:28:14.694 [info] GET /jobs
+
+23:28:14.694 [debug] Processing with ShadowOpsWeb.JobsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:14.694 [info] Sent 200 in 470µs
+.
+23:28:14.694 [info] GET /runtime
+
+23:28:14.694 [debug] Processing with Phoenix.LiveDashboard.PageLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser, :runtime_dashboard]
+
+23:28:14.721 [info] Sent 302 in 26ms
+
+23:28:14.721 [info] GET /runtime/home
+
+23:28:14.721 [debug] Processing with Phoenix.LiveDashboard.PageLive.__live__/0
+  Parameters: %{"page" => "home"}
+  Pipelines: [:browser, :runtime_dashboard]
+
+23:28:14.734 [info] Sent 200 in 13ms
+.
+23:28:14.734 [info] GET /api/ai
+
+23:28:14.734 [debug] Processing with ShadowOpsWeb.AIStatusController.status/2
+  Parameters: %{}
+  Pipelines: [:api]
+.
+23:28:14.735 [info] Sent 200 in 143µs
+
+23:28:14.735 [info] GET /ai
+
+23:28:14.735 [debug] Processing with ShadowOpsWeb.AILive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:14.736 [info] Sent 200 in 1ms
+......
+23:28:14.737 [info] GET /layers
+
+23:28:14.737 [debug] Processing with ShadowOpsWeb.LayersLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:18.269 [info] Sent 200 in 3532ms
+
+23:28:18.270 [info] GET /api/layers
+
+23:28:18.270 [debug] Processing with ShadowOpsWeb.LayersController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:18.272 [info] Sent 200 in 2ms
+
+23:28:18.272 [info] GET /api/layers/sources
+
+23:28:18.272 [debug] Processing with ShadowOpsWeb.LayersController.show/2
+  Parameters: %{"id" => "sources"}
+  Pipelines: [:api]
+
+23:28:18.272 [info] Sent 200 in 565µs
+
+23:28:18.272 [info] GET /api/layers/not-a-real-layer
+
+23:28:18.273 [debug] Processing with ShadowOpsWeb.LayersController.show/2
+  Parameters: %{"id" => "not-a-real-layer"}
+  Pipelines: [:api]
+
+23:28:18.273 [info] Sent 404 in 548µs
+
+23:28:18.273 [info] POST /api/layers
+
+23:28:18.278 [info] Sent 404 in 5ms
+.
+23:28:18.278 [debug] Converted error Phoenix.Router.NoRouteError to 404 response
+.
+23:28:18.279 [info] GET /api/social/facebook/balance
+
+23:28:18.279 [debug] Processing with ShadowOpsWeb.FacebookBalanceController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:18.281 [info] Sent 200 in 1ms
+.
+23:28:18.281 [info] GET /social/facebook
+
+23:28:18.281 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:18.284 [info] Sent 200 in 2ms
+..
+23:28:18.284 [info] GET /api/social/facebook/balance
+
+23:28:18.284 [debug] Processing with ShadowOpsWeb.FacebookBalanceController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:18.284 [info] Sent 200 in 104µs
+
+23:28:18.285 [info] GET /social/facebook
+
+23:28:18.285 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:18.287 [info] Sent 200 in 2ms
+.
+23:28:18.287 [info] GET /workflows
+
+23:28:18.287 [debug] Processing with ShadowOpsWeb.WorkflowsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:18.467 [info] Sent 200 in 179ms
+
+23:28:18.468 [info] GET /workflows/repository_quality
+
+23:28:18.468 [debug] Processing with ShadowOpsWeb.WorkflowDetailLive.__live__/0
+  Parameters: %{"id" => "repository_quality"}
+  Pipelines: [:browser]
+
+23:28:18.477 [info] Sent 200 in 9ms
+..
+23:28:18.478 [info] POST /api/approvals
+
+23:28:18.478 [debug] Processing with ShadowOpsWeb.ApprovalsController.create/2
+  Parameters: %{"action" => "workflow.execute", "reason" => "controlled execution test", "resource" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.479 [info] Sent 201 in 1ms
+
+23:28:18.479 [info] POST /api/approvals/approval_252a5a7d271fc40e23704ada/approve
+
+23:28:18.479 [debug] Processing with ShadowOpsWeb.ApprovalsController.approve/2
+  Parameters: %{"id" => "approval_252a5a7d271fc40e23704ada"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.480 [info] Sent 200 in 1ms
+
+23:28:18.480 [info] POST /api/workflows/repository_quality/run
+
+23:28:18.481 [debug] Processing with ShadowOpsWeb.WorkflowsController.run/2
+  Parameters: %{"approval_id" => "approval_252a5a7d271fc40e23704ada", "args" => [], "id" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.499 [info] Sent 200 in 18ms
+
+23:28:18.499 [info] GET /api/runs/run_eff76604b80d9477008d478f
+
+23:28:18.499 [debug] Processing with ShadowOpsWeb.RunsController.show/2
+  Parameters: %{"id" => "run_eff76604b80d9477008d478f"}
+  Pipelines: [:api]
+
+23:28:18.499 [info] Sent 200 in 224µs
+
+23:28:18.499 [info] GET /api/audit/verify
+
+23:28:18.499 [debug] Processing with ShadowOpsWeb.AuditController.verify/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:18.499 [info] Sent 200 in 248µs
+.
+23:28:18.500 [info] GET /runs
+
+23:28:18.500 [debug] Processing with ShadowOpsWeb.RunsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:18.502 [info] Sent 200 in 2ms
+
+23:28:18.502 [info] GET /approvals
+
+23:28:18.502 [debug] Processing with ShadowOpsWeb.ApprovalsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:18.504 [info] Sent 200 in 1ms
+.
+23:28:18.504 [info] POST /api/approvals
+
+23:28:18.504 [debug] Processing with ShadowOpsWeb.ApprovalsController.create/2
+  Parameters: %{}
+  Pipelines: [:control_plane_write]
+
+23:28:18.504 [info] Sent 400 in 145µs
+
+23:28:18.504 [debug] Phoenix.Router halted in :control_plane_write/2
+
+23:28:18.504 [info] POST /api/approvals
+
+23:28:18.505 [debug] Processing with ShadowOpsWeb.ApprovalsController.create/2
+  Parameters: %{"action" => "workflow.execute", "reason" => "transition contract", "resource" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.506 [info] Sent 201 in 1ms
+
+23:28:18.506 [info] POST /api/approvals/approval_defa27832e97c1a85f721c51/approve
+
+23:28:18.506 [debug] Processing with ShadowOpsWeb.ApprovalsController.approve/2
+  Parameters: %{"id" => "approval_defa27832e97c1a85f721c51"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.507 [info] Sent 200 in 1ms
+
+23:28:18.507 [info] POST /api/approvals/approval_defa27832e97c1a85f721c51/reject
+
+23:28:18.507 [debug] Processing with ShadowOpsWeb.ApprovalsController.reject/2
+  Parameters: %{"id" => "approval_defa27832e97c1a85f721c51"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.509 [info] Sent 400 in 2ms
+
+23:28:18.509 [info] POST /api/approvals
+
+23:28:18.509 [debug] Processing with ShadowOpsWeb.ApprovalsController.create/2
+  Parameters: %{"action" => "workflow.execute", "expires_at" => "2020-01-01T00:00:00Z", "reason" => "expiry contract", "resource" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.511 [info] Sent 201 in 1ms
+
+23:28:18.511 [info] GET /api/approvals/approval_df73d346fc0fcb87f9c6f187
+
+23:28:18.511 [debug] Processing with ShadowOpsWeb.ApprovalsController.show/2
+  Parameters: %{"id" => "approval_df73d346fc0fcb87f9c6f187"}
+  Pipelines: [:api]
+
+23:28:18.511 [info] Sent 200 in 220µs
+
+23:28:18.511 [info] POST /api/approvals
+
+23:28:18.511 [debug] Processing with ShadowOpsWeb.ApprovalsController.create/2
+  Parameters: %{"action" => "workflow.execute", "expires_at" => "not-a-timestamp", "resource" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+
+23:28:18.511 [info] Sent 422 in 425µs
+.
+23:28:18.512 [info] GET /api/audit/audit_18e78f04f3f16c56a3dea3ef
+
+23:28:18.512 [debug] Processing with ShadowOpsWeb.AuditController.show/2
+  Parameters: %{"id" => "audit_18e78f04f3f16c56a3dea3ef"}
+  Pipelines: [:api]
+
+23:28:18.512 [info] Sent 200 in 117µs
+
+23:28:18.512 [info] GET /api/audit/audit_unknown
+
+23:28:18.512 [debug] Processing with ShadowOpsWeb.AuditController.show/2
+  Parameters: %{"id" => "audit_unknown"}
+  Pipelines: [:api]
+
+23:28:18.512 [info] Sent 404 in 110µs
+.
+23:28:18.512 [info] GET /api/nodes
+
+23:28:18.512 [debug] Processing with ShadowOpsWeb.NodesController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:22.530 [info] Sent 200 in 4017ms
+
+23:28:22.530 [info] GET /api/agents
+
+23:28:22.530 [debug] Processing with ShadowOpsWeb.AgentsController.index/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:23.081 [info] Sent 200 in 550ms
+
+23:28:23.082 [info] GET /api/logs
+
+23:28:23.082 [debug] Processing with ShadowOpsWeb.LogsController.recent/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:23.083 [info] Sent 200 in 1ms
+
+23:28:23.083 [info] GET /api/social
+
+23:28:23.083 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.social/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:23.668 [info] Sent 200 in 584ms
+
+23:28:23.668 [info] GET /api/connectors/whatsapp
+
+23:28:23.668 [debug] Processing with ShadowOpsWeb.ModuleSourcesController.whatsapp/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:23.679 [info] Sent 200 in 10ms
+
+23:28:23.679 [info] GET /evidence
+
+23:28:23.679 [debug] Processing with ShadowOpsWeb.EvidenceLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:23.683 [info] Sent 200 in 3ms
+
+23:28:23.683 [info] GET /knowledge
+
+23:28:23.683 [debug] Processing with ShadowOpsWeb.KnowledgeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:24.088 [info] Sent 200 in 405ms
+.
+23:28:24.089 [info] GET /services
+
+23:28:24.089 [debug] Processing with ShadowOpsWeb.ServicesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:25.218 [info] Sent 200 in 1129ms
+.
+23:28:25.823 [info] GET /api/security/status
+
+23:28:25.823 [debug] Processing with ShadowOpsWeb.SecurityController.status/2
+  Parameters: %{}
+  Pipelines: [:api]
+
+23:28:25.840 [info] Sent 200 in 16ms
+
+23:28:25.840 [info] POST /api/workflows/repository_quality/run
+
+23:28:25.840 [debug] Processing with ShadowOpsWeb.WorkflowsController.run/2
+  Parameters: %{"id" => "repository_quality"}
+  Pipelines: [:control_plane_write]
+.
+23:28:25.840 [info] Sent 503 in 136µs
+
+23:28:25.840 [debug] Phoenix.Router halted in :control_plane_write/2
+
+23:28:25.840 [info] GET /
+
+23:28:25.840 [debug] Processing with ShadowOpsWeb.DashboardLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:26.501 [info] Sent 200 in 660ms
+
+23:28:26.501 [info] GET /infrastructure
+
+23:28:26.502 [debug] Processing with ShadowOpsWeb.InfrastructureLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:38.068 [info] Sent 200 in 11566ms
+
+23:28:38.068 [info] GET /workflows
+
+23:28:38.068 [debug] Processing with ShadowOpsWeb.WorkflowsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:38.289 [info] Sent 200 in 221ms
+
+23:28:38.290 [info] GET /runs
+
+23:28:38.290 [debug] Processing with ShadowOpsWeb.RunsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:38.290 [info] Sent 200 in 450µs
+
+23:28:38.290 [info] GET /services
+
+23:28:38.290 [debug] Processing with ShadowOpsWeb.ServicesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:39.452 [info] Sent 200 in 1161ms
+
+23:28:39.453 [info] GET /nodes
+
+23:28:39.453 [debug] Processing with ShadowOpsWeb.NodesLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:43.473 [info] Sent 200 in 4019ms
+
+23:28:43.473 [info] GET /agents
+
+23:28:43.473 [debug] Processing with ShadowOpsWeb.AgentsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:44.060 [info] Sent 200 in 587ms
+
+23:28:44.060 [info] GET /ai
+
+23:28:44.061 [debug] Processing with ShadowOpsWeb.AILive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:44.061 [info] Sent 200 in 339µs
+
+23:28:44.061 [info] GET /knowledge
+
+23:28:44.061 [debug] Processing with ShadowOpsWeb.KnowledgeLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:44.647 [info] Sent 200 in 586ms
+
+23:28:44.647 [info] GET /career
+
+23:28:44.647 [debug] Processing with ShadowOpsWeb.ModuleLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:44.652 [info] Sent 200 in 4ms
+
+23:28:44.652 [info] GET /backups
+
+23:28:44.652 [debug] Processing with ShadowOpsWeb.ModuleLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:44.660 [info] Sent 200 in 8ms
+
+23:28:44.660 [info] GET /reporting
+
+23:28:44.661 [debug] Processing with ShadowOpsWeb.ModuleLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:46.920 [info] Sent 200 in 2259ms
+
+23:28:46.921 [info] GET /social
+
+23:28:46.921 [debug] Processing with ShadowOpsWeb.ModuleLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:47.579 [info] Sent 200 in 658ms
+
+23:28:47.579 [info] GET /social/facebook
+
+23:28:47.579 [debug] Processing with ShadowOpsWeb.FacebookLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:47.592 [info] Sent 200 in 13ms
+
+23:28:47.593 [info] GET /social/review
+
+23:28:47.593 [debug] Processing with ShadowOpsWeb.SocialReviewLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:47.595 [info] Sent 200 in 2ms
+
+23:28:47.595 [info] GET /social/messenger
+
+23:28:47.595 [debug] Processing with ShadowOpsWeb.SocialUnavailableLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:48.202 [info] Sent 200 in 607ms
+
+23:28:48.202 [info] GET /social/whatsapp
+
+23:28:48.202 [debug] Processing with ShadowOpsWeb.SocialUnavailableLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:48.839 [info] Sent 200 in 637ms
+
+23:28:48.840 [info] GET /social/telegram
+
+23:28:48.840 [debug] Processing with ShadowOpsWeb.SocialUnavailableLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:49.468 [info] Sent 200 in 628ms
+
+23:28:49.468 [info] GET /security
+
+23:28:49.468 [debug] Processing with ShadowOpsWeb.SecurityLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:49.495 [info] Sent 200 in 26ms
+
+23:28:49.495 [info] GET /approvals
+
+23:28:49.495 [debug] Processing with ShadowOpsWeb.ApprovalsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:49.496 [info] Sent 200 in 349µs
+
+23:28:49.496 [info] GET /audit
+
+23:28:49.496 [debug] Processing with ShadowOpsWeb.AuditLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:49.498 [info] Sent 200 in 1ms
+
+23:28:49.498 [info] GET /evidence
+
+23:28:49.498 [debug] Processing with ShadowOpsWeb.EvidenceLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:49.501 [info] Sent 200 in 3ms
+
+23:28:49.501 [info] GET /logs
+
+23:28:49.501 [debug] Processing with ShadowOpsWeb.LogsLive.__live__/0
+  Parameters: %{}
+  Pipelines: [:browser]
+
+23:28:49.505 [info] Sent 200 in 3ms
+...
+Finished in 130.5 seconds (0.4s async, 130.1s sync)
+
+Result: 106 passed

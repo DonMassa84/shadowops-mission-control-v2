@@ -1,0 +1,29 @@
+{
+  "candidate_sha": "fda310acff54106c988801d5b36f67bc0791f6e7",
+  "pr": 36,
+  "state": "OPEN",
+  "is_draft": false,
+  "title": "Verified App: WhatsApp execution allowlist + product gate",
+  "head_ref": "feature/shadowops-verified-app",
+  "head_oid": "fda310acff54106c988801d5b36f67bc0791f6e7",
+  "base_ref": "main",
+  "mergeable": "CONFLICTING",
+  "merge_state_status": "DIRTY",
+  "rebaseable": false,
+  "reviews_required": "none (main branch not protected)",
+  "review_decision": "",
+  "reviews": [],
+  "files_changed": 246,
+  "commits_total": 501,
+  "checks": {
+    "total_check_runs": 1,
+    "verified_product_gate": {
+      "name": "Verified Product Gate",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE",
+      "url": "https://github.com/DonMassa84/shadowops-mission-control-v2/actions/runs/33193759820/job/98925557954"
+    },
+    "failed_checks": ["Verified Product Gate"],
+    "pending_checks": []
+  }
+}

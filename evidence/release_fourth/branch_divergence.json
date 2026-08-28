@@ -1,0 +1,19 @@
+{
+  "main_left": 2,
+  "branch_right": 501,
+  "ahead_by": 501,
+  "behind_by": 2,
+  "interpretation": "feature/shadowops-verified-app is 501 commits ahead of main and 2 behind main",
+  "merge_base": "f3c88d41219d79048acbda9c1cf1897390d1cb65",
+  "divergence_high": true,
+  "main_only_commits": [
+    "75f26ad Add controlled presence slides to ShadowOps Knowledge",
+    "593df86 Connect OpenCode and ChatGPT through GitHub MCP"
+  ],
+  "merge_conflict": {
+    "file": "opencode.jsonc",
+    "type": "add/add",
+    "note": "opencode.jsonc does not exist at merge-base; both sides added divergent versions"
+  },
+  "history_note": "Feature branch contains large amount of merged history (501 commits relative to main). Documented only, no rewrite."
+}

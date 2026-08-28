@@ -139,7 +139,12 @@ defmodule ShadowOpsCore.Adapters.TccAdapter do
 
   defp canonical(workflow) do
     raw_id = workflow["id"] || workflow["name"]
-    id = if String.starts_with?(raw_id || "", "so:wf:v1:"), do: raw_id, else: "so:wf:v1:" <> to_string(raw_id)
+
+    id =
+      if String.starts_with?(raw_id || "", "so:wf:v1:"),
+        do: raw_id,
+        else: "so:wf:v1:" <> to_string(raw_id)
+
     spec = Map.get(@execution_specs, id)
     risk = workflow["risk_level"] || workflow["risk"] || workflow["approval_level"]
 
