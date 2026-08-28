@@ -1,20 +1,24 @@
-# V2.5 Workflow Runtime + Governance — Status
+# V2.5 Workflow Runtime + Governance — Final Accounting
 
-HEAD=a5c677c2c45a333954b9a110870a4e757b12823a
-V25_RECOVERY_SHA=da361d225e2b2f54f3c71b12800b8411a95f41e2
-BASE=origin/ai/v25-workflows (cd13069)
+BRANCH=ai/v25-workflows
+VERIFIED_CODE_SHA=9e1decb9a6e1b98b0870cfb5d10910b30fd693e3
+HANDOFF_CURRENT=YES
+V25_ACCOUNTING_COMPLETE=YES
+
+## Scope closure
+
+This checkpoint closes the V2.5 accounting contract without inventing execution evidence.
+The verified code checkpoint discovered and connected 10 candidates, but its own durable evidence reports `TESTED=0` and `PRODUCTION_READY=0`. No persisted per-workflow canonical execution attestation is present for those 10 candidates in the branch evidence. Therefore none may be promoted to TESTED.
+
+A CONNECTED workflow is not the same as a TESTED workflow. Runtime/source evidence is retained, while the TESTED transition fails closed until a real bounded canonical execution and persisted attestation exist.
 
 ## Work Completed
 
 - Recovered 14 files from source worktree (governance/inventory/registry)
-- Cherry-picked onto PR #25 branch
-- Ran full quality gates
-- Verified all security invariants
-- Verified all 10 promoted workflows with real evidence
-
-## Files Changed
-
-14 files, +842/-83
+- Published verified code checkpoint `9e1decb9a6e1b98b0870cfb5d10910b30fd693e3`
+- Ran recovery quality gates on that code checkpoint
+- Verified security invariants and truthful source/runtime accounting
+- Closed all 10 CONNECTED candidates with a terminal verdict: BLOCKED_FROM_TESTED where execution attestation is absent
 
 ## Inventory
 
@@ -27,8 +31,8 @@ DUPLICATES=0
 
 CONNECTED=10
 TESTED=0
+BLOCKED_FROM_TESTED=10
 PRODUCTION_READY=0
-BLOCKED=1
 
 ## Risk Distribution
 
@@ -38,20 +42,20 @@ RISK_L2=108
 RISK_L3=26
 RISK_TOTAL=500
 
-## Promoted Workflows (10)
+## Connected Workflow Terminal Verdicts
 
-| ID | Risk | Capability | Adapter |
-|----|------|------------|---------|
-| localwf_projects_2bfcaef0d5b8 | L2 | service.status | SystemdAdapter |
-| localwf_projects_2bfde0029ca0 | L2 | service.status | SystemdAdapter |
-| localwf_projects_34cdb22dfe1d | L2 | service.status | SystemdAdapter |
-| localwf_projects_53bb185be57b | L2 | service.status | SystemdAdapter |
-| localwf_projects_5b74eb4b262e | L2 | service.status | SystemdAdapter |
-| localwf_projects_6b34f484140f | L0 | node.status | ScriptAdapter |
-| localwf_projects_bd7888260092 | L2 | service.status | SystemdAdapter |
-| localwf_projects_fcac239a2dbc | L2 | node.status | ScriptAdapter |
-| localwf_proofflow-obsidian-vault_598ffb03958e | L1 | knowledge.read | ScriptAdapter |
-| localwf_proofflow-obsidian-vault_6fc36a3a1df6 | L1 | knowledge.read | ScriptAdapter |
+| ID | Risk | Capability | Adapter | Verdict | Exact blocker |
+|----|------|------------|---------|---------|---------------|
+| localwf_projects_2bfcaef0d5b8 | L2 | service.status | SystemdAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_2bfde0029ca0 | L2 | service.status | SystemdAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_34cdb22dfe1d | L2 | service.status | SystemdAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_53bb185be57b | L2 | service.status | SystemdAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_5b74eb4b262e | L2 | service.status | SystemdAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_6b34f484140f | L0 | node.status | ScriptAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_bd7888260092 | L2 | service.status | SystemdAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_projects_fcac239a2dbc | L2 | node.status | ScriptAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_proofflow-obsidian-vault_598ffb03958e | L1 | knowledge.read | ScriptAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
+| localwf_proofflow-obsidian-vault_6fc36a3a1df6 | L1 | knowledge.read | ScriptAdapter | BLOCKED_FROM_TESTED | No persisted canonical execution attestation on verified V2.5 checkpoint |
 
 ## Security Invariants
 
@@ -63,33 +67,27 @@ UNKNOWN_RISK_READY=0
 ARBITRARY_COMMANDS=0
 ARBITRARY_EXECUTABLE_PATHS=0
 ARBITRARY_SYSTEMD_UNITS=0
+METADATA_ONLY_PROMOTION=0
 
-## Quality Gates
+## Quality Gates on VERIFIED_CODE_SHA
 
 FORMAT_RC=0
 COMPILE_RC=0
-TARGET_TEST_RC=0 (180/180)
-FULL_TEST_RC=0 (180/180 + 105/106 shadowops_web, 1 pre-existing failure)
+TARGET_TEST_RC=0
+RECOVERY_CORE_TESTS=180/180
 
-## Pre-existing Test Failure
+The historical web failure recorded before Hy3 closure was the approval-consumption blocker. Hy3 subsequently resolved and independently verified that approval path with `FULL_TEST_RC=0` and `HY3_FINAL_ACCEPTANCE=PASS`; V2.5 does not claim ownership of that fix.
 
-TEST=authenticated approval-gated write creates durable run and valid audit chain
-APP=shadowops_web
-ERROR=assert executed.status == 200 returned 409
-ROOT_CAUSE=Pre-existing: approval gate returns 409 on re-execution of same approval
-PRE_EXISTING=PROVEN (fails on base commit too, 10/12 vs 10/11 on V2.5)
-IN_V25_SCOPE=NO
+## Integration note
 
-## Blockers
+The V2.5 branch predates the current `local/all-developments` integration head and must not be merged blindly. Its genuine governance/inventory deltas are to be deduplicated against Hy3 and the current integration branch. The accounting above is complete regardless of whether any CONNECTED workflow later receives a real execution attestation.
 
-None
-
-## Dependencies
-
-None
-
+BLOCKERS=NONE_FOR_ACCOUNTING
+DEPENDENCIES=CONTROLLED_DEDUPLICATION_WITH_CURRENT_INTEGRATION_BASE
 READY_FOR_INTEGRATION=YES
+READY_TO_BUILD_INTEGRATION_CANDIDATE=YES
 
 MERGE=NO
 DEPLOY=NO
 PRODUCTION_MUTATION=NO
+4013_MUTATION=NO
