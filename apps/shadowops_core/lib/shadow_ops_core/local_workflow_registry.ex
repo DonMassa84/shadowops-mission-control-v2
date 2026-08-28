@@ -129,15 +129,18 @@ defmodule ShadowOpsCore.LocalWorkflowRegistry do
   defp latest_report(root) do
     reports_root = Path.join(root, "reports/shadowops")
 
-    with {:ok, names} <- File.ls(reports_root) do
-      names
-      |> Enum.filter(&String.starts_with?(&1, "workflow_correlation_"))
-      |> Enum.map(&Path.join(reports_root, &1))
-      |> Enum.filter(&File.dir?/1)
-      |> Enum.filter(&File.regular?(Path.join(&1, "entrypoints.tsv")))
-      |> Enum.max_by(&report_mtime/1, fn -> nil end)
-    else
-      _ -> nil
+    case File.ls(reports_root) do
+      {:ok, names} ->
+        names
+        |> Enum.filter(fn name ->
+          String.starts_with?(name, "workflow_correlation_") and
+            File.regular?(Path.join([reports_root, name, "entrypoints.tsv"]))
+        end)
+        |> Enum.map(&Path.join(reports_root, &1))
+        |> Enum.max_by(&report_mtime/1, fn -> nil end)
+
+      {:error, _reason} ->
+        nil
     end
   end
 
