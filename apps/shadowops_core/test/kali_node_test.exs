@@ -14,7 +14,13 @@ defmodule ShadowOpsCore.KaliNodeTest do
     refute node.synthetic
     assert node.metadata.role == "security_node"
     assert node.metadata.control_actions == ["status"]
-    assert node.metadata.capabilities == ["healthcheck", "security_audit", "evidence_collection"]
+
+    assert node.metadata.capabilities == [
+             "healthcheck",
+             "security_audit",
+             "evidence_collection"
+           ]
+
     refute node.metadata.arbitrary_shell
     refute node.metadata.arbitrary_systemd
     refute node.metadata.production_control_plane
