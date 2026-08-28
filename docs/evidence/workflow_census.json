@@ -1,0 +1,86 @@
+{
+  "census_metadata": {
+    "worker": "vm-orchestrator",
+    "timestamp_utc": "2026-08-28T10:15:00Z",
+    "branch": "local/all-developments",
+    "local_head": "6433829933f4f352a2c229a592e533b0e1f70d84",
+    "remote_head": "6433829933f4f352a2c229a592e533b0e1f70d84",
+    "remote_head_match": true,
+    "target_sha": "6433829933f4f352a2c229a592e533b0e1f70d84",
+    "dirty_status": "CLEAN"
+  },
+  "phases": {
+    "phase_1_counting_model": "COMPLETE",
+    "phase_2_discovery_sources": "COMPLETE",
+    "phase_3_raw_inventory": {
+      "raw_discovered_by_source": {
+        "canonical_workflows": 9,
+        "external_sets": 77,
+        "github_actions": 2,
+        "systemd_services": 111,
+        "scripts_automation": 45,
+        "raw_total": 208
+      }
+    },
+    "phase_4_normalization": "COMPLETE",
+    "phase_5_deduplication": {
+      "deduplicated_whatsapp": 16,
+      "excluded_run_instances": 1,
+      "excluded_non_definitions": 1
+    },
+    "phase_6_reconciliation": {
+      "raw_total": 208,
+      "proven_duplicates": 16,
+      "excluded_non_definitions": 1,
+      "unique_workflow_definitions": 191,
+      "assertion": "208 - 16 - 1 = 191 PASS"
+    },
+    "phase_7_state_accounting": {
+      "PRODUCTION_READY": 0,
+      "TESTED": 0,
+      "CONNECTED": 10,
+      "CONFIGURED": 8,
+      "REGISTERED": 191,
+      "DISCOVERED": 181,
+      "BLOCKED": 8,
+      "NOT_CONFIGURED": 1,
+      "REFERENCE_ONLY": 13,
+      "UNAVAILABLE": 0,
+      "UNKNOWN": 0,
+      "UNIQUE_TOTAL": 191
+    },
+    "phase_8_risk_accounting": {
+      "L0": 35,
+      "L1": 19,
+      "L2": 18,
+      "L3": 1,
+      "TOTAL_RISK_CLASSIFIED": 72
+    },
+    "phase_9_legacy_crosscheck": {
+      "70": "CURRENT_UNIQUE (9 canonical + 61 deduped external)",
+      "177": "RAW_LEGACY (pre-dedupe)",
+      "1000": "REJECTED (max unique = 191)",
+      "5175": "RAW_LEGACY (inventory raw entries)"
+    }
+  },
+  "assertions": {
+    "raw_total_minus_dupes_minus_excluded_equals_unique": "208 - 16 - 1 = 191 PASS",
+    "whatsapp_not_double_counted": "PASS",
+    "run_instance_excluded": "PASS",
+    "unknown_not_promoted": "PASS",
+    "arithmetic_invariant": "PASS"
+  },
+  "risk_accounting": {
+    "L0": 35,
+    "L1": 19,
+    "L2": 18,
+    "L3": 1,
+    "total_risk_classified": 72
+  },
+  "legacy_crosscheck": {
+    "70": "CURRENT_UNIQUE",
+    "177": "RAW_LEGACY",
+    "1000": "REJECTED",
+    "5175": "RAW_LEGACY"
+  }
+}
