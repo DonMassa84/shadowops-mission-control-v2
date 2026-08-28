@@ -1,0 +1,732 @@
+schema_version: 1
+catalog: shadowops-chat-history-inventory
+status: FOUND_NOT_EXECUTABLE
+origin_policy:
+  - CHAT_HISTORY
+  - GITHUB
+  - LOCAL_DISCOVERY
+safety:
+  imported_items_executable: false
+  unknown_capability: BLOCKED
+  unknown_executor: BLOCKED
+  ai_direct_execution: BLOCKED
+  production_4013_mutation: FORBIDDEN
+
+workflow_families:
+  - id: repository_quality
+    name: Repository Quality
+    workflow_type: STATIC
+    category: github_ci
+    intent: validate_repository_quality
+    known_pipeline:
+      - python_install
+      - syntax
+      - tests
+      - repository_hygiene
+      - secret_guard
+      - quality_gate
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: finance_quality_gate
+    name: Finance Quality Gate
+    workflow_type: STATIC
+    category: finance_ci
+    intent: validate_finance_artifacts
+    known_pipeline:
+      - finance_required_files
+      - legacy_registry_validation
+      - finance_agent_chain
+      - finance_master_structure
+      - privacy_gate
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: finanzabgleich
+    name: Finanzabgleich
+    workflow_type: STATIC
+    category: finance
+    intent: reconcile_financial_sources_and_payments
+    known_pipeline:
+      - finanz_quellen_agent
+      - finanz_zahlungsketten_agent
+      - finanz_foerderkontroll_agent
+      - finanz_master_sync_agent
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: career_email_only
+    name: Career Email Only
+    workflow_type: PARAMETERIZED
+    category: career_communication
+    intent: prepare_and_process_email_only_application
+    known_pipeline:
+      - DISCOVER
+      - VERIFY_EMAIL
+      - DEDUPE_ADDRESS
+      - DEDUPE_COMPANY
+      - FIT_CHECK
+      - COMPANY_RESEARCH
+      - CUSTOMIZE_COVER_LETTER
+      - CUSTOMIZE_CV
+      - SELECT_EVIDENCE
+      - PDF_QA
+      - SEND_EMAIL
+      - VERIFY_SENT
+      - WRITE_GITHUB_REPORT
+      - WRITE_OBSIDIAN_NOTE
+      - FOLLOW_UP
+    external_writes: [SEND_EMAIL]
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: career_application_pipeline
+    name: Career Application Pipeline
+    workflow_type: TEMPLATE
+    category: career
+    intent: convert_job_lead_to_application_and_followup
+    known_pipeline:
+      - discover_role
+      - fit_check
+      - company_research
+      - customize_documents
+      - select_evidence
+      - qa
+      - preview
+      - approval
+      - send
+      - verify_sent
+      - follow_up
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: career_pipeline_cleanup
+    name: Career Pipeline Cleanup
+    workflow_type: STATIC
+    category: career
+    intent: classify_application_pipeline_state
+    known_states:
+      - SENT_WITH_ATTACHMENTS
+      - SENT_WITHOUT_REQUIRED_ATTACHMENTS
+      - CONTACT_REQUEST
+      - CONFIRMED
+      - WAITING
+      - BOUNCE
+      - FOLLOW_UP
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: document_ai
+    name: Document AI
+    workflow_type: PARAMETERIZED
+    category: documents
+    intent: analyze_selected_document
+    required_input: document_ref
+    target_input_model: source_id
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: document_analysis_template
+    name: Document Analysis Template
+    workflow_type: TEMPLATE
+    category: documents
+    intent: extract_classify_summarize_document
+    known_pipeline:
+      - document.extract
+      - document.classify
+      - document.summarize
+      - result.persist
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: documentation_pipeline
+    name: Documentation Pipeline
+    workflow_type: TEMPLATE
+    category: documentation
+    intent: generate_validate_and_improve_documentation
+    known_pipeline:
+      - collect_sources
+      - generate_documentation
+      - quality_review
+      - feedback
+      - revise
+      - persist_evidence
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: documentation_feedback_loop
+    name: Documentation Feedback Loop
+    workflow_type: EVENT_DRIVEN
+    category: documentation
+    intent: continuously_improve_documentation_from_review_feedback
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: prompt_optimization_feedback
+    name: Prompt Optimization Feedback
+    workflow_type: EVENT_DRIVEN
+    category: ai_governance
+    intent: improve_prompts_from_observed_results
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: ihk_zero_trust_project_pipeline
+    name: IHK Zero Trust Project Pipeline
+    workflow_type: STATIC
+    category: ihk
+    intent: build_test_evidence_and_quality_gate_ihk_project
+    known_pipeline:
+      - project_files
+      - github_ci
+      - python_tests
+      - opa_tests
+      - pdf_validation
+      - evidence
+      - quality_gate
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: ihk_project_evidence_pipeline
+    name: IHK Project Evidence Pipeline
+    workflow_type: PARAMETERIZED
+    category: ihk
+    intent: collect_hours_costs_tests_acceptance_and_provenance
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: security_event_policy_action_audit
+    name: Security Event Policy Approval Action Audit
+    workflow_type: STATIC
+    category: security
+    intent: process_security_event_fail_closed
+    known_pipeline:
+      - security_event
+      - policy
+      - risk_classification
+      - approval
+      - bounded_action
+      - audit
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: zero_trust_execution_gate
+    name: Zero Trust Execution Gate
+    workflow_type: STATIC
+    category: security
+    intent: validate_capability_risk_approval_before_execution
+    known_pipeline:
+      - capability_validation
+      - risk_policy
+      - approval_policy
+      - runtime_binding
+      - execution_permission
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: single_use_approval_exactly_once
+    name: Single Use Approval Exactly Once
+    workflow_type: STATIC
+    category: approvals
+    intent: consume_high_risk_approval_once_immediately_before_dispatch
+    known_pipeline:
+      - PENDING
+      - APPROVED
+      - CONSUMED
+    provenance: [CHAT_HISTORY, GITHUB]
+    current_status: FOUND
+
+  - id: daily_digest
+    name: Daily Digest
+    workflow_type: EVENT_DRIVEN
+    category: reporting
+    intent: create_daily_digest
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: morning_protocol
+    name: Morning Protocol
+    workflow_type: EVENT_DRIVEN
+    category: personal_control
+    intent: morning_status_and_priority_review
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: evening_protocol
+    name: Evening Protocol
+    workflow_type: EVENT_DRIVEN
+    category: personal_control
+    intent: evening_review_and_handoff
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: roadmap_automation
+    name: Roadmap Automation
+    workflow_type: EVENT_DRIVEN
+    category: planning
+    intent: update_roadmap_from_project_state
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: shadow_system_overnight_audit
+    name: Shadow System Overnight Audit
+    workflow_type: EVENT_DRIVEN
+    category: security
+    intent: scheduled_system_security_audit
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: agent_state_sync
+    name: Agent State Sync
+    workflow_type: EVENT_DRIVEN
+    category: agents
+    intent: synchronize_agent_state
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: shadowops_daily_control
+    name: ShadowOps Daily Control
+    workflow_type: STATIC
+    category: operations
+    intent: evaluate_career_ai_shadowops_github_and_security_status
+    known_outputs:
+      - CAREER
+      - LOCAL_AI
+      - SHADOWOPS
+      - GITHUB
+      - SECURITY
+      - QUALITY_GATE
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: self_healing_incident_response
+    name: Self Healing Incident Response
+    workflow_type: EVENT_DRIVEN
+    category: operations
+    intent: detect_failure_attempt_bounded_recovery_and_record_evidence
+    known_pipeline:
+      - health_check
+      - classify_failure
+      - bounded_recovery
+      - verify
+      - alert
+      - audit
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: auto_mode_health_github_recovery_alerts
+    name: Auto Mode Health GitHub Recovery Alerts
+    workflow_type: EVENT_DRIVEN
+    category: operations
+    intent: automated_status_recovery_and_alert_chain
+    known_pipeline:
+      - health
+      - github
+      - recovery
+      - alerts
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: shadowops_full_pipeline
+    name: ShadowOps Full Pipeline
+    workflow_type: TEMPLATE
+    category: orchestration
+    intent: end_to_end_shadowops_control_pipeline
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: permanent_learning
+    name: Permanent Learning
+    workflow_type: EVENT_DRIVEN
+    category: learning
+    intent: feed_verified_results_back_into_planning_knowledge
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: local_ai_multi_model_orchestration
+    name: Local AI Multi Model Orchestration
+    workflow_type: TEMPLATE
+    category: ai
+    intent: route_ai_tasks_across_registered_models
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: distributed_compute_router
+    name: Distributed Compute Router
+    workflow_type: PARAMETERIZED
+    category: compute
+    intent: route_bounded_jobs_to_registered_host_or_i7_resources
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: i7_healthcheck
+    name: i7 Healthcheck
+    workflow_type: PARAMETERIZED
+    category: infrastructure
+    intent: safely_check_registered_i7_node_health
+    known_pipeline:
+      - node.resolve
+      - reachability
+      - healthcheck
+      - run.persist
+      - audit.persist
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: i7_safe_shutdown
+    name: i7 Safe Shutdown
+    workflow_type: STATIC
+    category: infrastructure
+    intent: safely_shutdown_registered_i7_node
+    risk_hint: L2
+    approval_required: true
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND_NOT_RUNNABLE
+
+  - id: whatsapp_full_e2e
+    name: WhatsApp Full E2E
+    workflow_type: STATIC
+    category: communication_whatsapp
+    intent: ingest_normalize_analyze_and_surface_whatsapp_data
+    known_pipeline:
+      - export
+      - adapter
+      - ingest
+      - normalize
+      - analyze
+      - audit
+      - connector
+      - ui
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: whatsapp_agent_pack
+    name: WhatsApp Agent Pack
+    workflow_type: STATIC
+    category: communication_whatsapp
+    intent: operate_whatsapp_monitoring_maintenance_and_guarded_actions
+    concrete_workflow_count: 16
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: EXISTING
+
+  - id: whatsapp_status
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_sync_status
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_worker_status
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_queue
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_doctor
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING_BLOCKED_RUNTIME
+  - id: whatsapp_contacts
+    workflow_type: PARAMETERIZED
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_report
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_meta_status
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING_BLOCKED_RUNTIME
+  - id: whatsapp_maintenance_15min
+    workflow_type: EVENT_DRIVEN
+    category: communication_whatsapp
+    risk_hint: L0
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_maintenance_hourly
+    workflow_type: EVENT_DRIVEN
+    category: communication_whatsapp
+    risk_hint: L1
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_maintenance_daily
+    workflow_type: EVENT_DRIVEN
+    category: communication_whatsapp
+    risk_hint: L1
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_backup
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L1
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_worker_drain
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L1
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_retry_all
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L1
+    provenance: [GITHUB]
+    current_status: EXISTING
+  - id: whatsapp_purge_expired
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L2
+    approval_required: true
+    provenance: [GITHUB]
+    current_status: EXISTING_APPROVAL_GATED
+  - id: whatsapp_meta_subscribe
+    workflow_type: STATIC
+    category: communication_whatsapp
+    risk_hint: L2
+    approval_required: true
+    provenance: [GITHUB]
+    current_status: EXISTING_APPROVAL_GATED
+
+  - id: telegram_workflow_controller
+    name: Telegram Workflow Controller
+    workflow_type: TEMPLATE
+    category: communication_telegram
+    declared_workflow_count: 6
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: IDS_NOT_IMPORTED
+
+  - id: opencode_standard
+    name: OpenCode Standard Workflows
+    workflow_type: TEMPLATE
+    category: development_agents
+    declared_workflow_count: 7
+    provenance: [GITHUB, CHAT_HISTORY]
+    current_status: IDS_NOT_IMPORTED
+
+  - id: opencode_worker_queue
+    name: OpenCode Worker Queue
+    workflow_type: EVENT_DRIVEN
+    category: development_agents
+    intent: dispatch_bounded_repository_tasks_to_workers
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: opencode_worker_recovery
+    name: OpenCode Worker Recovery
+    workflow_type: EVENT_DRIVEN
+    category: development_agents
+    intent: restart_or_recover_worker_with_state_and_evidence
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: multi_worker_github_orchestration
+    name: Multi Worker GitHub Orchestration
+    workflow_type: STATIC
+    category: development_agents
+    intent: coordinate_isolated_workers_through_github_handoffs
+    known_pipeline:
+      - isolated_branch
+      - implementation
+      - tests
+      - evidence
+      - commit
+      - push
+      - remote_head_match
+      - serial_product_integration
+      - independent_audit
+    provenance: [CHAT_HISTORY, GITHUB]
+    current_status: FOUND
+
+  - id: github_product_delivery_backbone
+    name: GitHub Product Delivery Backbone
+    workflow_type: EVENT_DRIVEN
+    category: github_ci
+    intent: product_first_delivery_with_automatic_quality_gates
+    provenance: [CHAT_HISTORY, GITHUB]
+    current_status: FOUND
+
+  - id: production_acceptance_pipeline
+    name: Production Acceptance Pipeline
+    workflow_type: STATIC
+    category: release
+    intent: independently_prove_candidate_before_promotion
+    known_pipeline:
+      - candidate_sha
+      - tests
+      - runtime_acceptance
+      - fail_closed_checks
+      - audit
+      - independent_review
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: verified_app_acceptance_4015
+    name: Verified App Acceptance 4015
+    workflow_type: STATIC
+    category: release
+    intent: validate_candidate_on_non_production_acceptance_port
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: workflow_onboarding_phase_b
+    name: Workflow Onboarding Phase B
+    workflow_type: STATIC
+    category: workflow_governance
+    intent: discover_external_workflows_and_generate_non_mutating_proposal
+    known_pipeline:
+      - enumerate_external_sets
+      - extract_concrete_ids
+      - preserve_provenance
+      - canonicalize_ids
+      - collision_check
+      - unresolved_slot_report
+      - proposal_evidence
+    provenance: [CHAT_HISTORY, GITHUB]
+    current_status: EXISTING
+
+  - id: workflow_registry_apply_phase_c
+    name: Workflow Registry Apply Phase C
+    workflow_type: STATIC
+    category: workflow_governance
+    intent: apply_reviewed_exact_sha_workflow_proposal_to_dev_registry
+    provenance: [CHAT_HISTORY, GITHUB]
+    current_status: BLOCKED_BY_DESIGN
+
+  - id: gmail_read_analyze_draft
+    name: Gmail Read Analyze Draft
+    workflow_type: PARAMETERIZED
+    category: communication_email
+    intent: find_message_load_thread_extract_attachments_analyze_and_draft_reply
+    known_pipeline:
+      - communication.search
+      - communication.thread.load
+      - communication.attachment.extract
+      - document.analyze
+      - communication.reply.draft
+      - user_preview
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: communication_send_with_approval
+    name: Communication Send With Approval
+    workflow_type: TEMPLATE
+    category: communication
+    intent: send_or_post_prepared_content_through_bound_connector
+    known_pipeline:
+      - draft.resolve
+      - recipient.resolve
+      - external_write_policy
+      - approval
+      - connector.send
+      - evidence
+      - audit
+    risk_hint: L2
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: communication_thread_summarize
+    name: Communication Thread Summarize
+    workflow_type: TEMPLATE
+    category: communication
+    intent: summarize_thread_across_supported_channel
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: communication_follow_up
+    name: Communication Follow Up
+    workflow_type: TEMPLATE
+    category: communication
+    intent: prepare_followup_after_no_response
+    provenance: [CHAT_HISTORY]
+    current_status: FOUND
+
+  - id: adaptive_workflow_composer
+    name: Adaptive Workflow Composer
+    workflow_type: AI_COMPOSED
+    category: workflow_ai
+    intent: translate_user_task_into_structured_capability_bounded_workflow_proposal
+    known_pipeline:
+      - intent_parse
+      - library_search
+      - template_retrieval
+      - capability_selection
+      - structured_proposal
+      - schema_validation
+      - policy_validation
+      - preview
+    provenance: [CHAT_HISTORY]
+    current_status: DESIGN
+
+  - id: adaptive_workflow_library_import
+    name: Adaptive Workflow Library Import
+    workflow_type: STATIC
+    category: workflow_library
+    intent: import_normalize_deduplicate_and_classify_1000_plus_examples
+    known_pipeline:
+      - parse
+      - provenance
+      - normalize
+      - deduplicate
+      - template_family
+      - capability_mapping
+      - policy_validation
+    provenance: [CHAT_HISTORY]
+    current_status: DESIGN
+
+  - id: event_new_email
+    name: New Email Trigger
+    workflow_type: EVENT_DRIVEN
+    category: triggers
+    intent: create_workflow_instance_from_new_email_event
+    provenance: [CHAT_HISTORY]
+    current_status: DESIGN
+
+  - id: event_github_issue_pr
+    name: GitHub Issue PR Trigger
+    workflow_type: EVENT_DRIVEN
+    category: triggers
+    intent: create_workflow_instance_from_github_event
+    provenance: [CHAT_HISTORY]
+    current_status: DESIGN
+
+  - id: event_new_file
+    name: New File Trigger
+    workflow_type: EVENT_DRIVEN
+    category: triggers
+    intent: create_workflow_instance_from_new_file
+    provenance: [CHAT_HISTORY]
+    current_status: DESIGN
+
+  - id: event_schedule
+    name: Scheduled Trigger
+    workflow_type: EVENT_DRIVEN
+    category: triggers
+    intent: create_workflow_instance_from_trusted_schedule
+    provenance: [CHAT_HISTORY]
+    current_status: DESIGN
+
+migration_notes:
+  - This is a first persistent migration pass assembled from the available ShadowOps conversation history plus current GitHub evidence.
+  - Entries are intentionally non-executable until normalized and validated against the real capability and executor registries.
+  - Historical aliases and variants should be preserved as provenance, then deduplicated into canonical families rather than silently deleted.
+  - The next pass must reconcile this catalog with config/workflow_registry_v2.yaml, external workflow evidence, GitHub Actions, and runtime discovery.
