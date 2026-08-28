@@ -1,6 +1,6 @@
 # V2.5 Workflow Runtime + Governance — Status
 
-HEAD=d92428925e2b2f54f3c71b12800b8411a95f41e2
+HEAD=a5c677c2c45a333954b9a110870a4e757b12823a
 V25_RECOVERY_SHA=da361d225e2b2f54f3c71b12800b8411a95f41e2
 BASE=origin/ai/v25-workflows (cd13069)
 
