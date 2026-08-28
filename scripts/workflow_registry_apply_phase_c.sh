@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "PHASE_C=BLOCKED_BY_DESIGN"
+echo "REASON=REGISTRY_APPLY_REQUIRES_REVIEWED_PROPOSAL_AND_EXACT_SHA"
+echo "REGISTRY_MUTATION=NO"
+exit 2
