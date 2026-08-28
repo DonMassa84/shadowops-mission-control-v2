@@ -1,0 +1,15 @@
+{
+  "schema": "shadowops-product-finish-evidence-v1",
+  "timestamp": "2026-08-28T15:48:41.046112+00:00",
+  "workflow_id": "so:wf:v1:shadowops-verified-self-check",
+  "run_id": "b7988174-0349-4272-b232-a00da681603d",
+  "result_sha256": "f044e81ac44f842903bf5bf99f9d88605f63a45355101ea59ad26532ef3d2d4b",
+  "health": "PASS",
+  "ready": "PASS",
+  "execution": "PASS",
+  "run_store": "PASS",
+  "audit": "PASS",
+  "fail_closed_policy": "PASS",
+  "acceptance_port": 4015,
+  "production_promotion": "NO"
+}

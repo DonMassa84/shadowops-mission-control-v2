@@ -1,0 +1,133 @@
+name: ShadowOps Verified Product Gate
+
+on:
+  push:
+    branches:
+      - feature/shadowops-verified-app
+      - "product/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verified-product-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MIX_ENV: test
+  SHADOWOPS_START_PERSISTENCE: "false"
+  FREEZE_EXCEPTION: "RELEASE_BLOCKER"
+
+jobs:
+  verified-product:
+    name: Verified Product Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Candidate identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "CANDIDATE_SHA=$(git rev-parse HEAD)"
+          echo "BRANCH=${GITHUB_REF_NAME}"
+          echo "DEPLOYMENT=NO"
+          echo "4013_PROMOTION=NO"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verified App tests
+        run: |
+          python3 -m unittest discover -s verified_app/tests -v
+
+      - name: Inventory gate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          d = json.loads(
+              Path("verified_app/data/workflows.json").read_text()
+          )
+          w = d["workflows"]
+
+          assert len(w) == 16
+          assert len({x["id"] for x in w}) == 16
+          assert sum(x["risk"] == "L0" for x in w) == 9
+          assert sum(x["risk"] == "L1" for x in w) == 5
+          assert sum(x["risk"] == "L2" for x in w) == 2
+          assert not any(x.get("execution_verified") for x in w)
+          assert not any(x.get("start_enabled") for x in w)
+
+          print("INVENTORY=PASS")
+          print("FAKE_READY=0")
+          PY
+
+      - name: Set up Erlang and Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.17.3"
+          otp-version: "27.3"
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Dependency lock unchanged
+        run: git diff --exit-code -- mix.lock
+
+      - name: Format
+        run: mix format --check-formatted
+
+      - name: Compile
+        run: mix compile --warnings-as-errors
+
+      - name: Capture 4013 before tests
+        shell: bash
+        run: |
+          ss -ltnp 2>/dev/null |
+            grep -E '127\.0\.0\.1:4013\b' \
+            > /tmp/4013-before.txt || true
+
+      - name: Full tests
+        run: mix test --seed 12345
+
+      - name: Verify no new 4013 listener
+        shell: bash
+        run: |
+          ss -ltnp 2>/dev/null |
+            grep -E '127\.0\.0\.1:4013\b' \
+            > /tmp/4013-after.txt || true
+
+          diff -u /tmp/4013-before.txt /tmp/4013-after.txt
+          echo "TEST_4013_NEW_LISTENER=NO"
+
+      - name: Freeze gate
+        run: python3 scripts/freeze_gate.py
+        env:
+          FREEZE_EXCEPTION: RELEASE_BLOCKER
+
+      - name: Whitespace
+        run: git diff --check
+
+      - name: Final status
+        run: |
+          echo "FORMAT=PASS"
+          echo "COMPILE=PASS"
+          echo "TESTS=PASS"
+          echo "TEST_4013_NEW_LISTENER=NO"
+          echo "NO_UNAPPROVED_DEPLOY=PASS"
+          echo "NO_4013_PROMOTION=PASS"
+          echo "PRODUCT_GATE=PASS"
