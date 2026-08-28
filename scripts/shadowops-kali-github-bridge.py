@@ -351,7 +351,7 @@ class State:
 
 
 def task_record(task: Task, source: dict[str, Any]) -> dict[str, Any]:
-    base = {
+    identity = {
         "task_id": task.task_id,
         "revision": task.revision,
         "state": task.state,
@@ -362,10 +362,13 @@ def task_record(task: Task, source: dict[str, Any]) -> dict[str, Any]:
         "prompt": task.prompt,
         "prompt_sha256": sha256_bytes(task.prompt.encode()),
         "approval_id": task.approval_id,
+    }
+    return {
+        **identity,
         "received_at": now(),
         "source": source,
+        "integrity_sha256": canonical_hash(identity),
     }
-    return {**base, "integrity_sha256": canonical_hash(base)}
 
 
 def ingest(state: State, task: Task, source: dict[str, Any]) -> str:
@@ -820,7 +823,16 @@ def self_test() -> int:
             "source_sha256": "a" * 64,
         }
         first = ingest(state, task, src)
-        second = ingest(state, task, src)
+        second = ingest(
+            state,
+            task,
+            {
+                **src,
+                "comment_id": 99,
+                "integration_head": "b" * 40,
+                "source_url": "https://example.invalid/duplicate-provenance",
+            },
+        )
         check("DEDUP", first == "ACCEPTED" and second == "DUPLICATE")
 
         newer = parse_directive(make_body(KALI_TASK_REVISION="2"))
@@ -829,7 +841,7 @@ def self_test() -> int:
             "NEW_REVISION",
             ingest(state, newer, {**src, "comment_id": 2}) == "ACCEPTED",
         )
-        conflict = parse_directive(make_body())
+        conflict = parse_directive(make_body(prompt="Different bounded task text."))
         assert conflict
         check(
             "REVISION_CONFLICT",
