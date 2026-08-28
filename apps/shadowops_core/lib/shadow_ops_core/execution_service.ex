@@ -2,8 +2,8 @@ defmodule ShadowOpsCore.ExecutionService do
   @moduledoc """
   Execution Service - central point for all governed actions.
 
-  Flow: Request -> Actor/Identity -> Capability Registry -> Policy -> Risk -> Approval ->
-  PrivacyGate -> ExecutionService -> Adapter -> Audit -> Health/Events
+  Flow: Request -> Actor/Identity -> Capability Registry -> Policy -> Risk -> PrivacyGate ->
+  Approval -> ExecutionService -> Adapter -> Audit -> Health/Events
 
   Controller and LiveView MUST NOT directly call mutating adapters.
   No arbitrary-shell API.
@@ -31,8 +31,8 @@ defmodule ShadowOpsCore.ExecutionService do
 
     with {:ok, capability_spec} <- CapabilityRegistry.lookup(capability),
          {:ok, policy} <- Policy.evaluate(capability, actor, context),
-         {:ok, approval} <- approval(policy, capability, resource, context),
-         {:ok, :allowed} <- PrivacyGate.check(input) do
+         {:ok, :allowed} <- PrivacyGate.check(input),
+         {:ok, approval} <- approval(policy, capability, resource, actor, context) do
       execute_via_adapter(capability_spec, input, context, approval)
     else
       {:error, :blocked, reason} ->
@@ -45,13 +45,19 @@ defmodule ShadowOpsCore.ExecutionService do
     end
   end
 
-  defp approval(%{approval_required: false}, _capability, _resource, _context),
+  defp approval(%{approval_required: false}, _capability, _resource, _actor, _context),
     do: {:ok, :not_required}
 
-  defp approval(%{approval_required: true, risk_level: risk}, capability, resource, context) do
+  defp approval(
+         %{approval_required: true, risk_level: risk},
+         capability,
+         resource,
+         actor,
+         context
+       ) do
     case context[:approval_id] do
       approval_id when is_binary(approval_id) and approval_id != "" ->
-        case ApprovalStore.validate(approval_id, capability, resource, risk) do
+        case ApprovalStore.consume(approval_id, capability, resource, risk, actor) do
           {:ok, approval} -> {:ok, approval}
           {:blocked, reason} -> {:error, {:approval_blocked, reason}}
           {:error, :not_found} -> {:error, {:approval_required, approval_id}}
