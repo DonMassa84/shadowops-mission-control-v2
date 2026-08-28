@@ -116,7 +116,7 @@ jobs:
         run: mix dialyzer
 
       - name: Sobelow security scan
-        run: cd apps/shadowops_web && mix sobelow --private --strict --exit high --threshold high
+        run: mix sobelow --root apps/shadowops_web --private --strict --exit high --threshold high
 
       - name: Registry validate
         run: mix shadowops.registry validate
