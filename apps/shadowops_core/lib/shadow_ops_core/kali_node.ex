@@ -25,7 +25,13 @@ defmodule ShadowOpsCore.KaliNode do
 
     from_probe(target, result, elapsed(started))
   rescue
-    error -> unavailable(@default_target, "KALI_NODE_PROBE_FAILED", Exception.message(error), nil)
+    error ->
+      unavailable(
+        @default_target,
+        "KALI_NODE_PROBE_FAILED",
+        Exception.message(error),
+        nil
+      )
   end
 
   @doc false
@@ -33,7 +39,12 @@ defmodule ShadowOpsCore.KaliNode do
     hostname = String.trim(output)
 
     if hostname == "" do
-      unavailable(target, "KALI_NODE_IDENTITY_EMPTY", "SSH probe returned an empty hostname", latency_ms)
+      unavailable(
+        target,
+        "KALI_NODE_IDENTITY_EMPTY",
+        "SSH probe returned an empty hostname",
+        latency_ms
+      )
     else
       ConnectorState.build(%{
         id: "node-kali",
@@ -62,7 +73,8 @@ defmodule ShadowOpsCore.KaliNode do
     end
   end
 
-  def from_probe(target, {_output, code}, latency_ms) when is_binary(target) and is_integer(code) do
+  def from_probe(target, {_output, code}, latency_ms)
+      when is_binary(target) and is_integer(code) do
     unavailable(
       target,
       "KALI_NODE_UNREACHABLE",
@@ -72,7 +84,12 @@ defmodule ShadowOpsCore.KaliNode do
   end
 
   def from_probe(target, _result, latency_ms) when is_binary(target) do
-    unavailable(target, "KALI_NODE_EVIDENCE_INVALID", "Kali status probe evidence was invalid", latency_ms)
+    unavailable(
+      target,
+      "KALI_NODE_EVIDENCE_INVALID",
+      "Kali status probe evidence was invalid",
+      latency_ms
+    )
   end
 
   defp unavailable(target, error_code, error_message, latency_ms) do
