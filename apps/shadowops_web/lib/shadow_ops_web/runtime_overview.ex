@@ -57,13 +57,11 @@ defmodule ShadowOpsWeb.RuntimeOverview do
   end
 
   defp safe_probe(fun) do
-    try do
-      {:ok, fun.()}
-    rescue
-      error -> {:error, {:exception, Exception.message(error)}}
-    catch
-      kind, reason -> {:error, {kind, reason}}
-    end
+    {:ok, fun.()}
+  rescue
+    error -> {:error, {:exception, Exception.message(error)}}
+  catch
+    kind, reason -> {:error, {kind, reason}}
   end
 
   defp probe_result(_key, {:ok, {:ok, payload}}) when is_map(payload), do: payload
