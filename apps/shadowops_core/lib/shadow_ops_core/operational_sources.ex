@@ -933,7 +933,6 @@ defmodule ShadowOpsCore.OperationalSources do
     if File.regular?(path) do
       stat = File.stat!(path, time: :posix)
       escaped = String.replace(collection, "'", "''")
-      integrity = sqlite(path, "PRAGMA quick_check;")
 
       record_count =
         sqlite_integer(
@@ -954,7 +953,7 @@ defmodule ShadowOpsCore.OperationalSources do
         )
 
       valid =
-        integrity == {:ok, "ok"} and is_integer(document_count) and document_count > 0 and
+        is_integer(document_count) and document_count > 0 and
           is_integer(record_count) and record_count > 0 and
           match?({:ok, value} when value != "", query_probe)
 
@@ -968,7 +967,7 @@ defmodule ShadowOpsCore.OperationalSources do
         document_count: document_count,
         record_count: record_count,
         last_index_at: iso_unix(stat.mtime),
-        verification: "sqlite quick_check + collection record probe"
+        verification: "collection record probe"
       }
     else
       %{
