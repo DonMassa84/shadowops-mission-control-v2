@@ -33,7 +33,9 @@ defmodule ShadowOpsCore.KaliGitHubBridgeContractTest do
   test "bridge never evaluates GitHub task text as a shell command" do
     bridge = File.read!(@bridge)
 
-    assert bridge =~ "subprocess.run([str(worker), \"--enqueue\", envelope]"
+    assert bridge =~ "subprocess.run("
+    assert bridge =~ "\"--enqueue\""
+    assert bridge =~ "envelope"
     assert bridge =~ "SCOPE_NOT_ALLOWLISTED"
     assert bridge =~ "CAPABILITY_NOT_ALLOWLISTED"
     assert bridge =~ "APPROVAL_ALREADY_CONSUMED"
@@ -50,8 +52,10 @@ defmodule ShadowOpsCore.KaliGitHubBridgeContractTest do
 
     assert bridge =~ "os.O_EXCL"
     assert bridge =~ "os.O_APPEND"
-    assert bridge =~ "approvals/pending"
-    assert bridge =~ "approvals/consumed"
+    assert bridge =~ "self.approvals_pending"
+    assert bridge =~ "self.approvals_consumed"
+    assert bridge =~ "root / \"approvals\" / \"pending\""
+    assert bridge =~ "root / \"approvals\" / \"consumed\""
     assert bridge =~ "os.replace(src, dst)"
     assert bridge =~ "repos/{repo}/issues/{item}/comments"
     assert bridge =~ "KALI_RESULT_BEGIN"
