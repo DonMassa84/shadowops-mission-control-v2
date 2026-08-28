@@ -27,7 +27,7 @@ defmodule ShadowOpsCore.LocalWorkflowEvidenceStoreTest do
   end
 
   test "unknown workflow IDs and mismatched source refs are rejected", %{registry: registry} do
-    assert {:error, :error} =
+    assert {:error, :unknown_workflow_id} =
              LocalWorkflowEvidenceStore.put(
                "localwf_missing",
                %{runtime_verified: true},

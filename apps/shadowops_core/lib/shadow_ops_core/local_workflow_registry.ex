@@ -32,98 +32,216 @@ defmodule ShadowOpsCore.LocalWorkflowRegistry do
 
   @spec snapshot(String.t() | nil) :: map()
   def snapshot(home \\ nil) do
+    inventory = inventory(home)
+
+    records =
+      inventory.records
+      |> Enum.filter(&(&1.registration_state == "LOCALWF_REGISTERED"))
+      |> Enum.map(& &1.registry_record)
+      |> Enum.sort_by(& &1.id)
+
+    %{
+      status: if(records == [], do: "NOT_CONFIGURED", else: "DISCOVERED"),
+      source_type: "LOCAL_WORKFLOW_CORRELATION",
+      synthetic: false,
+      real_data: records != [],
+      reachable: records != [],
+      executable: false,
+      integration_mode: "REFERENCE_ONLY",
+      report_ref: inventory.report_ref,
+      counts: %{
+        registered: length(records),
+        rejected:
+          inventory.counts.raw_rejected_policy + inventory.counts.raw_duplicates +
+            inventory.counts.raw_unknown + inventory.counts.raw_eligible_unregistered,
+        max_records: @max_records,
+        raw_discovered_total: inventory.counts.raw_discovered_total,
+        raw_eligible_registered: inventory.counts.raw_eligible_registered,
+        raw_eligible_unregistered: inventory.counts.raw_eligible_unregistered,
+        raw_rejected_policy: inventory.counts.raw_rejected_policy,
+        raw_duplicates: inventory.counts.raw_duplicates,
+        raw_unknown: inventory.counts.raw_unknown
+      },
+      records: records
+    }
+  end
+
+  @doc "Returns metadata-only accounting for every row in the latest correlation report."
+  @spec inventory(String.t() | nil) :: map()
+  def inventory(home \\ nil) do
     root = Path.expand(home || System.user_home!())
 
     case latest_report(root) do
-      nil -> not_configured()
-      report -> load_report(root, report)
+      nil -> empty_inventory()
+      report -> load_inventory(root, report)
     end
   end
 
-  defp load_report(root, report) do
+  @doc "Returns the repository's deterministic evidence identity for a source reference."
+  def expected_id(source, source_ref)
+      when is_binary(source) and source != "" and is_binary(source_ref) and source_ref != "" do
+    stable_id(source, source_ref)
+  end
+
+  def expected_id(_, _), do: nil
+
+  defp load_inventory(root, report) do
     entrypoints = Path.join(report, "entrypoints.tsv")
 
     case File.read(entrypoints) do
       {:ok, body} ->
-        {records, rejected} = parse_records(body, root)
+        records = parse_inventory(body, root)
+        frequencies = Enum.frequencies_by(records, & &1.accounting_state)
 
         %{
-          status: if(records == [], do: "NOT_CONFIGURED", else: "DISCOVERED"),
-          source_type: "LOCAL_WORKFLOW_CORRELATION",
-          synthetic: false,
-          real_data: records != [],
-          reachable: records != [],
-          executable: false,
-          integration_mode: "REFERENCE_ONLY",
           report_ref: Path.relative_to(report, root),
           counts: %{
-            registered: length(records),
-            rejected: rejected,
-            max_records: @max_records
+            raw_discovered_total: length(records),
+            raw_eligible_registered: Map.get(frequencies, :eligible_registered, 0),
+            raw_eligible_unregistered: Map.get(frequencies, :eligible_unregistered, 0),
+            raw_rejected_policy: Map.get(frequencies, :rejected_policy, 0),
+            raw_duplicates: Map.get(frequencies, :duplicate, 0),
+            raw_unknown: Map.get(frequencies, :unknown, 0)
           },
           records: records
         }
 
       {:error, _} ->
-        not_configured()
+        empty_inventory()
     end
   end
 
-  defp parse_records(body, root) do
+  defp parse_inventory(body, root) do
     body
     |> String.split("\n", trim: true)
     |> Enum.drop(1)
-    |> Enum.reduce({[], 0}, fn line, {records, rejected} ->
-      case parse_line(line, root) do
-        {:ok, record} when length(records) < @max_records -> {[record | records], rejected}
-        {:ok, _record} -> {records, rejected + 1}
-        :reject -> {records, rejected + 1}
+    |> Enum.reduce({[], MapSet.new(), 0}, fn line, {records, seen, registered} ->
+      candidate = parse_line(line, root)
+
+      cond do
+        candidate.accounting_state != :eligible ->
+          {[candidate | records], seen, registered}
+
+        MapSet.member?(seen, candidate.expected_local_id) ->
+          duplicate =
+            candidate
+            |> Map.put(:accounting_state, :duplicate)
+            |> Map.put(:registration_state, "DUPLICATE")
+            |> Map.put(:rejection_reason, "DUPLICATE_IDENTITY")
+
+          {[duplicate | records], seen, registered}
+
+        registered < @max_records ->
+          accepted =
+            candidate
+            |> Map.put(:accounting_state, :eligible_registered)
+            |> Map.put(:registration_state, "LOCALWF_REGISTERED")
+
+          {[accepted | records], MapSet.put(seen, candidate.expected_local_id), registered + 1}
+
+        true ->
+          rejected =
+            candidate
+            |> Map.put(:accounting_state, :rejected_policy)
+            |> Map.put(:registration_state, "REJECTED_POLICY")
+            |> Map.put(:rejection_reason, "RECORD_LIMIT")
+
+          {[rejected | records], MapSet.put(seen, candidate.expected_local_id), registered}
       end
     end)
-    |> then(fn {records, rejected} ->
-      {records |> Enum.reverse() |> Enum.sort_by(& &1.id), rejected}
-    end)
+    |> elem(0)
+    |> Enum.reverse()
   end
 
   defp parse_line(line, root) do
     case String.split(line, "\t") do
-      [source, type, path] -> build_record(source, type, path, root)
-      _ -> :reject
+      [source, type, path] -> build_candidate(source, type, path, root)
+      _ -> unknown_candidate()
     end
   end
 
-  defp build_record(source, type, path, root) do
-    expanded = Path.expand(path)
+  defp build_candidate(source, type, path, root) do
+    expanded =
+      if(Path.type(path) == :absolute, do: Path.expand(path), else: Path.expand(path, root))
 
-    with true <- MapSet.member?(@allowed_sources, source),
-         true <- MapSet.member?(@allowed_types, type),
-         true <- inside_root?(expanded, root),
-         true <- regular_file?(expanded),
-         relative <- Path.relative_to(expanded, root),
-         false <- excluded_path?(relative) do
-      {:ok,
-       %{
-         id: stable_id(source, relative),
-         name: friendly_name(Path.basename(relative)),
-         source: source,
-         kind: type,
-         domain: infer_domain(relative),
-         status: "DISCOVERED",
-         execution_status: "DISCOVERED",
-         real_data: true,
-         synthetic: false,
-         reachable: true,
-         executable: false,
-         integration_mode: "REFERENCE_ONLY",
-         runtime_verified: false,
-         governance_mapped: false,
-         risk_level: "UNKNOWN",
-         source_kind: "local_workflow_evidence",
-         source_ref: relative
-       }}
-    else
-      _ -> :reject
-    end
+    inside_allowed_root = inside_root?(expanded, root)
+
+    source_ref =
+      if(inside_allowed_root, do: Path.relative_to(expanded, root), else: Path.basename(path))
+
+    file_exists = File.exists?(expanded)
+    regular_file = regular_file?(expanded)
+    excluded_path = inside_allowed_root and excluded_path?(source_ref)
+
+    rejection_reason =
+      cond do
+        not MapSet.member?(@allowed_sources, source) -> "SOURCE_NOT_ALLOWED"
+        not MapSet.member?(@allowed_types, type) -> "TYPE_NOT_ALLOWED"
+        not inside_allowed_root -> "OUTSIDE_ALLOWED_ROOT"
+        not file_exists -> "FILE_MISSING"
+        not regular_file -> "NOT_REGULAR_FILE"
+        excluded_path -> "EXCLUDED_PATH"
+        true -> nil
+      end
+
+    id = expected_id(source, source_ref)
+
+    %{
+      workflow_identity: id,
+      source: source,
+      source_ref: source_ref,
+      type: type,
+      file_exists: file_exists,
+      regular_file: regular_file,
+      inside_allowed_root: inside_allowed_root,
+      excluded_path: excluded_path,
+      expected_local_id: id,
+      registration_state: if(rejection_reason, do: "REJECTED_POLICY", else: "RAW_DISCOVERED"),
+      rejection_reason: rejection_reason,
+      accounting_state: if(rejection_reason, do: :rejected_policy, else: :eligible),
+      registry_record:
+        if(rejection_reason, do: nil, else: registry_record(id, source, type, source_ref))
+    }
+  end
+
+  defp registry_record(id, source, type, source_ref) do
+    %{
+      id: id,
+      name: friendly_name(Path.basename(source_ref)),
+      source: source,
+      kind: type,
+      domain: infer_domain(source_ref),
+      status: "DISCOVERED",
+      execution_status: "DISCOVERED",
+      real_data: true,
+      synthetic: false,
+      reachable: true,
+      executable: false,
+      integration_mode: "REFERENCE_ONLY",
+      runtime_verified: false,
+      governance_mapped: false,
+      risk_level: "UNKNOWN",
+      source_kind: "local_workflow_evidence",
+      source_ref: source_ref
+    }
+  end
+
+  defp unknown_candidate do
+    %{
+      workflow_identity: nil,
+      source: "UNKNOWN",
+      source_ref: "UNKNOWN",
+      type: "UNKNOWN",
+      file_exists: false,
+      regular_file: false,
+      inside_allowed_root: false,
+      excluded_path: false,
+      expected_local_id: nil,
+      registration_state: "BLOCKED_UNKNOWN",
+      rejection_reason: "MALFORMED_ROW",
+      accounting_state: :unknown,
+      registry_record: nil
+    }
   end
 
   defp latest_report(root) do
@@ -251,17 +369,17 @@ defmodule ShadowOpsCore.LocalWorkflowRegistry do
     end
   end
 
-  defp not_configured do
+  defp empty_inventory do
     %{
-      status: "NOT_CONFIGURED",
-      source_type: "LOCAL_WORKFLOW_CORRELATION",
-      synthetic: false,
-      real_data: false,
-      reachable: false,
-      executable: false,
-      integration_mode: "REFERENCE_ONLY",
       report_ref: nil,
-      counts: %{registered: 0, rejected: 0, max_records: @max_records},
+      counts: %{
+        raw_discovered_total: 0,
+        raw_eligible_registered: 0,
+        raw_eligible_unregistered: 0,
+        raw_rejected_policy: 0,
+        raw_duplicates: 0,
+        raw_unknown: 0
+      },
       records: []
     }
   end
