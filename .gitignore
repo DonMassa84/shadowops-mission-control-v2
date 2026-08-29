@@ -47,3 +47,6 @@ erl_crash.dump
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local OpenCode state
+/.opencode/opencode.json
