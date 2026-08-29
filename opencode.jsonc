@@ -14,6 +14,16 @@
       "environment": {
         "SHADOWOPS_BASE_URL": "http://127.0.0.1:4014"
       }
+    },
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "oauth": false,
+      "headers": {
+        "Authorization": "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}",
+        "X-MCP-Toolsets": "repos,pull_requests,issues,actions",
+        "X-MCP-Readonly": "true"
+      }
     }
   },
   "tool_output": {
