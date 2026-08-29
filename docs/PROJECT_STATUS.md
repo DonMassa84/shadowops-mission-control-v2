@@ -117,7 +117,7 @@ Known design hardening opportunity:
 `VERIFIED_HISTORICAL` canonical registry scope:
 
 ```text
-9 canonical workflows
+10 canonical workflows
 immutable ID pattern: so:wf:v1:<slug>
 ```
 
@@ -133,11 +133,12 @@ agent_state_sync
 career_funnel_ihk
 daily_digest
 shadow_system_overnight_audit
+daily_control
 ```
 
 The current registry file and validator are authoritative; do not assume this count forever.
 
-Generic agent/workflow contracts were added to validate executor/capability/risk/input/runtime/approval/evidence semantics. Re-run registry tests before claiming 9/9 on a later HEAD.
+Generic agent/workflow contracts were added to validate executor/capability/risk/input/runtime/approval/evidence semantics. Re-run registry tests before claiming 10/10 on a later HEAD.
 
 ## Local integration discovery
 
