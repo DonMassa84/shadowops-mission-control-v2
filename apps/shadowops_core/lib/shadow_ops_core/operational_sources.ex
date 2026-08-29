@@ -1367,4 +1367,229 @@ defmodule ShadowOpsCore.OperationalSources do
   defp iso_unix(value), do: value |> DateTime.from_unix!() |> DateTime.to_iso8601()
   defp elapsed(started), do: max(System.monotonic_time(:millisecond) - started, 0)
   defp now, do: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
+
+  @openclaw_root "/home/schattenmacher/openclaw_training"
+  @pdf_source_root "/mnt/nvme-data/openclaw_training/workflows"
+  @repo_real_source "/mnt/nvme-data/openclaw_training"
+
+  @pdf_artifacts [
+    "reports/pdf_governance/PDF_GOVERNANCE_REPORT.md",
+    "reports/pdf_governance/PDF_DISTRIBUTION_BOARD.md",
+    "data/pdf_governance/pdf_inventory.jsonl",
+    "data/pdf_governance/pdf_inventory.csv",
+    "data/pdf_governance/pdf_discord_distribution_plan.json"
+  ]
+
+  @repo_artifacts [
+    "reports/discord_documentation/GITHUB_REPO_CHANNEL_ASSIGNMENT.md",
+    "reports/discord_documentation/github_repo_channel_assignment.json",
+    "reports/discord_documentation/GITHUB_REPO_CANONICAL_INDEX.md",
+    "reports/discord_documentation/github_repo_canonical_index.json",
+    "reports/discord_documentation/REPO_CLEANUP_PRIORITY_BOARD.md",
+    "reports/discord_documentation/repo_cleanup_priority_board.json"
+  ]
+
+  @doc "Read/status/evidence source for PDF governance. Never exposes raw PDF contents."
+  def pdf_governance, do: pdf_governance_at(@openclaw_root, @pdf_source_root)
+
+  @doc false
+  def pdf_governance_at(base_root, source_root) do
+    started = System.monotonic_time(:millisecond)
+    source_ok = source_root_unambiguous?(base_root, source_root)
+
+    artifacts = Enum.map(@pdf_artifacts, &Path.join(base_root, &1))
+    present = Enum.filter(artifacts, &File.regular?/1)
+    missing = artifacts -- present
+
+    status = json_file(Path.join(base_root, "data/workflow_status/pdf_governance_status.json"))
+    record_count = pdf_record_count(base_root, @pdf_artifacts)
+    synthesis = pdf_synthesis(status, record_count)
+    synthetic? = synthetic_evidence?(status, record_count)
+
+    coherent? = evidence_coherent?(status, present)
+
+    ready? =
+      source_ok and status != nil and missing == [] and synthesis.real_data == true and
+        not synthetic? and record_count > 0 and coherent?
+
+    %{
+      source: source_root,
+      source_resolved: resolve_real(base_root),
+      reachable: source_ok,
+      status: if(ready?, do: "READY", else: "DEGRADED"),
+      real_data: synthesis.real_data,
+      synthetic: synthetic?,
+      record_count: record_count,
+      pdf_total: synthesis.pdf_total,
+      text_extracted: synthesis.text_extracted,
+      artifact_count: length(present),
+      artifact_required: length(@pdf_artifacts),
+      artifacts_present: Enum.map(present, &Path.basename/1),
+      artifacts_missing: Enum.map(missing, &Path.basename/1),
+      hashes: hashes(present),
+      priority_counts: synthesis.priority_counts,
+      category_counts: synthesis.category_counts,
+      updated_at: synthesis.updated_at,
+      latency_ms: elapsed(started)
+    }
+  end
+
+  @doc "Read/status/evidence source for repository governance. Repository mutation stays disabled."
+  def repo_governance, do: repo_governance_at(@openclaw_root, @repo_real_source)
+
+  @doc false
+  def repo_governance_at(base_root, real_source) do
+    started = System.monotonic_time(:millisecond)
+    same_dataset? = same_dataset?(real_source, base_root)
+
+    artifacts = Enum.map(@repo_artifacts, &Path.join(base_root, &1))
+    present = Enum.filter(artifacts, &File.regular?/1)
+    missing = artifacts -- present
+
+    status = json_file(Path.join(base_root, "data/workflow_status/repo_governance_status.json"))
+    counters = repo_counters(status)
+    priority_check = priority_reconciliation(counters.priority)
+
+    real_data? = counters.canonical > 0
+    synthetic? = synthetic_evidence?(status, counters.canonical)
+
+    ready? =
+      same_dataset? and status != nil and missing == [] and real_data? and
+        not synthetic? and priority_check == "PASS" and evidence_coherent?(status, present)
+
+    %{
+      source: real_source,
+      source_resolved: resolve_real(base_root),
+      reachable: same_dataset?,
+      same_dataset: same_dataset?,
+      status: if(ready?, do: "READY", else: "DEGRADED"),
+      real_data: real_data?,
+      synthetic: synthetic?,
+      raw_repos: counters.raw,
+      canonical_repos: counters.canonical,
+      multi_copy: counters.multi_copy,
+      dirty: counters.dirty,
+      no_github_remote: counters.no_remote,
+      priority_zero: counters.p0,
+      priority_one: counters.p1,
+      priority_two: counters.p2,
+      priority_three: counters.p3,
+      priority_check: priority_check,
+      artifact_count: length(present),
+      artifact_required: length(@repo_artifacts),
+      artifacts_present: Enum.map(present, &Path.basename/1),
+      artifacts_missing: Enum.map(missing, &Path.basename/1),
+      hashes: hashes(present),
+      deletion_allowed: false,
+      mutation_allowed: false,
+      discord_write_enabled: false,
+      telegram_write_enabled: false,
+      updated_at: Map.get(status || %{}, "updated_at", ""),
+      latency_ms: elapsed(started)
+    }
+  end
+
+  # --- pdf helpers ---
+
+  defp pdf_record_count(base_root, artifact_maps) do
+    inventory = Enum.find(artifact_maps, &String.ends_with?(&1, "pdf_inventory.jsonl"))
+    path = Path.join(base_root, inventory || "")
+    jsonl_count(path)
+  end
+
+  defp jsonl_count(path) do
+    case File.read(path) do
+      {:ok, body} ->
+        body
+        |> String.split("\n", trim: true)
+        |> Enum.reduce(0, fn line, acc ->
+          case Jason.decode(line) do
+            {:ok, map} when is_map(map) -> acc + 1
+            _ -> acc
+          end
+        end)
+
+      _ ->
+        0
+    end
+  end
+
+  defp pdf_synthesis(status, record_count) do
+    total = Map.get(status || %{}, "pdf_total", 0)
+    extracted = Map.get(status || %{}, "text_extracted", 0)
+
+    %{
+      pdf_total: total,
+      text_extracted: extracted,
+      real_data: is_integer(total) and total > 0 and record_count > 0,
+      priority_counts: Map.get(status || %{}, "priority_counts", %{}),
+      category_counts: Map.get(status || %{}, "category_counts", %{}),
+      updated_at: Map.get(status || %{}, "updated_at", "")
+    }
+  end
+
+  # --- repo helpers ---
+
+  defp repo_counters(status) do
+    priority = Map.get(status || %{}, "priority_counts", %{})
+
+    %{
+      raw: Map.get(status || %{}, "raw_repo_entries", 0),
+      canonical: Map.get(status || %{}, "canonical_repo_groups", 0),
+      multi_copy: Map.get(status || %{}, "multi_copy_groups", 0),
+      dirty: Map.get(status || %{}, "dirty_groups", 0),
+      no_remote: Map.get(status || %{}, "no_remote_groups", 0),
+      p0: Map.get(priority, "P0", 0),
+      p1: Map.get(priority, "P1", 0),
+      p2: Map.get(priority, "P2", 0),
+      p3: Map.get(priority, "P3", 0),
+      priority: priority
+    }
+  end
+
+  defp priority_reconciliation(priority) when is_map(priority) do
+    total = Map.get(priority, "total", 0)
+
+    sum =
+      Map.get(priority, "P0", 0) + Map.get(priority, "P1", 0) + Map.get(priority, "P2", 0) +
+        Map.get(priority, "P3", 0)
+
+    if total > 0 and total == sum and sum == 130, do: "PASS", else: "FAIL"
+  end
+
+  # --- shared helpers ---
+
+  defp source_root_unambiguous?(base_root, source_root) do
+    File.dir?(base_root) and File.exists?(source_root)
+  end
+
+  defp same_dataset?(a, b) do
+    resolve_real(a) == resolve_real(b)
+  end
+
+  defp resolve_real(nil), do: nil
+
+  defp resolve_real(path) do
+    case System.cmd("readlink", ["-f", path], stderr_to_stdout: true) do
+      {real, 0} when real != "" -> String.trim(real)
+      _ -> Path.expand(path)
+    end
+  rescue
+    _ -> Path.expand(path)
+  end
+
+  defp synthetic_evidence?(status, count) do
+    Map.get(status || %{}, "synthetic", false) == true or not is_integer(count) or count == 0
+  end
+
+  defp evidence_coherent?(status, artifacts) do
+    updated = Map.get(status || %{}, "updated_at", "")
+    updated != "" and Enum.all?(artifacts, &File.regular?/1)
+  end
+
+  defp hashes(paths) do
+    Enum.map(paths, fn path ->
+      %{file: Path.basename(path), sha256: sha256(path)}
+    end)
+  end
 end

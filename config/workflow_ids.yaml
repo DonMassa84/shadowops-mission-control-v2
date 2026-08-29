@@ -2,7 +2,6 @@ schema_version: 1
 namespace: shadowops.workflow
 id_format: so:wf:v1:<slug>
 source_registry: config/workflow_registry_v2.yaml
-
 canonical_workflows:
   finanzabgleich:
     id: so:wf:v1:finanzabgleich
@@ -31,7 +30,21 @@ canonical_workflows:
   shadow_system_overnight_audit:
     id: so:wf:v1:shadow-system-overnight-audit
     domain: security
-
+  gmail_read:
+    id: so:wf:v1:gmail-read
+    domain: communications
+  gmail_classify:
+    id: so:wf:v1:gmail-classify
+    domain: communications
+  gmail_attachment:
+    id: so:wf:v1:gmail-attachment
+    domain: communications
+  pdf_governance:
+    id: so:wf:v1:pdf-governance
+    domain: documents
+  repo_governance:
+    id: so:wf:v1:repo-governance
+    domain: repositories
 federation_workflows:
   project_federation_sync:
     id: so:wf:v1:project-federation-sync
@@ -57,7 +70,6 @@ federation_workflows:
     source_repository: DonMassa84/shadowops
     source_definition: .github/workflows/project-federation.yml
     integration_mode: EXTERNAL_REFERENCE
-
 external_runtime_sets:
   shadowmaker_tasks:
     set_id: so:wfset:v1:shadowmaker-tasks
@@ -71,7 +83,6 @@ external_runtime_sets:
   telegram_workflow_controller:
     set_id: so:wfset:v1:telegram-workflow-controller
     external_ids_status: NOT_IMPORTED
-
 rules:
   ids_are_immutable: true
   registry_key_remains_local_workflow_key: true

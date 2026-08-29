@@ -1,0 +1,123 @@
+name: Delegate to OpenCode Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'OpenCode model identifier (e.g., openai/gpt-4o, anthropic/claude-3.5-sonnet)'
+        required: true
+        type: string
+      task:
+        description: 'Task description for the agent'
+        required: true
+        type: string
+      agent:
+        description: 'OpenCode agent to use'
+        required: false
+        default: 'shadowops-coder'
+        type: string
+  issue_comment:
+    types: [created]
+    branches: [local/all-developments]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  delegate:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '/opencode'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup OpenCode
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verify model availability
+        id: model-check
+        run: |
+          MODEL="${{ github.event.inputs.model || github.event.comment.body }}"
+          # Extract model from comment if issue_comment
+          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            MODEL=$(echo "${{ github.event.comment.body }}" | grep -oE '(/opencode\s+\S+)' | cut -d' ' -f2 || true)
+          fi
+          if [[ -z "$MODEL" ]]; then
+            echo "No model specified" >&2
+            exit 1
+          fi
+          echo "MODEL=$MODEL" >> $GITHUB_OUTPUT
+          opencode models | grep -Fq "$MODEL" || {
+            echo "Model $MODEL not available in OpenCode" >&2
+            opencode models
+            exit 1
+          }
+
+      - name: Extract task from comment
+        id: task-extract
+        if: github.event_name == 'issue_comment'
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+          # Format: /opencode <model> <task>
+          TASK=$(echo "$COMMENT" | sed -E 's|/opencode\s+\S+\s+||')
+          echo "TASK=$TASK" >> $GITHUB_OUTPUT
+
+      - name: Run OpenCode Agent
+        id: opencode-run
+        env:
+          SHADOWOPS_CODER_MODEL: ${{ steps.model-check.outputs.MODEL }}
+          SHADOWOPS_CODER_TIMEOUT: 45m
+        run: |
+          TASK="${{ github.event.inputs.task || steps.task-extract.outputs.TASK }}"
+          if [[ -z "$TASK" ]]; then
+            echo "No task specified" >&2
+            exit 1
+          fi
+          echo "Running with model: $SHADOWOPS_CODER_MODEL"
+          echo "Task: $TASK"
+          scripts/shadowops-coder.sh "$TASK"
+
+      - name: Post result to issue
+        if: github.event_name == 'issue_comment' && !cancelled()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const botComment = comments.find(c => c.user.type === 'Bot' && c.body.includes('OpenCode Result'));
+            const result = `${{ steps.opencode-run.outputs.result || 'See workflow logs' }}`;
+            const body = `## OpenCode Agent Result\n**Model:** ${{ steps.model-check.outputs.MODEL }}\n**Agent:** ${{ github.event.inputs.agent || 'shadowops-coder' }}\n**Task:** ${{ steps.task-extract.outputs.TASK }}\n\n\`\`\`\n${result}\n\`\`\``;
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-logs
+          path: ~/.local/state/shadowops/opencode/

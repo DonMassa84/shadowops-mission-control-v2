@@ -14,8 +14,8 @@ defmodule ShadowOpsWeb.WorkflowInventoryUITest do
     assert dashboard.resp_body =~ "Audit"
     assert dashboard.resp_body =~ "Security"
     assert dashboard.resp_body =~ "Backups"
-    assert dashboard.resp_body =~ "70"
-    assert dashboard.resp_body =~ "9 canonical / 61 external"
+    assert dashboard.resp_body =~ "75"
+    assert dashboard.resp_body =~ "14 canonical / 61 external"
 
     workflows = request("/workflows")
     assert workflows.status == 200

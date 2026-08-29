@@ -10,7 +10,7 @@ defmodule WorkflowEngine.WorkflowIdsTest do
     assert {:ok, workflows} = WorkflowIds.all()
     ids = YamlElixir.read_from_file!(@ids_path)
 
-    assert length(workflows) == 13
+    assert length(workflows) == 18
 
     global_ids = Enum.map(workflows, & &1.id)
     assert Enum.uniq(global_ids) == global_ids

@@ -13,11 +13,11 @@ defmodule WorkflowEngine.InventoryTest do
   } do
     summary = Inventory.summary(registry)
 
-    assert summary["canonical_count"] == 9
+    assert summary["canonical_count"] == 14
     assert summary["external_count"] == 61
-    assert summary["total_count"] == 70
+    assert summary["total_count"] == 75
     assert summary["named_external_count"] == 16
-    assert summary["named_count"] == 25
+    assert summary["named_count"] == 30
     assert summary["unresolved_count"] == 45
   end
 

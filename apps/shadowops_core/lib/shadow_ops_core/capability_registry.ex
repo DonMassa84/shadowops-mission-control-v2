@@ -67,13 +67,30 @@ defmodule ShadowOpsCore.CapabilityRegistry do
     "workflow.run" => %{id: "workflow.run", executor: :canonical_workflow, args: [:workflow_id]},
     "gmail.read" => %{id: "gmail.read", executor: :gmail, args: []},
     "gmail.classify" => %{id: "gmail.classify", executor: :gmail, args: [:metadata]},
+    "gmail.attachment" => %{id: "gmail.attachment", executor: :gmail, args: [:message_ref]},
     "gmail.label" => %{id: "gmail.label", executor: :gmail, args: [:thread_ref, :label]},
     "gmail.create_draft" => %{id: "gmail.create_draft", executor: :gmail, args: [:thread_ref]},
     "gmail.send" => %{id: "gmail.send", executor: :gmail, args: [:draft_ref]},
     "gmail.forward" => %{id: "gmail.forward", executor: :gmail, args: [:thread_ref]},
     "gmail.delete" => %{id: "gmail.delete", executor: :gmail, args: [:thread_ref]},
     "github.export" => %{id: "github.export", executor: :github_data, args: []},
-    "github.sync" => %{id: "github.sync", executor: :github_data, args: []}
+    "github.sync" => %{id: "github.sync", executor: :github_data, args: []},
+    "pdf_governance.read" => %{id: "pdf_governance.read", executor: :local_evidence, args: []},
+    "pdf_governance.publish" => %{
+      id: "pdf_governance.publish",
+      executor: :not_connected,
+      args: [:channel],
+      approval_required: true,
+      risk_level: "L2"
+    },
+    "repo_governance.read" => %{id: "repo_governance.read", executor: :local_evidence, args: []},
+    "repo_governance.publish" => %{
+      id: "repo_governance.publish",
+      executor: :not_connected,
+      args: [:channel],
+      approval_required: true,
+      risk_level: "L2"
+    }
   }
 
   @doc "Looks up a capability specification."

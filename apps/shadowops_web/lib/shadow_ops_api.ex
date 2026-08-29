@@ -295,6 +295,7 @@ defmodule ShadowOpsApi do
 
     workflow
     |> Map.put("id", id)
+    |> Map.put("class", workflow["class"] || classify_workflow(workflow))
     |> Map.put("execution_status", execution_status)
     |> Map.put("executable", execution_status == "EXECUTABLE")
     |> Map.put("runs", runs)
@@ -302,6 +303,11 @@ defmodule ShadowOpsApi do
     |> Map.put("dependencies", workflow["dependencies"] || [])
     |> Map.put("evidence", workflow["evidence"] || workflow["documentation"])
   end
+
+  defp classify_workflow(%{"status" => "VERIFIED_EXECUTABLE"}), do: "READY_EXECUTABLE"
+  defp classify_workflow(%{"class" => class}) when is_binary(class), do: class
+  defp classify_workflow(%{"status" => "active"}), do: "CONNECTED_NOT_E2E"
+  defp classify_workflow(_), do: "REGISTRY_ONLY"
 
   defp workflow_execution_status(
          "career_funnel_ihk",
@@ -325,6 +331,9 @@ defmodule ShadowOpsApi do
   defp executable_workflow(%{"status" => status})
        when status in ["REGISTRY_ONLY", "DISABLED", "DISABLED_BY_CONFIGURATION"],
        do: {:error, {:workflow_not_executable, status}}
+
+  defp executable_workflow(%{"class" => "READ_EVIDENCE_ONLY"}),
+    do: {:error, {:workflow_not_executable, "READ_EVIDENCE_ONLY"}}
 
   defp executable_workflow(%{"runtime" => runtime}) when is_binary(runtime) and runtime != "",
     do: :ok

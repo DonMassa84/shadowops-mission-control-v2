@@ -36,6 +36,8 @@ defmodule ShadowOpsWeb.Router do
     pipe_through(:browser)
 
     live("/", DashboardLive, :index)
+    live("/attention", AttentionLive, :index)
+    live("/integrations", IntegrationsLive, :index)
     live("/layers", LayersLive, :index)
     live("/layers/:id", LayerDetailLive, :show)
     live("/infrastructure", InfrastructureLive, :index)

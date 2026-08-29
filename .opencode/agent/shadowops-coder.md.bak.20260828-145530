@@ -1,7 +1,7 @@
 ---
 description: Implements and tests ShadowOps changes locally with fail-closed governance and strict Git/runtime boundaries.
 mode: primary
-model: ryzen-qwen/qwen3-14b
+model: ollama/qwen2.5-coder:14b
 permission:
   read: allow
   edit: allow

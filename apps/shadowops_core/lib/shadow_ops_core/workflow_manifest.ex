@@ -75,6 +75,7 @@ defmodule ShadowOpsCore.WorkflowManifest do
   def from_registry(_, _), do: {:error, :invalid_workflow_definition}
 
   defp source("github_actions", _workflow), do: "github_actions"
+  defp source("gmail", _workflow), do: "gmail"
 
   defp source(runtime, workflow) when is_binary(runtime) do
     cond do
@@ -89,16 +90,23 @@ defmodule ShadowOpsCore.WorkflowManifest do
   defp default_risk("github_actions"), do: "L2"
   defp default_risk("local_script"), do: "L2"
   defp default_risk("systemd"), do: "L2"
+  defp default_risk("gmail"), do: "L0"
   defp default_risk(_), do: "L2"
+
   defp executor("github_actions"), do: "GitHubActionsAdapter"
+  defp executor("gmail"), do: "GmailAdapter"
   defp executor("systemd"), do: "SystemdAdapter"
   defp executor("local_script"), do: "ScriptAdapter"
   defp executor(source), do: source <> "Adapter"
+
   defp runtime_type("github_actions", _), do: "github_actions"
+  defp runtime_type("gmail", _), do: "gmail"
   defp runtime_type(_runtime, "systemd"), do: "systemd"
   defp runtime_type(_runtime, "local_script"), do: "local_script"
   defp runtime_type(runtime, _), do: runtime
+
   defp target("github_actions", _), do: "github"
+  defp target("gmail", _), do: "gmail"
   defp target(_runtime, "systemd"), do: "ryzen"
   defp target(_runtime, "local_script"), do: "ryzen"
   defp target(_, _), do: "local"

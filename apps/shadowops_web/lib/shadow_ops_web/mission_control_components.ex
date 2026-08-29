@@ -27,13 +27,13 @@ defmodule ShadowOpsWeb.MissionControlComponents do
           <span><strong>ShadowOps</strong><small>Mission Control</small></span>
         </a>
         <nav>
-          <.nav_group label="Dashboard" items={[{"Overview", "/"}, {"Layer Health", "/layers"}]} active={@active} />
-          <.nav_group label="Operations" items={[{"Infrastructure", "/infrastructure"}, {"Workflows", "/workflows"}, {"Runs", "/runs"}, {"Services", "/services"}, {"Nodes", "/nodes"}, {"Backups", "/backups"}]} active={@active} />
-          <.nav_group label="Projects" items={[{"Overview", "/projects"}, {"Federated", "/projects/federated"}, {"ChatGPT", "/projects/chatgpt"}, {"Finance", "/projects/finance"}, {"Investigations", "/projects/investigations"}, {"IHK", "/projects/ihk"}, {"Community", "/projects/community"}]} active={@active} />
-          <.nav_group label="Intelligence" items={[{"Agents", "/agents"}, {"AI", "/ai"}, {"Knowledge", "/knowledge"}, {"Career", "/career"}, {"Reporting", "/reporting"}]} active={@active} />
-          <.nav_group label="Social" items={[{"Overview", "/social"}, {"Facebook", "/social/facebook"}, {"Social Review", "/social/review"}, {"Messenger", "/social/messenger"}, {"WhatsApp", "/social/whatsapp"}, {"Telegram", "/social/telegram"}]} active={@active} />
-          <.nav_group label="Governance" items={[{"Approvals", "/approvals"}, {"Security", "/security"}, {"Audit", "/audit"}, {"Evidence", "/evidence"}, {"Legal", "/legal"}, {"Logs", "/logs"}]} active={@active} />
-          <.nav_group label="System" items={[{"i7 Display", "/display/i7"}, {"Health", "/health"}, {"Readiness", "/ready"}]} active={@active} />
+          <.nav_group label="Command" items={command_items()} active={@active} />
+          <.nav_group label="Operations" items={operations_items()} active={@active} />
+          <.nav_group label="Intelligence" items={intelligence_items()} active={@active} />
+          <.nav_group label="Projects" items={projects_items()} active={@active} />
+          <.nav_group label="Social" items={social_items()} active={@active} />
+          <.nav_group label="Governance" items={governance_items()} active={@active} />
+          <.nav_group label="System" items={system_items()} active={@active} />
         </nav>
         <div class="mc-sidebar-footer">
           <span class="mc-operator-avatar">SO</span>
@@ -59,6 +59,86 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       </div>
     </div>
     """
+  end
+
+  defp command_items do
+    [
+      {"Overview", "/"},
+      {"Attention", "/attention"},
+      {"Integrations", "/integrations"}
+    ]
+  end
+
+  defp operations_items do
+    [
+      {"Infrastructure", "/infrastructure"},
+      {"Compute", "/compute"},
+      {"Nodes", "/nodes"},
+      {"Services", "/services"},
+      {"Workflows", "/workflows"},
+      {"Runs", "/runs"},
+      {"Jobs", "/jobs"},
+      {"Backups", "/backups"}
+    ]
+  end
+
+  defp intelligence_items do
+    [
+      {"Agents", "/agents"},
+      {"AI", "/ai"},
+      {"Knowledge", "/knowledge"},
+      {"Reporting", "/reporting"}
+    ]
+  end
+
+  defp projects_items do
+    [
+      {"All Projects", "/projects"},
+      {"Federated", "/projects/federated"},
+      {"Career", "/projects/career"},
+      {"IHK", "/projects/ihk"},
+      {"Finance", "/projects/finance"},
+      {"Investigations", "/projects/investigations"},
+      {"Social", "/projects/social"},
+      {"Knowledge", "/projects/knowledge"},
+      {"ChatGPT", "/projects/chatgpt"},
+      {"Housing", "/projects/housing"},
+      {"Administration", "/projects/administration"},
+      {"Health", "/projects/health"},
+      {"Learning", "/projects/learning"},
+      {"Personal Framework", "/projects/personal_framework"}
+    ]
+  end
+
+  defp social_items do
+    [
+      {"Overview", "/social"},
+      {"Facebook", "/social/facebook"},
+      {"Messenger", "/social/messenger"},
+      {"WhatsApp", "/social/whatsapp"},
+      {"Telegram", "/social/telegram"}
+    ]
+  end
+
+  defp governance_items do
+    [
+      {"Approvals", "/approvals"},
+      {"Security", "/security"},
+      {"Audit", "/audit"},
+      {"Evidence", "/evidence"},
+      {"Legal", "/legal"},
+      {"Logs", "/logs"}
+    ]
+  end
+
+  defp system_items do
+    [
+      {"Settings", "/settings"},
+      {"Runtime Dashboard", "/runtime"},
+      {"i7 Display", "/display/i7"},
+      {"Health", "/health"},
+      {"Readiness", "/ready"}
+    ]
   end
 
   attr(:label, :string, required: true)
@@ -120,12 +200,33 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   attr(:state, :string, default: "NOT_CONNECTED")
   attr(:reason, :string, required: true)
   attr(:source, :string, default: nil)
+  attr(:evidence, :list, default: [])
+  attr(:unlock_requirements, :list, default: [])
 
   def unavailable_state(assigns) do
     ~H"""
     <section class="mc-unavailable" role="status">
       <.status_badge status={@state} />
-      <div><h2>{@title}</h2><p>{@reason}</p><small :if={@source}>Required source: {@source}</small></div>
+      <div>
+        <h2>{@title}</h2>
+        <p>{@reason}</p>
+        <small :if={@source}>Required source: {@source}</small>
+      </div>
+      <div :if={@evidence != []} class="mc-evidence-list">
+        <h3>Evidence</h3>
+        <ul>
+          <li :for={e <- @evidence}>
+            <.status_badge status={e.result} />
+            <span>{e.gate}: {e.evidence_ref}</span>
+          </li>
+        </ul>
+      </div>
+      <div :if={@unlock_requirements != []} class="mc-unlock-requirements">
+        <h3>Unlock requirements</h3>
+        <ul>
+          <li :for={req <- @unlock_requirements}>{req}</li>
+        </ul>
+      </div>
     </section>
     """
   end
@@ -158,27 +259,104 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     """
   end
 
+  attr(:title, :string, required: true)
+  attr(:state, :string, default: "UNKNOWN")
+  attr(:mode, :string, default: "UNKNOWN")
+  attr(:real_data, :boolean, default: false)
+  attr(:reachable, :boolean, default: false)
+  attr(:synthetic, :boolean, default: false)
+  attr(:runtime, :string, default: nil)
+  attr(:approval, :string, default: nil)
+  attr(:evidence, :string, default: nil)
+  attr(:last_probe, :string, default: nil)
+  attr(:unlock_requirement, :string, default: nil)
+
+  def capability_card(assigns) do
+    assigns = assign(assigns, :computed_state_class, state_class(assigns.state))
+
+    ~H"""
+    <article class={"mc-capability-card {@computed_state_class}"}>
+      <div class="mc-capability-head">
+        <strong>{@title}</strong>
+        <.status_badge status={@state} label={@mode} />
+      </div>
+      <div class="mc-capability-meta">
+        <span :if={@real_data} class="mc-tag is-real">Real Data</span>
+        <span :if={@reachable} class="mc-tag is-reachable">Reachable</span>
+        <span :if={@synthetic} class="mc-tag is-synthetic">Synthetic</span>
+        <span :if={@runtime} class="mc-tag">Runtime: {@runtime}</span>
+        <span :if={@approval} class="mc-tag">Approval: {@approval}</span>
+        <span :if={@evidence} class="mc-tag">Evidence: {@evidence}</span>
+        <span :if={@last_probe} class="mc-tag">Last probe: {@last_probe}</span>
+      </div>
+      <p :if={@unlock_requirement} class="mc-unlock-hint">🔓 {@unlock_requirement}</p>
+    </article>
+    """
+  end
+
+  attr(:action_type, :string, required: true)
+  attr(:risk, :string, required: true)
+  attr(:state, :string, required: true)
+  attr(:label, :string, required: true)
+  attr(:href, :string, default: nil)
+  attr(:disabled, :boolean, default: false)
+
+  def action_button(assigns) do
+    assigns = assign(assigns, :computed_action_class, action_class(assigns.action_type))
+    assigns = assign(assigns, :computed_disabled, assigns.disabled)
+
+    assigns =
+      assign(assigns, :computed_is_disabled, if(assigns.disabled, do: "is-disabled", else: ""))
+
+    ~H"""
+    <a
+      class={"mc-button {@computed_action_class} {@computed_is_disabled}"}
+      href={@href}
+      :if={!@computed_disabled && @href}
+      aria-disabled={@computed_disabled}
+    >
+      {@label}
+    </a>
+    <button
+      class={"mc-button {@computed_action_class} {@computed_is_disabled}"}
+      :if={@computed_disabled}
+      disabled
+    >
+      {@label}
+      <span class="mc-tooltip">State: {@state} — Risk: {@risk}</span>
+    </button>
+    """
+  end
+
   defp nav_icon("Overview"), do: "⌂"
-  defp nav_icon("Layer Health"), do: "◉"
+  defp nav_icon("Attention"), do: "⚠"
+  defp nav_icon("Integrations"), do: "◎"
   defp nav_icon("Infrastructure"), do: "▦"
+  defp nav_icon("Compute"), do: "▣"
+  defp nav_icon("Nodes"), do: "▣"
+  defp nav_icon("Services"), do: "◆"
   defp nav_icon("Workflows"), do: "⌘"
   defp nav_icon("Runs"), do: "▷"
-  defp nav_icon("Services"), do: "◆"
-  defp nav_icon("Nodes"), do: "▣"
+  defp nav_icon("Jobs"), do: "◫"
   defp nav_icon("Backups"), do: "▱"
-  defp nav_icon("Federated"), do: "◎"
-  defp nav_icon("ChatGPT"), do: "◌"
-  defp nav_icon("Finance"), do: "◇"
-  defp nav_icon("Investigations"), do: "⌕"
-  defp nav_icon("IHK"), do: "▤"
-  defp nav_icon("Community"), do: "♢"
   defp nav_icon("Agents"), do: "⌬"
   defp nav_icon("AI"), do: "✦"
   defp nav_icon("Knowledge"), do: "▥"
-  defp nav_icon("Career"), do: "◈"
   defp nav_icon("Reporting"), do: "◰"
+  defp nav_icon("All Projects"), do: "◎"
+  defp nav_icon("Federated"), do: "◎"
+  defp nav_icon("Career"), do: "◈"
+  defp nav_icon("IHK"), do: "▤"
+  defp nav_icon("Finance"), do: "◇"
+  defp nav_icon("Investigations"), do: "⌕"
+  defp nav_icon("Social"), do: "♢"
+  defp nav_icon("ChatGPT"), do: "◌"
+  defp nav_icon("Housing"), do: "⌂"
+  defp nav_icon("Administration"), do: "⚙"
+  defp nav_icon("Health"), do: "♥"
+  defp nav_icon("Learning"), do: "◰"
+  defp nav_icon("Personal Framework"), do: "▣"
   defp nav_icon("Facebook"), do: "f"
-  defp nav_icon("Social Review"), do: "◫"
   defp nav_icon("Messenger"), do: "◍"
   defp nav_icon("WhatsApp"), do: "◉"
   defp nav_icon("Telegram"), do: "△"
@@ -188,8 +366,9 @@ defmodule ShadowOpsWeb.MissionControlComponents do
   defp nav_icon("Evidence"), do: "▤"
   defp nav_icon("Legal"), do: "§"
   defp nav_icon("Logs"), do: "▰"
+  defp nav_icon("Settings"), do: "⚙"
+  defp nav_icon("Runtime Dashboard"), do: "◉"
   defp nav_icon("i7 Display"), do: "▣"
-  defp nav_icon("Health"), do: "♥"
   defp nav_icon("Readiness"), do: "●"
   defp nav_icon(_), do: "·"
 
@@ -216,6 +395,26 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       _ -> "◆"
     end
   end
+
+  defp state_class("READY"), do: "is-ready"
+  defp state_class("READ_ONLY"), do: "is-read-only"
+  defp state_class("PARTIAL"), do: "is-partial"
+  defp state_class("DEGRADED"), do: "is-degraded"
+  defp state_class("CONFIGURATION_REQUIRED"), do: "is-config-required"
+  defp state_class("APPROVAL_REQUIRED"), do: "is-approval-required"
+  defp state_class("DISABLED_BY_CONFIGURATION"), do: "is-disabled"
+  defp state_class("REGISTRY_ONLY"), do: "is-registry-only"
+  defp state_class("OPTIONAL_UNAVAILABLE"), do: "is-optional-unavailable"
+  defp state_class("UNAVAILABLE"), do: "is-unavailable"
+  defp state_class(_), do: ""
+
+  defp action_class("READ"), do: "is-read"
+  defp action_class("SAFE_ACTION"), do: "is-safe"
+  defp action_class("AUTH_REQUIRED"), do: "is-auth-required"
+  defp action_class("APPROVAL_REQUIRED"), do: "is-approval-required"
+  defp action_class("BLOCKED"), do: "is-blocked"
+  defp action_class("NOT_IMPLEMENTED"), do: "not-implemented"
+  defp action_class(_), do: ""
 
   defp active?(active, "/"), do: active == "/"
   defp active?(active, path), do: active == path or String.starts_with?(active, path <> "/")
