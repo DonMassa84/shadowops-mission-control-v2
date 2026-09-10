@@ -1,0 +1,58 @@
+{
+  "skills_registry": {
+    "schema_version": 1,
+    "source": "workflow_library/catalog/skills_registry.json",
+    "generated_at": "2026-09-10T00:20:43.625801+00:00",
+    "count": 6,
+    "skills": [
+      {
+        "id": "imagegen-681ddb4a",
+        "name": "imagegen",
+        "source": "codex-user",
+        "path": "/home/schattenmacher/.codex/skills/.system/imagegen/SKILL.md",
+        "sha256": "681ddb4ad6d06a2acc78a3535b583f8d0c1ea800ecda3d56370d3310fd2cd4ba",
+        "enabled": true
+      },
+      {
+        "id": "openai-docs-aa6829e2",
+        "name": "openai-docs",
+        "source": "codex-user",
+        "path": "/home/schattenmacher/.codex/skills/.system/openai-docs/SKILL.md",
+        "sha256": "aa6829e21df2223167c85d2e49b6337a7345c84c1033f1ec10182c7882b36d45",
+        "enabled": true
+      },
+      {
+        "id": "plugin-creator-71b95b82",
+        "name": "plugin-creator",
+        "source": "codex-user",
+        "path": "/home/schattenmacher/.codex/skills/.system/plugin-creator/SKILL.md",
+        "sha256": "71b95b8219644f95d633721e7f7cd3c469edfc8fe50f8415d400dfb2d74bc7b9",
+        "enabled": true
+      },
+      {
+        "id": "review-agent-07079efd",
+        "name": "review-agent",
+        "source": "codex-user",
+        "path": "/home/schattenmacher/.codex/skills/.system/review-agent/SKILL.md",
+        "sha256": "07079efd0dc76f05fade424e5dfb048dce1de2df7626e1a4f56292a4f3f92228",
+        "enabled": true
+      },
+      {
+        "id": "skill-creator-6656e547",
+        "name": "skill-creator",
+        "source": "codex-user",
+        "path": "/home/schattenmacher/.codex/skills/.system/skill-creator/SKILL.md",
+        "sha256": "6656e54755638e8efcf275a472b9672eaa8a9a1b9e59dc210e275b03b59e1e66",
+        "enabled": true
+      },
+      {
+        "id": "skill-installer-d68b77e5",
+        "name": "skill-installer",
+        "source": "codex-user",
+        "path": "/home/schattenmacher/.codex/skills/.system/skill-installer/SKILL.md",
+        "sha256": "d68b77e5bbb34dedab89d134da52855f140fc4b4299b80104f534e3b9e98f8ee",
+        "enabled": true
+      }
+    ]
+  }
+}

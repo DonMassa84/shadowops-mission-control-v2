@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "registry_type": "shadowops_skills",
+  "generated_at": "2026-09-10T00:20:43.605528+00:00",
+  "count": 6,
+  "skills": [
+    {
+      "id": "imagegen-681ddb4a",
+      "name": "imagegen",
+      "description": "Generate or edit raster images when the task benefits from AI-created bitmap visuals such as photos, illustrations, textures, sprites, mockups, or transparent-background cutouts. Use when Codex should create a brand-new image, transform an existing image, or derive visual variants from references, and the output should be a bitmap asset rather than repo-native code or vector. Do not use when the task is better handled by editing existing SVG/vector/code-native assets, extending an established icon or logo system, or building the visual directly in HTML/CSS/canvas.",
+      "source": "codex-user",
+      "path": "/home/schattenmacher/.codex/skills/.system/imagegen/SKILL.md",
+      "project_relative_path": null,
+      "sha256": "681ddb4ad6d06a2acc78a3535b583f8d0c1ea800ecda3d56370d3310fd2cd4ba",
+      "enabled": true,
+      "type": "skill",
+      "entrypoint": "SKILL.md"
+    },
+    {
+      "id": "openai-docs-aa6829e2",
+      "name": "openai-docs",
+      "description": "Use for Codex models/pricing, scheduled tasks, skills, settings, setup, troubleshooting, customization, automations, and self-knowledge—including 'you,' 'your,' 'this app,' or 'this coding agent' when they refer to Codex—and for OpenAI APIs/products and ChatGPT Work. Also use for model choice/migration, prompting, SDKs, Responses, Realtime, agents, evals, and Chat/Work/Codex comparisons. Do not use for generic app/software tasks that merely mention Codex.",
+      "source": "codex-user",
+      "path": "/home/schattenmacher/.codex/skills/.system/openai-docs/SKILL.md",
+      "project_relative_path": null,
+      "sha256": "aa6829e21df2223167c85d2e49b6337a7345c84c1033f1ec10182c7882b36d45",
+      "enabled": true,
+      "type": "skill",
+      "entrypoint": "SKILL.md"
+    },
+    {
+      "id": "plugin-creator-71b95b82",
+      "name": "plugin-creator",
+      "description": "Create and scaffold plugin directories for Codex with a required `.codex-plugin/plugin.json`, optional plugin folders/files, valid manifest defaults, and personal-marketplace entries by default. Use when Codex needs to create a new personal plugin, add optional plugin structure, generate or update marketplace entries for plugin ordering and availability metadata, or update an existing local plugin during development with the CLI-driven cachebuster and reinstall flow.",
+      "source": "codex-user",
+      "path": "/home/schattenmacher/.codex/skills/.system/plugin-creator/SKILL.md",
+      "project_relative_path": null,
+      "sha256": "71b95b8219644f95d633721e7f7cd3c469edfc8fe50f8415d400dfb2d74bc7b9",
+      "enabled": true,
+      "type": "skill",
+      "entrypoint": "SKILL.md"
+    },
+    {
+      "id": "review-agent-07079efd",
+      "name": "review-agent",
+      "description": "Perform a read-only, defect-first review of a specified code change and return every actionable finding. Use when another agent delegates review of uncommitted changes, a base-branch diff, a commit, or custom review instructions.",
+      "source": "codex-user",
+      "path": "/home/schattenmacher/.codex/skills/.system/review-agent/SKILL.md",
+      "project_relative_path": null,
+      "sha256": "07079efd0dc76f05fade424e5dfb048dce1de2df7626e1a4f56292a4f3f92228",
+      "enabled": true,
+      "type": "skill",
+      "entrypoint": "SKILL.md"
+    },
+    {
+      "id": "skill-creator-6656e547",
+      "name": "skill-creator",
+      "description": "Create or update a Codex skill with appropriately scoped instructions and any needed supporting resources.",
+      "source": "codex-user",
+      "path": "/home/schattenmacher/.codex/skills/.system/skill-creator/SKILL.md",
+      "project_relative_path": null,
+      "sha256": "6656e54755638e8efcf275a472b9672eaa8a9a1b9e59dc210e275b03b59e1e66",
+      "enabled": true,
+      "type": "skill",
+      "entrypoint": "SKILL.md"
+    },
+    {
+      "id": "skill-installer-d68b77e5",
+      "name": "skill-installer",
+      "description": "Install Codex skills into $CODEX_HOME/skills from a curated list or a GitHub repo path. Use when a user asks to list installable skills, install a curated skill, or install a skill from another repo (including private repos).",
+      "source": "codex-user",
+      "path": "/home/schattenmacher/.codex/skills/.system/skill-installer/SKILL.md",
+      "project_relative_path": null,
+      "sha256": "d68b77e5bbb34dedab89d134da52855f140fc4b4299b80104f534e3b9e98f8ee",
+      "enabled": true,
+      "type": "skill",
+      "entrypoint": "SKILL.md"
+    }
+  ]
+}
