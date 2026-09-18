@@ -45,6 +45,9 @@ canonical_workflows:
   repo_governance:
     id: so:wf:v1:repo-governance
     domain: repositories
+  i7.healthcheck:
+    id: so:wf:v1:i7-healthcheck
+    domain: infrastructure
 federation_workflows:
   project_federation_sync:
     id: so:wf:v1:project-federation-sync

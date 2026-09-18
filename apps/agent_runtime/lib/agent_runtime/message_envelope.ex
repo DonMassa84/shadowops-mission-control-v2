@@ -1,14 +1,28 @@
 defmodule AgentRuntime.MessageEnvelope do
   @moduledoc """
   Message envelope for CommunicationBus transport between workers.
-  
+
   Headless communication: Qwen <-> Nemo via LocalQueue/Router
   DISPLAY_DEPENDENCY=0
   """
 
-  @type message_type :: :task_assign | :task_accept | :task_result | :task_failed | :worker_heartbeat | :worker_status
+  @type message_type ::
+          :task_assign
+          | :task_accept
+          | :task_result
+          | :task_failed
+          | :worker_heartbeat
+          | :worker_status
 
-  @enforce_keys [:message_id, :correlation_id, :from_worker, :to_worker, :message_type, :payload, :timestamp]
+  @enforce_keys [
+    :message_id,
+    :correlation_id,
+    :from_worker,
+    :to_worker,
+    :message_type,
+    :payload,
+    :timestamp
+  ]
   defstruct [
     :message_id,
     :correlation_id,
@@ -28,15 +42,16 @@ defmodule AgentRuntime.MessageEnvelope do
          {:ok, type} <- validate_type(params["message_type"]),
          {:ok, payload} <- validate_payload(params["payload"]),
          {:ok, timestamp} <- validate_timestamp(params["timestamp"]) do
-      {:ok, %__MODULE__{
-        message_id: msg_id,
-        correlation_id: corr_id,
-        from_worker: from,
-        to_worker: to,
-        message_type: type,
-        payload: payload,
-        timestamp: timestamp
-      }}
+      {:ok,
+       %__MODULE__{
+         message_id: msg_id,
+         correlation_id: corr_id,
+         from_worker: from,
+         to_worker: to,
+         message_type: type,
+         payload: payload,
+         timestamp: timestamp
+       }}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -77,15 +92,16 @@ defmodule AgentRuntime.MessageEnvelope do
          {:ok, type} <- validate_type(map["message_type"] || map[:message_type]),
          {:ok, payload} <- validate_payload(map["payload"] || map[:payload]),
          {:ok, timestamp} <- validate_timestamp(map["timestamp"] || map[:timestamp]) do
-      {:ok, %__MODULE__{
-        message_id: msg_id,
-        correlation_id: corr_id,
-        from_worker: from,
-        to_worker: to,
-        message_type: type,
-        payload: payload,
-        timestamp: timestamp
-      }}
+      {:ok,
+       %__MODULE__{
+         message_id: msg_id,
+         correlation_id: corr_id,
+         from_worker: from,
+         to_worker: to,
+         message_type: type,
+         payload: payload,
+         timestamp: timestamp
+       }}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -99,15 +115,31 @@ defmodule AgentRuntime.MessageEnvelope do
   defp validate_corr_id(id) when is_binary(id) and byte_size(id) > 0, do: {:ok, id}
   defp validate_corr_id(_), do: {:error, {:invalid_field, :correlation_id}}
 
-  defp validate_worker(worker) when is_binary(worker) and worker in ["qwen", "nemo", "router", "bus"] do
+  defp validate_worker(worker)
+       when is_binary(worker) and worker in ["qwen", "nemo", "router", "bus"] do
     {:ok, worker}
   end
+
   defp validate_worker(_), do: {:error, {:invalid_field, :worker}}
 
-  defp validate_type(type) when type in [:task_assign, :task_accept, :task_result, :task_failed, :worker_heartbeat, :worker_status,
-                                         "task_assign", "task_accept", "task_result", "task_failed", "worker_heartbeat", "worker_status"] do
+  defp validate_type(type)
+       when type in [
+              :task_assign,
+              :task_accept,
+              :task_result,
+              :task_failed,
+              :worker_heartbeat,
+              :worker_status,
+              "task_assign",
+              "task_accept",
+              "task_result",
+              "task_failed",
+              "worker_heartbeat",
+              "worker_status"
+            ] do
     {:ok, if(is_binary(type), do: String.to_atom(type), else: type)}
   end
+
   defp validate_type(_), do: {:error, {:invalid_field, :message_type}}
 
   defp validate_payload(payload) when is_map(payload), do: {:ok, payload}
@@ -116,9 +148,10 @@ defmodule AgentRuntime.MessageEnvelope do
   defp validate_timestamp(ts) when is_binary(ts) do
     case DateTime.from_iso8601(ts) do
       {:ok, datetime, _} -> {:ok, datetime}
-      :error -> {:error, {:invalid_field, :timestamp}}
+      {:error, _reason} -> {:error, {:invalid_field, :timestamp}}
     end
   end
+
   defp validate_timestamp(%DateTime{} = dt), do: {:ok, dt}
   defp validate_timestamp(_), do: {:error, {:invalid_field, :timestamp}}
 end
