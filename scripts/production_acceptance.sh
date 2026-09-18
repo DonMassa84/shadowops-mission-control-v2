@@ -93,7 +93,7 @@ else
 fi
 
 if mix help sobelow >/dev/null 2>&1; then
-  if (cd "$ROOT/apps/shadowops_web" && mix sobelow --private --strict --exit high --threshold high) \
+  if mix sobelow --root "$ROOT/apps/shadowops_web" --private --strict --exit high --threshold high \
     >/tmp/shadowops-sobelow.log 2>&1; then
     ok phoenix_security_scan
   else
@@ -105,7 +105,22 @@ fi
 
 if grep -RInE --exclude-dir='_build' --exclude-dir='deps' --exclude='*.md' \
   '(FAKE_DATA|fake operational data|hardcoded online|synthetic[[:space:]]*:[[:space:]]*true)' \
-  apps config 2>/dev/null | grep -vE 'test|fixture' >/tmp/shadowops-fake-state.log; then
+  apps config 2>/dev/null | grep -vE 'test|fixture' | python3 -c 'import pathlib, sys
+findings = []
+for match in sys.stdin:
+    name, number, text = match.split(":", 2)
+    lines = pathlib.Path(name).read_text().splitlines()
+    index = int(number) - 1
+    rejects_synthetic = (
+        text.strip() == "defp reject_synthetic(%WorkflowManifest{synthetic: true}),"
+        and index + 1 < len(lines)
+        and lines[index + 1].strip() == "do: {:error, :synthetic_workflow_blocked}"
+    )
+    if not rejects_synthetic:
+        findings.append(match)
+sys.stdout.writelines(findings)
+sys.exit(0 if findings else 1)
+' >/tmp/shadowops-fake-state.log; then
   bad no_fake_state "suspicious production markers found"
 else
   ok no_fake_state
