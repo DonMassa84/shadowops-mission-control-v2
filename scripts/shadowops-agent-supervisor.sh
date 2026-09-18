@@ -15,8 +15,7 @@ log "SUPERVISOR_START"
 
 while true; do
   if ! systemctl --user is-active --quiet shadowops-agent-bridge.service; then
-    log "BRIDGE_INACTIVE"
-    systemctl --user start shadowops-agent-bridge.service || true
+    log "BRIDGE_INACTIVE_AUTO_START_BLOCKED_COORDINATION_REVIEW"
   fi
 
   if ssh -o BatchMode=yes -o ConnectTimeout=3 shadowserver-i7 true 2>/dev/null; then
