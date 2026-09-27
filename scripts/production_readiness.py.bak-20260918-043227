@@ -139,7 +139,7 @@ try:
     changed = capture(['git', 'diff', '--name-only', '7e3f1355ba593588cf7f69953cba0d650ee7f5b8', '--', '*.ex', '*.exs']).splitlines()
     gate('CREDO', ['mix', 'credo', '--strict'] + changed)
     gate('DIALYZER', ['mix', 'dialyzer'], timeout=1800)
-    gate('SOBELOW', ['mix', 'sobelow', '--root', 'apps/shadowops_web', '--private', '--strict', '--exit', 'high', '--threshold', 'high'])
+    gate('SOBELOW', ['mix', 'sobelow', '--private', '--strict', '--exit', 'high', '--threshold', 'high'], snapshot / 'apps/shadowops_web')
     gate('HEX_AUDIT', ['mix', 'hex.audit'])
     gate('MCP_TESTS', ['python3', '-m', 'unittest', 'discover', '-s', 'ops/mcp', '-p', 'test_*.py', '-v'])
     gate('CODER_CONTRACT', ['bash', 'scripts/test-shadowops-coder.sh'])
