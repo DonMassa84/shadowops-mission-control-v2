@@ -134,14 +134,14 @@ defmodule ShadowOpsCore.WorkflowFabricContractTest do
     assert "agent_state_sync" in ids
     assert "daily_digest" in ids
     assert "shadow_system_overnight_audit" in ids
-    assert length(scripts) == 4
+    assert length(scripts) == 5
 
     available = Enum.count(scripts, &(ScriptAdapter.validate(&1) == :ok))
 
     expected_state =
       if available == length(scripts) and available > 0, do: "READY", else: "DEGRADED"
 
-    assert %{state: ^expected_state, discovered: 4, available: ^available} =
+    assert %{state: ^expected_state, discovered: 5, available: ^available} =
              ScriptAdapter.status()
 
     opencode_status = OpenCodeAdapter.status()
@@ -175,8 +175,8 @@ defmodule ShadowOpsCore.WorkflowFabricContractTest do
     assert %{state: "DEGRADED", reason: "agent_execution_not_connected"} =
              AgentAdapter.status()
 
-    assert %{state: "DEGRADED", reason: "github_dispatch_not_connected"} =
-             GitHubActionsAdapter.status()
+    assert %{state: "DEGRADED", source: "github_cli_api"} =
+             GitHubActionsAdapter.status(runner: fn _, _, _ -> {"offline", 1} end)
 
     summary = WorkflowFabric.summary()
     assert summary.workflows_discovered >= 9
@@ -192,7 +192,8 @@ defmodule ShadowOpsCore.WorkflowFabricContractTest do
     assert is_binary(disabled.evidence_ref)
 
     github = Enum.find(WorkflowFabric.workflows(), &(&1.id == "workflow:repository_quality"))
-    assert github.state == "DEGRADED"
+    assert github.state in ["READY", "DEGRADED"]
+    if github.state == "READY", do: assert(github.metadata.evidence.result == "PASS")
     assert is_binary(github.evidence_ref)
 
     refute summary.status == "READY" and

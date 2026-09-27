@@ -10,7 +10,7 @@ defmodule ShadowOpsCore.ExecutionService do
   No client-based shell commands.
   """
 
-  alias ShadowOpsCore.{ApprovalStore, Audit, CapabilityRegistry, Events, Policy, PrivacyGate}
+  alias ShadowOpsCore.{Audit, Events, GovernanceGate}
 
   alias ShadowOpsCore.Adapters.{
     CanonicalWorkflowAdapter,
@@ -24,47 +24,16 @@ defmodule ShadowOpsCore.ExecutionService do
 
   @doc "Executes an action through the full governance chain."
   def execute(capability, actor, resource, input, context \\ %{}) do
-    context =
-      context
-      |> Map.put_new(:actor, actor)
-      |> Map.put_new(:resource, resource)
+    context = context |> Map.put(:actor, actor) |> Map.put(:resource, resource)
 
-    with {:ok, capability_spec} <- CapabilityRegistry.lookup(capability),
-         {:ok, policy} <- Policy.evaluate(capability, actor, context),
-         {:ok, approval} <- approval(policy, capability, resource, context),
-         {:ok, :allowed} <- PrivacyGate.check(input) do
-      execute_via_adapter(capability_spec, input, context, approval)
-    else
-      {:error, :blocked, reason} ->
-        record_block(actor, resource, capability, {:privacy_gate_blocked, reason})
-        {:error, {:privacy_gate_blocked, reason}}
-
-      {:error, reason} = error ->
-        record_block(actor, resource, capability, reason)
-        error
+    with {:ok, authorization} <-
+           GovernanceGate.authorize(capability, actor, resource, input, context) do
+      execute_via_adapter(authorization.capability, input, context, authorization)
     end
   end
 
-  defp approval(%{approval_required: false}, _capability, _resource, _context),
-    do: {:ok, :not_required}
-
-  defp approval(%{approval_required: true, risk_level: risk}, capability, resource, context) do
-    case context[:approval_id] do
-      approval_id when is_binary(approval_id) and approval_id != "" ->
-        case ApprovalStore.validate(approval_id, capability, resource, risk) do
-          {:ok, approval} -> {:ok, approval}
-          {:blocked, reason} -> {:error, {:approval_blocked, reason}}
-          {:error, :not_found} -> {:error, {:approval_required, approval_id}}
-          {:error, reason} -> {:error, {:approval_invalid, reason}}
-        end
-
-      _ ->
-        {:error, :approval_required}
-    end
-  end
-
-  defp execute_via_adapter(capability_spec, input, context, approval) do
-    policy_decision = if(approval == :not_required, do: "AUTO", else: "APPROVED")
+  defp execute_via_adapter(capability_spec, input, context, authorization) do
+    policy_decision = if(authorization.approval_required, do: "APPROVED", else: "AUTO")
     context = Map.put(context, :policy_decision, policy_decision)
 
     Events.publish_execution(capability_spec.id, :execution_started, :success, event_input(input))
@@ -74,7 +43,7 @@ defmodule ShadowOpsCore.ExecutionService do
     case result do
       {:ok, value} ->
         Audit.record(
-          :execution_completed,
+          :execution_finished,
           context[:actor],
           capability_spec.id,
           :success,
@@ -198,15 +167,6 @@ defmodule ShadowOpsCore.ExecutionService do
   defp safe_reason({tag, code, _detail}) when is_atom(tag), do: {tag, code}
   defp safe_reason({tag, _detail}) when is_atom(tag), do: tag
   defp safe_reason(_), do: :execution_failed
-
-  defp record_block(actor, resource, capability, reason) do
-    if is_binary(actor) and actor != "" do
-      Audit.record(:execution_blocked, actor, resource, :blocked, %{
-        capability: capability,
-        reason: safe_reason(reason)
-      })
-    end
-  end
 
   defp value(map, key) when is_map(map), do: Map.get(map, key, Map.get(map, Atom.to_string(key)))
   defp value(_, _), do: nil

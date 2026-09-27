@@ -266,6 +266,36 @@ workflows:
       github: metadata_only
     synthetic: false
 agent_contracts:
+  i7.healthcheck:
+    version: 1
+    agent_spec:
+      executor: canonical_workflow
+      capability: workflow.run
+      risk_level: L2
+      runtime_binding: /home/schattenmacher/.local/bin/i7-status
+      approval_required: true
+    capabilities:
+    - workflow.run
+    required_inputs: []
+    produced_outputs:
+    - runtime_status
+    permissions:
+    - local_read
+    timeout_seconds: 30
+    retry_policy:
+      max_attempts: 1
+      backoff: none
+    human_review_policy:
+      required: true
+      triggers:
+      - workflow_execution
+    evidence_policy:
+      required: true
+      audit_required: true
+      fields:
+      - status
+      - result
+      - audit_ref
   finanzabgleich:
     version: 1
     agent_spec:
@@ -432,8 +462,8 @@ agent_contracts:
     agent_spec:
       executor: local_evidence
       capability: pdf_governance.read
-      risk_level: L1
-      runtime_binding: local_runtime
+      risk_level: L0
+      runtime_binding: local_fixed_path
       approval_required: false
     capabilities:
     - pdf_governance.read
@@ -466,8 +496,8 @@ agent_contracts:
     agent_spec:
       executor: local_evidence
       capability: repo_governance.read
-      risk_level: L1
-      runtime_binding: local_runtime
+      risk_level: L0
+      runtime_binding: local_fixed_path
       approval_required: false
     capabilities:
     - repo_governance.read

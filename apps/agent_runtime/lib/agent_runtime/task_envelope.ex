@@ -1,9 +1,9 @@
 defmodule AgentRuntime.TaskEnvelope do
   @moduledoc """
   Task envelope for headless CommunicationBus flow between Qwen (RTX 3060) and Nemo (i7/GTX 1050 Ti).
-  
+
   Communication path: Qwen -> CommunicationBus -> LocalQueue/Router -> Nemo/i7 -> TASK_ACCEPT -> NEMO_ACK_OK -> CommunicationBus -> Qwen
-  
+
   Status display: QWEN=BUSY, NEMO=AVAILABLE, TASK=58-3, CHANNEL=LOCAL_QUEUE, STATUS=RUNNING
   DISPLAY_DEPENDENCY=0, MAX_ACTIVE_TESTS=1
   """
@@ -34,18 +34,19 @@ defmodule AgentRuntime.TaskEnvelope do
          {:ok, target} <- validate_worker(params["target_worker"]),
          {:ok, payload} <- validate_payload(params["payload"]),
          {:ok, channel} <- validate_channel(params["channel"]) do
-      {:ok, %__MODULE__{
-        task_id: task_id,
-        source_worker: source,
-        target_worker: target,
-        payload: payload,
-        channel: channel,
-        status: :pending,
-        created_at: DateTime.utc_now(),
-        accepted_at: nil,
-        completed_at: nil,
-        evidence: %{}
-      }}
+      {:ok,
+       %__MODULE__{
+         task_id: task_id,
+         source_worker: source,
+         target_worker: target,
+         payload: payload,
+         channel: channel,
+         status: :pending,
+         created_at: DateTime.utc_now(),
+         accepted_at: nil,
+         completed_at: nil,
+         evidence: %{}
+       }}
     else
       {:error, reason} -> {:error, reason}
     end
@@ -72,10 +73,11 @@ defmodule AgentRuntime.TaskEnvelope do
   @spec complete(__MODULE__, map()) :: {:ok, __MODULE__} | {:error, term()}
   def complete(envelope, evidence) do
     if envelope.status == :running do
-      {:ok, envelope
-      |> Map.put(:status, :completed)
-      |> Map.put(:completed_at, DateTime.utc_now())
-      |> Map.put(:evidence, evidence)}
+      {:ok,
+       envelope
+       |> Map.put(:status, :completed)
+       |> Map.put(:completed_at, DateTime.utc_now())
+       |> Map.put(:evidence, evidence)}
     else
       {:error, {:invalid_state, envelope.status}}
     end
@@ -84,10 +86,13 @@ defmodule AgentRuntime.TaskEnvelope do
   @spec fail(__MODULE__, String.t()) :: {:ok, __MODULE__} | {:error, term()}
   def fail(envelope, reason) do
     if envelope.status in [:pending, :accepted, :running] do
-      {:ok, envelope
-      |> Map.put(:status, :failed)
-      |> Map.put(:completed_at, DateTime.utc_now())
-      |> Map.update(:evidence, %{failure_reason: reason}, fn e -> Map.put(e, :failure_reason, reason) end)}
+      {:ok,
+       envelope
+       |> Map.put(:status, :failed)
+       |> Map.put(:completed_at, DateTime.utc_now())
+       |> Map.update(:evidence, %{failure_reason: reason}, fn e ->
+         Map.put(e, :failure_reason, reason)
+       end)}
     else
       {:error, {:invalid_state, envelope.status}}
     end
@@ -97,7 +102,7 @@ defmodule AgentRuntime.TaskEnvelope do
   def status_display(envelope) do
     source_status = if envelope.source_worker == "qwen", do: "BUSY", else: "AVAILABLE"
     target_status = if envelope.target_worker == "nemo", do: "AVAILABLE", else: "BUSY"
-    
+
     "QWEN=#{source_status} NEMO=#{target_status} TASK=#{envelope.task_id} CHANNEL=#{channel_to_str(envelope.channel)} STATUS=#{status_to_str(envelope.status)}"
   end
 
@@ -119,31 +124,36 @@ defmodule AgentRuntime.TaskEnvelope do
 
   @spec from_map(map()) :: {:ok, __MODULE__} | {:error, term()}
   def from_map(map) do
-    with {:ok, task_id} <- validate_task_id(map["task_id"] || map[:task_id]),
-         {:ok, source} <- validate_worker(map["source_worker"] || map[:source_worker]),
-         {:ok, target} <- validate_worker(map["target_worker"] || map[:target_worker]),
-         {:ok, payload} <- validate_payload(map["payload"] || map[:payload]),
-         {:ok, channel} <- validate_channel(map["channel"] || map[:channel]),
-         {:ok, status} <- validate_status(map["status"] || map[:status]),
-         {:ok, created_at} <- parse_datetime(map["created_at"] || map[:created_at]),
-         {:ok, accepted_at} <- parse_optional_datetime(map["accepted_at"] || map[:accepted_at]),
-         {:ok, completed_at} <- parse_optional_datetime(map["completed_at"] || map[:completed_at]),
-         {:ok, evidence} <- validate_evidence(map["evidence"] || map[:evidence]) do
-      {:ok, %__MODULE__{
-        task_id: task_id,
-        source_worker: source,
-        target_worker: target,
-        payload: payload,
-        channel: channel,
-        status: status,
-        created_at: created_at,
-        accepted_at: accepted_at,
-        completed_at: completed_at,
-        evidence: evidence
-      }}
+    with {:ok, task_id} <- validate_task_id(map_value(map, :task_id)),
+         {:ok, source} <- validate_worker(map_value(map, :source_worker)),
+         {:ok, target} <- validate_worker(map_value(map, :target_worker)),
+         {:ok, payload} <- validate_payload(map_value(map, :payload)),
+         {:ok, channel} <- validate_channel(map_value(map, :channel)),
+         {:ok, status} <- validate_status(map_value(map, :status)),
+         {:ok, created_at} <- parse_datetime(map_value(map, :created_at)),
+         {:ok, accepted_at} <- parse_optional_datetime(map_value(map, :accepted_at)),
+         {:ok, completed_at} <- parse_optional_datetime(map_value(map, :completed_at)),
+         {:ok, evidence} <- validate_evidence(map_value(map, :evidence)) do
+      {:ok,
+       %__MODULE__{
+         task_id: task_id,
+         source_worker: source,
+         target_worker: target,
+         payload: payload,
+         channel: channel,
+         status: status,
+         created_at: created_at,
+         accepted_at: accepted_at,
+         completed_at: completed_at,
+         evidence: evidence
+       }}
     else
       {:error, reason} -> {:error, reason}
     end
+  end
+
+  defp map_value(map, key) do
+    Map.get(map, Atom.to_string(key)) || Map.get(map, key)
   end
 
   # Private validation functions
@@ -151,32 +161,59 @@ defmodule AgentRuntime.TaskEnvelope do
   defp validate_task_id(id) when is_binary(id) and byte_size(id) > 0, do: {:ok, id}
   defp validate_task_id(_), do: {:error, {:invalid_field, :task_id}}
 
-  defp validate_worker(worker) when is_binary(worker) and worker in ["qwen", "nemo"] do
+  defp validate_worker(worker)
+       when is_binary(worker) and
+              worker in [
+                "qwen",
+                "nemo",
+                "ryzen-qwen3-14b",
+                "i7-fallback",
+                "ryzen",
+                "i7"
+              ] do
     {:ok, worker}
   end
+
   defp validate_worker(_), do: {:error, {:invalid_field, :worker}}
 
   defp validate_payload(payload) when is_map(payload) do
     {:ok, payload}
   end
+
   defp validate_payload(_), do: {:error, {:invalid_field, :payload}}
 
-  defp validate_channel(channel) when channel in [:local_queue, :communication_bus, "local_queue", "communication_bus"] do
+  defp validate_channel(channel)
+       when channel in [:local_queue, :communication_bus, "local_queue", "communication_bus"] do
     {:ok, if(is_binary(channel), do: String.to_atom(channel), else: channel)}
   end
+
   defp validate_channel(_), do: {:error, {:invalid_field, :channel}}
 
-  defp validate_status(status) when status in [:pending, :accepted, :running, :completed, :failed, "pending", "accepted", "running", "completed", "failed"] do
+  defp validate_status(status)
+       when status in [
+              :pending,
+              :accepted,
+              :running,
+              :completed,
+              :failed,
+              "pending",
+              "accepted",
+              "running",
+              "completed",
+              "failed"
+            ] do
     {:ok, if(is_binary(status), do: String.to_atom(status), else: status)}
   end
+
   defp validate_status(_), do: {:error, {:invalid_field, :status}}
 
   defp parse_datetime(dt) when is_binary(dt) do
     case DateTime.from_iso8601(dt) do
       {:ok, datetime, _} -> {:ok, datetime}
-      :error -> {:error, {:invalid_field, :created_at}}
+      {:error, _reason} -> {:error, {:invalid_field, :created_at}}
     end
   end
+
   defp parse_datetime(%DateTime{} = dt), do: {:ok, dt}
   defp parse_datetime(_), do: {:error, {:invalid_field, :created_at}}
 

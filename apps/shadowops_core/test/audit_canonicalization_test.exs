@@ -39,4 +39,11 @@ defmodule ShadowOpsCore.AuditCanonicalizationTest do
     assert metadata["nested"]["mode"] == "governed"
     assert {:ok, %{valid: true, entries: 1}} = Audit.verify()
   end
+
+  test "malformed or unreadable audit never verifies as an empty valid chain" do
+    File.write!(Audit.path(), "invalid-json\n")
+    assert {:error, %{valid: false}} = Audit.verify()
+    Application.put_env(:shadowops_core, :audit_path, System.tmp_dir!())
+    assert {:error, %{valid: false}} = Audit.verify()
+  end
 end

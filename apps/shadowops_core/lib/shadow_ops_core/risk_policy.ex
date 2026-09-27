@@ -51,6 +51,7 @@ defmodule ShadowOpsCore.RiskPolicy do
     "workflow.run" => "L2",
     "workflow.execute" => "L2",
     "pdf_governance.read" => "L0",
+    "repo_governance.read" => "L0",
     "github.export" => "L1",
     "github.sync" => "L2",
     "whatsapp.ingest" => "L0",
@@ -73,10 +74,12 @@ defmodule ShadowOpsCore.RiskPolicy do
   def infer_risk(capability, context \\ %{}) do
     explicit = Map.get(context, :risk_level) || Map.get(context, "risk_level")
 
+    canonical = Map.get(@capability_risks, capability, :unknown)
+
     cond do
-      explicit in ~w(L0 L1 L2 L3) -> explicit
-      is_binary(capability) -> Map.get(@capability_risks, capability, :unknown)
-      true -> :unknown
+      canonical == :unknown -> :unknown
+      explicit in ~w(L0 L1 L2 L3) -> max(canonical, explicit)
+      true -> canonical
     end
   end
 

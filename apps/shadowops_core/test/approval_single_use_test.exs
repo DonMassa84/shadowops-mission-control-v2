@@ -1,7 +1,14 @@
 defmodule ShadowOpsCore.ApprovalSingleUseTest do
   use ExUnit.Case, async: false
 
-  alias ShadowOpsCore.{ApprovalStore, Audit, EventBus, GovernanceGate}
+  alias ShadowOpsCore.{
+    ApprovalStore,
+    Audit,
+    EventBus,
+    ExecutionService,
+    GovernanceGate,
+    RiskPolicy
+  }
 
   setup do
     suffix = System.unique_integer([:positive])
@@ -231,6 +238,57 @@ defmodule ShadowOpsCore.ApprovalSingleUseTest do
            end)
 
     assert {:ok, %{valid: true}} = Audit.verify()
+  end
+
+  test "ExecutionService consumes approval even when the adapter fails and blocks replay" do
+    approval = approved_approval()
+    context = %{approval_id: approval.id}
+    input = %{"workflow_id" => "repository_quality"}
+
+    assert {:error, _} =
+             ExecutionService.execute(
+               "workflow.execute",
+               "operator-a",
+               "repository_quality",
+               input,
+               context
+             )
+
+    assert {:ok, %{status: "CONSUMED", consumed_by: "operator-a"}} =
+             ApprovalStore.get(approval.id)
+
+    assert {:error, {:approval_blocked, {:approval_status, "CONSUMED"}}} =
+             ExecutionService.execute(
+               "workflow.execute",
+               "operator-a",
+               "repository_quality",
+               input,
+               context
+             )
+  end
+
+  test "ExecutionService rejects invalid actor and privacy failure does not burn approval" do
+    approval = approved_approval()
+
+    assert {:error, :valid_actor_required} =
+             ExecutionService.execute("node.status", "", "missing", %{})
+
+    assert {:error, {:privacy_gate_blocked, _}} =
+             ExecutionService.execute(
+               "workflow.execute",
+               "operator-a",
+               "repository_quality",
+               %{password: "test-only"},
+               %{approval_id: approval.id}
+             )
+
+    assert_approved(approval.id)
+  end
+
+  test "context cannot downgrade known capability risk" do
+    assert RiskPolicy.infer_risk("workflow.execute", %{risk_level: "L0"}) == "L2"
+    assert RiskPolicy.infer_risk("service.stop", %{"risk_level" => "L0"}) == "L2"
+    assert RiskPolicy.infer_risk("node.status", %{risk_level: "L3"}) == "L3"
   end
 
   defp approved_approval do

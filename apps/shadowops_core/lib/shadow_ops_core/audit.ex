@@ -79,21 +79,32 @@ defmodule ShadowOpsCore.Audit do
         |> Enum.take(-limit)
         |> Enum.reverse()
 
-      _ ->
+      {:error, :enoent} ->
         []
+
+      {:error, reason} ->
+        raise "audit store unreadable: #{inspect(reason)}"
     end
   end
 
   def verify do
-    case Enum.reduce_while(list(100_000) |> Enum.reverse(), {true, nil}, fn row, {_, previous} ->
-           expected = hash(Map.drop(row, ["current_hash"]))
+    rows = list(100_000)
 
-           if row["previous_hash"] == previous and row["current_hash"] == expected,
-             do: {:cont, {true, row["current_hash"]}},
-             else: {:halt, {false, row["id"]}}
-         end) do
-      {true, _} -> {:ok, %{valid: true, entries: length(list(100_000))}}
+    case Enum.reduce_while(Enum.reverse(rows), {true, nil}, &verify_row/2) do
+      {true, _} -> {:ok, %{valid: true, entries: length(rows)}}
       {false, id} -> {:error, %{valid: false, invalid_entry: id}}
+    end
+  rescue
+    _ -> {:error, %{valid: false, reason: :audit_unreadable_or_malformed}}
+  end
+
+  defp verify_row(row, {_, previous}) do
+    expected = hash(Map.drop(row, ["current_hash"]))
+
+    if row["previous_hash"] == previous and row["current_hash"] == expected do
+      {:cont, {true, row["current_hash"]}}
+    else
+      {:halt, {false, row["id"]}}
     end
   end
 
