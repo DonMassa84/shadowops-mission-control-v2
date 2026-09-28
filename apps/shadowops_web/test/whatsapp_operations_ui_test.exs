@@ -9,6 +9,8 @@ defmodule ShadowOpsWeb.WhatsAppOperationsUITest do
     {:ok, view, html} = live(build_conn(), "/social/whatsapp")
 
     assert html =~ "WhatsApp operations"
+    assert html =~ "Agent database"
+    assert html =~ "worker state unverified"
     assert has_element?(view, "#whatsapp-workflows")
     assert html =~ "whatsapp-status"
     assert html =~ "whatsapp-retry-all"
