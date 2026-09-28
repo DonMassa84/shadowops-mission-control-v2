@@ -44,10 +44,10 @@ defmodule ShadowOpsWeb.SocialUnavailableLive do
           source={@connector.source_type}
         />
         <.metric_card
-          label="Agent runtime"
+          label="Agent database"
           value={Map.get(@metadata, :agent_runtime_status, "UNKNOWN")}
           status={Map.get(@metadata, :agent_runtime_status, "UNKNOWN")}
-          source="Independent local agent evidence"
+          source="Local database evidence; worker state unverified"
         />
         <.metric_card
           label="Registered workflows"
