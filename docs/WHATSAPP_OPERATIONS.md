@@ -6,10 +6,13 @@ The existing `/social/whatsapp` route becomes a read-only operations view.
 It reuses `ShadowOpsApi.whatsapp/0`, `WorkflowEngine.Registry` and
 `WorkflowEngine.Inventory`. It introduces no executor or parallel registry.
 
-The view separates imported source evidence from agent runtime evidence,
+The view separates imported source evidence from local agent database evidence,
 shows the registered WhatsApp pack and links to existing runs, approvals,
 audit and integration views. Unknown runtime state remains unknown.
 Registry failure must not be presented as a verified empty inventory.
+The existing agent database adapter checks stored records and database age;
+it does not verify a running worker or a live WhatsApp session. The UI labels
+this limitation explicitly instead of claiming operational readiness.
 
 ## Reproduce
 
