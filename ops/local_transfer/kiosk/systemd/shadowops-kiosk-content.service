@@ -1,0 +1,13 @@
+[Unit]
+Description=Publish validated ShadowOps task content to i7
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/share/shadowops-kiosk-publisher/publish_tasks.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/state/shadowops-kiosk-publisher
