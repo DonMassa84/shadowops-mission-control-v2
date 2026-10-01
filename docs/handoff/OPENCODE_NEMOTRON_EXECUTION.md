@@ -2,6 +2,21 @@
 
 This file is the canonical local task contract for OpenCode on `local/all-developments`.
 
+## Continuation override — 2026-10-01
+
+This section supersedes the older P0 implementation task below. Atomic approval consumption is already present in the current integration head; do not implement it again.
+
+Before any new edit, read `docs/CHANGE_INVENTORY.md` and `docs/LOCAL_TRANSFER_RUNBOOK.md`. The next bounded task is verification only:
+
+1. confirm the worktree is `integration/local-transfer-20261001` and inspect its current head;
+2. select the reference Elixir 1.17.3 / OTP 27.3 toolchain;
+3. rerun compile, focused WhatsApp tests, full tests, format, Credo, Dialyzer, Sobelow, registry, workflow-ID and Hex-audit gates;
+4. write no new feature code unless a current-head failure proves a narrowly scoped defect;
+5. do not mutate port 4013, systemd, i7, external queues, OAuth, GitHub Actions, or production data;
+6. report every gate as `PASS`, `FAIL`, `BLOCKED`, or `NOT_RUN` with the tested commit.
+
+The previous attempt with the only installed Elixir 1.20.3 / OTP 28.4 pair crashed the BEAM VM with exit 139 twice. Do not interpret that as a source-code failure or as a passing compile. If the reference toolchain is unavailable, stop with `BLOCKED_TOOLCHAIN`.
+
 ## Objective
 
 Finish ShadowOps production hardening in small, evidence-backed steps. Do not rediscover or redesign the project. Do not add feature breadth.

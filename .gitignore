@@ -47,3 +47,7 @@ erl_crash.dump
 .idea/
 .DS_Store
 Thumbs.db
+
+# Python helper artifacts
+__pycache__/
+*.py[cod]

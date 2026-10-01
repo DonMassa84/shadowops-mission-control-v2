@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "published_at": "2026-10-01T16:30:00+02:00",
+  "timezone": "Europe/Berlin",
+  "tasks": [
+    {
+      "id": "status-ihk-nachreichungen",
+      "area": "IHK",
+      "title": "Status der Nachreichungen prüfen",
+      "next_step": "Den aktuellen Stand an der autorisierten Quelle abgleichen.",
+      "priority": 0,
+      "due": null,
+      "status": "open",
+      "source": "Operator-Auftrag vom 01.10.2026",
+      "updated_at": "2026-10-01T16:30:00+02:00",
+      "evidence": "unverified",
+      "visibility": "kiosk"
+    },
+    {
+      "id": "status-wohnungsuebergabe",
+      "area": "Wohnen",
+      "title": "Status der Wohnungsübergabe prüfen",
+      "next_step": "Bestätigte Unterlagen prüfen; geplante Vorgänge nicht als erledigt werten.",
+      "priority": 0,
+      "due": null,
+      "status": "open",
+      "source": "Operator-Auftrag vom 01.10.2026",
+      "updated_at": "2026-10-01T16:30:00+02:00",
+      "evidence": "unverified",
+      "visibility": "kiosk"
+    },
+    {
+      "id": "status-moebelzustellung",
+      "area": "Organisation",
+      "title": "Status der Möbelzustellung prüfen",
+      "next_step": "Nur einen aktuell bestätigten Lieferstatus übernehmen.",
+      "priority": 1,
+      "due": null,
+      "status": "open",
+      "source": "Operator-Auftrag vom 01.10.2026",
+      "updated_at": "2026-10-01T16:30:00+02:00",
+      "evidence": "unverified",
+      "visibility": "kiosk"
+    },
+    {
+      "id": "status-frs-sendung",
+      "area": "FRS",
+      "title": "Status der FRS-Sendung prüfen",
+      "next_step": "Sendungsstatus und nächsten bestätigten Schritt abgleichen.",
+      "priority": 1,
+      "due": null,
+      "status": "open",
+      "source": "Operator-Auftrag vom 01.10.2026",
+      "updated_at": "2026-10-01T16:30:00+02:00",
+      "evidence": "unverified",
+      "visibility": "kiosk"
+    },
+    {
+      "id": "status-termine",
+      "area": "Termine",
+      "title": "Aktuelle Termine prüfen",
+      "next_step": "Nur autorisierte und aktuell bestätigte Termine anzeigen.",
+      "priority": 1,
+      "due": null,
+      "status": "open",
+      "source": "Operator-Auftrag vom 01.10.2026",
+      "updated_at": "2026-10-01T16:30:00+02:00",
+      "evidence": "unverified",
+      "visibility": "kiosk"
+    }
+  ]
+}
