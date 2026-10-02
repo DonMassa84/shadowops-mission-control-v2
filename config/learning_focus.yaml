@@ -3,41 +3,47 @@ profile: Schattenmacher
 mode: OPERATIONAL_PRIORITY_BOARD
 active_context: general
 goal:
-  title: "PRIO BOARD — SYNCHRONISIERT 02.10.2026"
-  smart: "Gmail und Google Kalender als private Quellen konsolidieren; offene Punkte nach Dringlichkeit anzeigen; erledigte Vorgänge nur mit belegtem Abschluss ausblenden. Sensible Detaildaten bleiben außerhalb des öffentlichen Kiosk-Repos."
+  title: "PRIO BOARD — TAKTISCH OPTIMIERT 02.10.2026"
+  smart: "Fixe externe Termine schützen; interne Admin- und Statusblöcke aus kritischen Vorbereitungsfenstern verschieben; vor wichtigen Gesprächen und rechtlichen Terminen verbindliche Prep- und Anreisepuffer blocken. Sensible Detaildaten bleiben außerhalb des öffentlichen Kiosk-Repos."
 current:
-  title: "PRIO 0 — EAZY-AUFTRAG + WOHNUNGSNACHLAUF"
-  instruction: "eazy100 ist bestellt und wartet auf formelle Auftragsbestätigung. Wohnungsübergabe und Schlüsselübergabe sind erfolgt; offen bleiben Empfangsbestätigung/finale Protokollfassung sowie finanzielle Nachläufe."
-  done_when: "eazy-Auftrag bestätigt + kostenlose Vodafone Station ohne Extras bestätigt + Wohnungsnachlauf schriftlich geklärt"
+  title: "PRIO 0 — EAZY + VORBEREITUNGSFENSTER"
+  instruction: "eazy100 wartet auf Auftragsbestätigung. Danach Fokus auf vorbereitete Interview- und Rechtstermine; Nebenaufgaben bleiben außerhalb der geschützten Prep-Blöcke."
+  done_when: "eazy bestätigt + IT.TEM/Carstens vorbereitet + Wohnungsnachlauf gebündelt + kritische Rechtstermine mit Prep-Puffer abgesichert"
 next:
-  - "JETZT — PRIO 0: eazy-Auftragsbestätigung prüfen; nur 22,99 EUR/Monat + Vodafone Station 0 EUR + keine Extras akzeptieren"
-  - "03.10 10:00 — PRIO 1: Wohnungsnachlauf prüfen; Rückzahlung, Mietkonto und Kautionsstatus getrennt kontrollieren"
-  - "05.10 09:30 — PRIO 2: IHK-Projektantrag nur auf neue Rückmeldung prüfen"
-  - "05.10 16:00 — PRIO 1: IT.TEM-Termin; vorher prüfen, ob Terminbestätigung vorliegt"
-  - "06.10 08:30 — PRIO 0: Frist für offenen Wohnungs-/Zahlungsnachlauf prüfen und nur bei Bedarf nachfassen"
-  - "06.10 11:00 — PRIO 1: Vorstellungsgespräch vorbereiten und wahrnehmen"
-  - "bis 06.10 — PRIO 2: eBay-Kaufabbruch auf Verkäuferreaktion prüfen"
+  - "03.10 14:00 — PRIO 2: Wohnungsnachlauf gebündelt prüfen"
+  - "04.10 14:00–15:30 — PRIO 1: IT.TEM intensiv vorbereiten"
+  - "04.10 16:00–17:30 — PRIO 1: Carstens intensiv vorbereiten"
+  - "05.10 13:30–15:30 — PRIO 0: IT.TEM Final Review + Anreise"
+  - "05.10 16:00 — PRIO 1: IT.TEM persönliches Kennenlernen"
+  - "06.10 08:30 — PRIO 0: 900-EUR-Frist prüfen"
+  - "06.10 09:15–10:45 — PRIO 0: Carstens Final Review + Anreise"
+  - "06.10 11:00 — PRIO 1: Vorstellungsgespräch Carstens"
+  - "07.10 13:00 — PRIO 2: IHK-Status prüfen"
+  - "07.10 13:30 — PRIO 2: Kaution/Mietkonto nach Interviews prüfen"
+  - "15.10 16:00–17:30 — PRIO 1: Anwältin vorbereiten"
+  - "16.10 09:30–10:45 — PRIO 0: Anwältin Final Review + Anreise"
+  - "16.10 11:00 — PRIO 1: Besprechung Rechtsanwältin"
+  - "16.10 11:30 — KONFLIKT: externer Termin Review Anamnese; Verschiebungsanfrage gesendet"
+  - "26.10 15:00–17:00 — PRIO 0: Hauptverhandlung vorbereiten"
+  - "27.10 07:15–08:45 — PRIO 0: Hauptverhandlung Final Check + Anreise"
+  - "27.10 09:00 — PRIO 0: Hauptverhandlung"
   - "OFFEN — PRIO 1: FRS-DJ-Sendung; auf Redaktion, Termin und Technikbestätigung warten"
-  - "OFFEN — PRIO 1: Recruiting-Follow-ups; Terminvorschläge und Stellenkonditionen prüfen"
-  - "OFFEN — PRIO 1: Rechts-/Forderungsnachlauf; nur bestätigten Restbetrag verwenden"
-  - "17.10 — PRIO 2: Energiezahlung laut Kalender prüfen"
-  - "PRIVATE TERMINE — nur im Google Kalender; nicht mit sensiblen Details ins öffentliche Repo übernehmen"
+  - "OFFEN — PRIO 1: eazy-Auftragsbestätigung prüfen; 22,99 EUR + Vodafone Station 0 EUR + keine Extras"
 writing_framework:
+  - "FIXE EXTERNE TERMINE NICHT UNNÖTIG VERSCHIEBEN"
+  - "VORBEREITUNG 24–48H VOR KRITISCHEN TERMINEN"
+  - "FINAL REVIEW + ANREISE ALS GESCHÜTZTER BLOCK"
   - "PRIO 0 > PRIO 1 > PRIO 2 > PRIO 3"
   - "GMAIL + KALENDER = PRIVATE SOURCE OF TRUTH"
-  - "NEUERE SCHRIFTLICHE BESTÄTIGUNG SCHLÄGT VERALTETEN KALENDERSTATUS"
   - "KEINE DOPPELAKTIONEN"
   - "ERLEDIGT = NACHWEIS VORHANDEN"
   - "ÖFFENTLICHER KIOSK = KEINE SENSIBLEN DETAILS"
   - "FRISTEN SEPARAT KONTROLLIEREN"
-  - "IHK-ANTRAG: STATUS PRÜFEN, NICHT UNNÖTIG ÄNDERN"
-  - "OFFENE PUNKTE NACH ERLEDIGUNG SOFORT ABHAKEN"
-  - "FOCUS → ABSCHLUSS → NACHWEIS → NÄCHSTE PRIO"
 execution:
   focus_minutes: 25
   break_minutes: 5
-  rule: "PRIO 0 → ABSCHLUSS → NACHWEIS → NÄCHSTE AUFGABE"
-  error_rule: "BEI WIDERSPRUCH NEUESTE SCHRIFTLICHE EVIDENZ PRÜFEN; KEINE DOPPELAKTION"
+  rule: "PREP → PUFFER → TERMIN → NACHWEIS → NÄCHSTE PRIO"
+  error_rule: "BEI TERMIN-KONFLIKT FESTEN EXTERNEN TERMIN SCHÜTZEN UND INTERNEN BLOCK VERSCHIEBEN; FREMD ORGANISIERTE TERMINE NUR PER ABSTIMMUNG"
   output_rule: "NUR VERIFIZIERTE UND SANITIERTE STATUSINFORMATIONEN ANZEIGEN; PRIVATE DETAILS BLEIBEN IN GMAIL/KALENDER"
 colors:
   background: "#071019"
@@ -52,7 +58,7 @@ colors:
   muted: "#8ca0b3"
 kpis:
   - {name: "eazy", target: "Auftragsbestätigung + Router 0 EUR + keine Extras"}
-  - {name: "Wohnung", target: "Übergabe erledigt; Nachlauf schriftlich abschließen"}
-  - {name: "Karriere", target: "IT.TEM + Vorstellungsgespräch + Recruiting-Follow-ups"}
-  - {name: "IHK", target: "Nur Statusänderungen verfolgen"}
-  - {name: "FRS", target: "Redaktion + Termin + Technik bestätigen lassen"}
+  - {name: "IT.TEM", target: "04.10 Prep + 05.10 Final Review + Termin"}
+  - {name: "Carstens", target: "04.10 Prep + 06.10 Final Review + Termin"}
+  - {name: "Recht", target: "15./16.10 und 26./27.10 geschützte Prep-Fenster"}
+  - {name: "FRS", target: "Auf schriftliche Rückmeldung warten"}
