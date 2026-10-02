@@ -3,30 +3,32 @@ profile: Schattenmacher
 mode: OPERATIONAL_PRIORITY_BOARD
 active_context: general
 goal:
-  title: "PRIO BOARD — 02.10–07.10.2026"
-  smart: "PRIO 0 zuerst vollständig abschließen; jede Aufgabe erst nach belegtem Abschluss weiterstufen. Private Detaildaten bleiben im Kalender, nicht im öffentlichen Kiosk-Repo."
+  title: "PRIO BOARD — SYNCHRONISIERT 02.10.2026"
+  smart: "Gmail und Google Kalender als private Quellen konsolidieren; offene Punkte nach Dringlichkeit anzeigen; erledigte Vorgänge nur mit belegtem Abschluss ausblenden. Sensible Detaildaten bleiben außerhalb des öffentlichen Kiosk-Repos."
 current:
-  title: "PRIO 0 — WOHNUNGSÜBERGABE → ANSCHLUSS-TERMIN"
-  instruction: "02.10: 09:00 offene eBay-Zahlung prüfen; 10:00 FRS-Klärung; 15:00 Wohnungsübergabe vollständig dokumentieren; danach direkt zum Anschluss-Termin."
-  done_when: "Übergabe dokumentiert + Schlüssel/Zustand/Protokoll gesichert + Anschluss-Termin erreicht"
+  title: "PRIO 0 — EAZY-AUFTRAG + WOHNUNGSNACHLAUF"
+  instruction: "eazy100 ist bestellt und wartet auf formelle Auftragsbestätigung. Wohnungsübergabe und Schlüsselübergabe sind erfolgt; offen bleiben Empfangsbestätigung/finale Protokollfassung sowie finanzielle Nachläufe."
+  done_when: "eazy-Auftrag bestätigt + kostenlose Vodafone Station ohne Extras bestätigt + Wohnungsnachlauf schriftlich geklärt"
 next:
-  - "02.10 09:00 — PRIO 0: offene eBay-Zahlung abschließen"
-  - "02.10 10:00 — PRIO 1: FRS DJ-Sendung verbindlich klären"
-  - "02.10 15:00 — PRIO 0: Wohnungsübergabe vollständig dokumentieren"
-  - "02.10 danach — PRIO 0: Anschluss-Termin"
-  - "03.10 10:00 — PRIO 3: Rückzahlung + Abrechnung prüfen"
-  - "05.10 09:30 — PRIO 3: IHK-Statuskontrolle"
-  - "05.10 16:00 — PRIO 1: IT.TEM Termin"
-  - "06.10 08:30 — PRIO 0: Rückzahlungsfrist prüfen"
-  - "06.10 11:00 — PRIO 2: Vorstellungsgespräch"
-  - "07.10 10:00 — PRIO 2: Abrechnung nachfassen"
+  - "JETZT — PRIO 0: eazy-Auftragsbestätigung prüfen; nur 22,99 EUR/Monat + Vodafone Station 0 EUR + keine Extras akzeptieren"
+  - "03.10 10:00 — PRIO 1: Wohnungsnachlauf prüfen; Rückzahlung, Mietkonto und Kautionsstatus getrennt kontrollieren"
+  - "05.10 09:30 — PRIO 2: IHK-Projektantrag nur auf neue Rückmeldung prüfen"
+  - "05.10 16:00 — PRIO 1: IT.TEM-Termin; vorher prüfen, ob Terminbestätigung vorliegt"
+  - "06.10 08:30 — PRIO 0: Frist für offenen Wohnungs-/Zahlungsnachlauf prüfen und nur bei Bedarf nachfassen"
+  - "06.10 11:00 — PRIO 1: Vorstellungsgespräch vorbereiten und wahrnehmen"
+  - "bis 06.10 — PRIO 2: eBay-Kaufabbruch auf Verkäuferreaktion prüfen"
+  - "OFFEN — PRIO 1: FRS-DJ-Sendung; auf Redaktion, Termin und Technikbestätigung warten"
+  - "OFFEN — PRIO 1: Recruiting-Follow-ups; Terminvorschläge und Stellenkonditionen prüfen"
+  - "OFFEN — PRIO 1: Rechts-/Forderungsnachlauf; nur bestätigten Restbetrag verwenden"
+  - "17.10 — PRIO 2: Energiezahlung laut Kalender prüfen"
+  - "PRIVATE TERMINE — nur im Google Kalender; nicht mit sensiblen Details ins öffentliche Repo übernehmen"
 writing_framework:
   - "PRIO 0 > PRIO 1 > PRIO 2 > PRIO 3"
+  - "GMAIL + KALENDER = PRIVATE SOURCE OF TRUTH"
+  - "NEUERE SCHRIFTLICHE BESTÄTIGUNG SCHLÄGT VERALTETEN KALENDERSTATUS"
   - "KEINE DOPPELAKTIONEN"
   - "ERLEDIGT = NACHWEIS VORHANDEN"
-  - "KALENDER = PRIVATE SOURCE OF TRUTH"
   - "ÖFFENTLICHER KIOSK = KEINE SENSIBLEN DETAILS"
-  - "WOHNUNGSÜBERGABE VOR ANSCHLUSS-TERMIN"
   - "FRISTEN SEPARAT KONTROLLIEREN"
   - "IHK-ANTRAG: STATUS PRÜFEN, NICHT UNNÖTIG ÄNDERN"
   - "OFFENE PUNKTE NACH ERLEDIGUNG SOFORT ABHAKEN"
@@ -35,8 +37,8 @@ execution:
   focus_minutes: 25
   break_minutes: 5
   rule: "PRIO 0 → ABSCHLUSS → NACHWEIS → NÄCHSTE AUFGABE"
-  error_rule: "KEINE DOPPELAKTION; BEI ABWEICHUNG KALENDER UND EVIDENZ PRÜFEN"
-  output_rule: "NUR VERIFIZIERTE TERMINE UND DATEN ANZEIGEN; SENSIBLE DETAILS BLEIBEN PRIVAT"
+  error_rule: "BEI WIDERSPRUCH NEUESTE SCHRIFTLICHE EVIDENZ PRÜFEN; KEINE DOPPELAKTION"
+  output_rule: "NUR VERIFIZIERTE UND SANITIERTE STATUSINFORMATIONEN ANZEIGEN; PRIVATE DETAILS BLEIBEN IN GMAIL/KALENDER"
 colors:
   background: "#071019"
   panel: "#0d1824"
@@ -49,8 +51,8 @@ colors:
   text: "#e8f0f7"
   muted: "#8ca0b3"
 kpis:
-  - {name: "PRIO 0 heute", target: "Übergabe + Anschluss-Termin abschließen"}
-  - {name: "Rückzahlung", target: "Fristkontrolle 06.10"}
-  - {name: "IHK", target: "Statuskontrolle 05.10"}
-  - {name: "Abrechnung", target: "Follow-up 07.10"}
-  - {name: "FRS", target: "Verbindliche Klärung 02.10 10:00"}
+  - {name: "eazy", target: "Auftragsbestätigung + Router 0 EUR + keine Extras"}
+  - {name: "Wohnung", target: "Übergabe erledigt; Nachlauf schriftlich abschließen"}
+  - {name: "Karriere", target: "IT.TEM + Vorstellungsgespräch + Recruiting-Follow-ups"}
+  - {name: "IHK", target: "Nur Statusänderungen verfolgen"}
+  - {name: "FRS", target: "Redaktion + Termin + Technik bestätigen lassen"}
