@@ -1,0 +1,64 @@
+schema_version: 1
+workflow_id: gmail_calendar_kiosk_sync
+description: "Konsolidiert private Gmail- und Google-Kalender-Evidenz in einen sanitisierten Prioritätsstand für den i7-Kiosk."
+target:
+  repository: "DonMassa84/shadowops-mission-control-v2"
+  branch: "main"
+  file: "config/learning_focus.yaml"
+  display_route: "/display/i7"
+schedule:
+  cadence: "hourly"
+  timezone: "Europe/Berlin"
+sources:
+  gmail:
+    inbox_query: "newer_than:7d -in:trash"
+    sent_query: "in:sent newer_than:7d -in:trash"
+    purpose: "Statusänderungen, Antworten, versendete Anforderungen und belastbare Evidenz erkennen"
+  calendar:
+    calendar_id: "primary"
+    horizon_past_days: 1
+    horizon_future_days: 30
+    purpose: "Termine, Fristen und geplante Follow-ups erfassen"
+reconciliation:
+  - "Neuere ausdrückliche schriftliche Bestätigung hat Vorrang vor einem älteren Kalenderstatus."
+  - "Ein Vorgang gilt erst als ERLEDIGT, wenn eine belastbare Bestätigung oder ein anderer Abschlussnachweis vorliegt."
+  - "Versendete Anfrage ohne Antwort bleibt WARTET_AUF_ANTWORT."
+  - "Veraltete Kalenderaufgaben werden nicht als offen angezeigt, wenn Gmail den Abschluss belegt."
+  - "Keine doppelte Aktion erzeugen, wenn bereits eine gleichartige Mail versendet oder ein Follow-up terminiert wurde."
+priority:
+  P0:
+    - "harte Frist heute/naechste 24h"
+    - "Zahlungs-, Vertrags- oder Terminrisiko mit unmittelbarem Handlungsbedarf"
+  P1:
+    - "offene Antwort oder Termin innerhalb der naechsten 7 Tage"
+  P2:
+    - "wichtige Statuskontrolle ohne unmittelbaren Handlungszwang"
+  P3:
+    - "Beobachtung oder spaeterer Follow-up"
+privacy:
+  public_repo:
+    allow:
+      - "sanitisierte Statuszeilen"
+      - "Datum/Uhrzeit, soweit nicht sensibel"
+      - "allgemeine Themen- und Organisationsbezeichnungen"
+    deny:
+      - "IBAN, Kontonummern oder Zahlungsdaten"
+      - "vollstaendige E-Mail-Texte"
+      - "medizinische Details"
+      - "Aktenzeichen oder vertrauliche Rechtsdetails"
+      - "private Telefonnummern und E-Mail-Adressen"
+      - "Zugangsdaten, Tokens oder Cookies"
+  source_of_truth: "Sensitive details remain in Gmail and Google Calendar."
+write_policy:
+  - "Nur schreiben, wenn sich der sanitierte Missionsstatus materiell geaendert hat."
+  - "Keine reinen Zeitstempel-Commits erzeugen."
+  - "Bestehende Farbcodes und Kiosk-Struktur nicht veraendern."
+  - "Bei Unsicherheit nichts als erledigt markieren."
+notification:
+  notify_user_on:
+    - "neues P0"
+    - "Frist innerhalb 24 Stunden"
+    - "Widerspruch zwischen Gmail und Kalender"
+    - "Sync-Fehler oder GitHub-Schreibfehler"
+  silent_on:
+    - "keine materielle Aenderung"
