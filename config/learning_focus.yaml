@@ -3,32 +3,29 @@ profile: Schattenmacher
 mode: OPERATIONAL_PRIORITY_BOARD
 active_context: general
 goal:
-  title: "PRIO BOARD — TAKTISCH OPTIMIERT 02.10.2026"
-  smart: "Fixe externe Termine schützen; interne Admin- und Statusblöcke aus kritischen Vorbereitungsfenstern verschieben; vor wichtigen Gesprächen und rechtlichen Terminen verbindliche Prep- und Anreisepuffer blocken. Sensible Detaildaten bleiben außerhalb des öffentlichen Kiosk-Repos."
+  title: "PRIO BOARD — SYNCHRONISIERT 04.10.2026"
+  smart: "Fixe externe Termine schützen; bestätigte Statusänderungen aus Gmail und Kalender konsolidieren; keine Doppelaktionen; sensible Details bleiben außerhalb des öffentlichen Kiosk-Repos."
 current:
-  title: "PRIO 0 — EAZY + VORBEREITUNGSFENSTER"
-  instruction: "eazy100 wartet auf Auftragsbestätigung. Danach Fokus auf vorbereitete Interview- und Rechtstermine; Nebenaufgaben bleiben außerhalb der geschützten Prep-Blöcke."
-  done_when: "eazy bestätigt + IT.TEM/Carstens vorbereitet + Wohnungsnachlauf gebündelt + kritische Rechtstermine mit Prep-Puffer abgesichert"
+  title: "PRIO 0 — FINAL REVIEW + ANREISE"
+  instruction: "05.10 13:30–15:30 geschützten Final-Review- und Anreiseblock einhalten. Terminstatus separat schriftlich verifizieren."
+  done_when: "Final Review durchgeführt und Terminstatus anhand schriftlicher Evidenz geklärt"
 next:
-  - "03.10 14:00 — PRIO 2: Wohnungsnachlauf gebündelt prüfen"
-  - "04.10 14:00–15:30 — PRIO 1: IT.TEM intensiv vorbereiten"
-  - "04.10 16:00–17:30 — PRIO 1: Carstens intensiv vorbereiten"
-  - "05.10 13:30–15:30 — PRIO 0: IT.TEM Final Review + Anreise"
-  - "05.10 16:00 — PRIO 1: IT.TEM persönliches Kennenlernen"
-  - "06.10 08:30 — PRIO 0: 900-EUR-Frist prüfen"
-  - "06.10 09:15–10:45 — PRIO 0: Carstens Final Review + Anreise"
-  - "06.10 11:00 — PRIO 1: Vorstellungsgespräch Carstens"
+  - "05.10 13:30–15:30 — PRIO 0: Final Review + Anreise"
+  - "05.10 16:00 — PRIO 1: persönliches Kennenlernen; schriftliche Rückbestätigung noch nicht belegt"
+  - "06.10 08:30 — PRIO 0: offener administrativer Status prüfen"
+  - "06.10 09:15–10:45 — PRIO 0: Final Review + Anreise"
+  - "06.10 11:00 — PRIO 1: Vorstellungsgespräch"
   - "07.10 13:00 — PRIO 2: IHK-Status prüfen"
-  - "07.10 13:30 — PRIO 2: Kaution/Mietkonto nach Interviews prüfen"
-  - "15.10 16:00–17:30 — PRIO 1: Anwältin vorbereiten"
-  - "16.10 09:30–10:45 — PRIO 0: Anwältin Final Review + Anreise"
-  - "16.10 11:00 — PRIO 1: Besprechung Rechtsanwältin"
-  - "16.10 11:30 — KONFLIKT: externer Termin Review Anamnese; Verschiebungsanfrage gesendet"
-  - "26.10 15:00–17:00 — PRIO 0: Hauptverhandlung vorbereiten"
-  - "27.10 07:15–08:45 — PRIO 0: Hauptverhandlung Final Check + Anreise"
-  - "27.10 09:00 — PRIO 0: Hauptverhandlung"
-  - "OFFEN — PRIO 1: FRS-DJ-Sendung; auf Redaktion, Termin und Technikbestätigung warten"
-  - "OFFEN — PRIO 1: eazy-Auftragsbestätigung prüfen; 22,99 EUR + Vodafone Station 0 EUR + keine Extras"
+  - "07.10 13:30 — PRIO 2: administrativen Nachlauf prüfen"
+  - "15.10 16:00–17:30 — PRIO 1: externen Termin vorbereiten"
+  - "16.10 09:30–10:45 — PRIO 0: Final Review + Anreise"
+  - "16.10 11:00 — PRIO 1: externer Termin"
+  - "26.10 15:00–17:00 — PRIO 0: externen Termin vorbereiten"
+  - "27.10 07:15–08:45 — PRIO 0: Final Check + Anreise"
+  - "27.10 09:00 — PRIO 0: externer Termin"
+  - "OFFEN — PRIO 1: FRS-DJ-Sendung; auf schriftliche Rückmeldung warten"
+  - "OFFEN — PRIO 1: Internetanschluss; Bestellung belegt, finale Bestätigung offen"
+  - "OFFEN — PRIO 1: Finanzierungsanfrage; versendet, auf schriftliche Antwort warten"
 writing_framework:
   - "FIXE EXTERNE TERMINE NICHT UNNÖTIG VERSCHIEBEN"
   - "VORBEREITUNG 24–48H VOR KRITISCHEN TERMINEN"
@@ -43,8 +40,8 @@ execution:
   focus_minutes: 25
   break_minutes: 5
   rule: "PREP → PUFFER → TERMIN → NACHWEIS → NÄCHSTE PRIO"
-  error_rule: "BEI TERMIN-KONFLIKT FESTEN EXTERNEN TERMIN SCHÜTZEN UND INTERNEN BLOCK VERSCHIEBEN; FREMD ORGANISIERTE TERMINE NUR PER ABSTIMMUNG"
-  output_rule: "NUR VERIFIZIERTE UND SANITIERTE STATUSINFORMATIONEN ANZEIGEN; PRIVATE DETAILS BLEIBEN IN GMAIL/KALENDER"
+  error_rule: "BEI TERMIN-KONFLIKT FESTEN EXTERNEN TERMIN SCHÜTZEN UND INTERNEN BLOCK VERSCHIEBEN"
+  output_rule: "NUR VERIFIZIERTE UND SANITIERTE STATUSINFORMATIONEN ANZEIGEN"
 colors:
   background: "#071019"
   panel: "#0d1824"
@@ -57,8 +54,7 @@ colors:
   text: "#e8f0f7"
   muted: "#8ca0b3"
 kpis:
-  - {name: "eazy", target: "Auftragsbestätigung + Router 0 EUR + keine Extras"}
-  - {name: "IT.TEM", target: "04.10 Prep + 05.10 Final Review + Termin"}
-  - {name: "Carstens", target: "04.10 Prep + 06.10 Final Review + Termin"}
-  - {name: "Recht", target: "15./16.10 und 26./27.10 geschützte Prep-Fenster"}
+  - {name: "Internet", target: "Bestellung belegt; finale Bestätigung offen"}
+  - {name: "Termin A", target: "Final Review + schriftlichen Terminstatus klären"}
+  - {name: "Termin B", target: "Final Review + Termin"}
   - {name: "FRS", target: "Auf schriftliche Rückmeldung warten"}
