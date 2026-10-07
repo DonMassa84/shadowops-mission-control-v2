@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TinyFish Workflow Definition",
+  "type": "object",
+  "required": ["id", "type", "target", "schedule", "risk", "approval_required", "output", "enabled"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z_][A-Z0-9_]*$",
+      "description": "Unique workflow identifier (uppercase with underscores)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["FETCH", "MONITOR", "WEB_AUTOMATION", "PERSISTENT_WORKFLOW"],
+      "description": "Automation level"
+    },
+    "target": {
+      "type": "string",
+      "description": "Target URL, search query, or portal name"
+    },
+    "schedule": {
+      "type": "string",
+      "description": "Cron expression or interval (e.g., '0 * * * *' or 'hourly')"
+    },
+    "profile": {
+      "type": ["string", "null"],
+      "description": "Browser profile ID for persistent workflows"
+    },
+    "risk": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "Risk assessment"
+    },
+    "approval_required": {
+      "type": "boolean",
+      "description": "Whether human approval is required before commit actions"
+    },
+    "output": {
+      "type": "string",
+      "description": "Output path or destination (e.g., 'rag', 'github_issue', 'discord', 'file')"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "config": {
+      "type": "object",
+      "description": "Workflow-specific configuration",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "owner": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

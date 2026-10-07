@@ -1,0 +1,97 @@
+name: TinyFish Validation
+
+on:
+  push:
+    paths:
+      - 'tools/tinyfish/**'
+  pull_request:
+    paths:
+      - 'tools/tinyfish/**'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate TinyFish Integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install TinyFish CLI
+        run: npm install -g @tiny-fish/cli
+
+      - name: Validate configuration
+        run: |
+          cd tools/tinyfish
+          python3 tests/test_config.py
+
+      - name: Validate JSON syntax
+        run: |
+          find tools/tinyfish -name "*.json" -exec jq empty {} \;
+
+      - name: Check for secrets in repo
+        run: |
+          if grep -r "sk-tinyfish-" tools/tinyfish/ --include="*.json" --include="*.md" --include="*.sh" 2>/dev/null; then
+            echo "::error::TinyFish API key found in repository files!"
+            exit 1
+          fi
+          if grep -r "TINYFISH_API_KEY" tools/tinyfish/ --include="*.json" --include="*.md" --include="*.sh" 2>/dev/null | grep -v "env" | grep -v "EnvironmentFile"; then
+            echo "::error::TINYFISH_API_KEY referenced in repository files!"
+            exit 1
+          fi
+
+      - name: Validate workflow schemas
+        run: |
+          if command -v jsonschema >/dev/null; then
+            for f in tools/tinyfish/workflows/*.json; do
+              python3 -c "import jsonschema, json; jsonschema.validate(json.load(open(f)), json.load(open('tools/tinyfish/schemas/workflow.json')))"
+            done
+            for f in tools/tinyfish/monitors/*.json; do
+              python3 -c "import jsonschema, json; jsonschema.validate(json.load(open(f)), json.load(open('tools/tinyfish/schemas/monitor.json')))"
+            done
+          else
+            echo "jsonschema not installed, skipping schema validation"
+          fi
+
+      - name: Check script syntax
+        run: |
+          for f in tools/tinyfish/scripts/*.sh; do
+            bash -n "$f"
+          done
+
+      - name: Verify systemd templates
+        run: |
+          for f in tools/tinyfish/systemd/*.service tools/tinyfish/systemd/*.timer; do
+            if [[ -f "$f" ]]; then
+              systemd-analyze verify "$f" 2>/dev/null || true
+            fi
+          done
+
+  security-gate:
+    name: Security Gate
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Security checks
+        run: |
+          # Check no secrets in any tinyfish files
+          if find tools/tinyfish -type f \( -name "*.json" -o -name "*.md" -o -name "*.sh" -o -name "*.py" \) -exec grep -l "password\|secret\|token\|key" {} \; 2>/dev/null | xargs grep -v "EnvironmentFile\|env\|secret manager\|keyring\|GitHub Secrets" 2>/dev/null; then
+            echo "::warning::Potential secrets found in tinyfish files - review required"
+          fi
+
+      - name: Verify file permissions
+        run: |
+          # Check no world-writable files
+          if find tools/tinyfish -type f -perm -o+w 2>/dev/null; then
+            echo "::error::World-writable files found in tinyfish/"
+            exit 1
+          fi

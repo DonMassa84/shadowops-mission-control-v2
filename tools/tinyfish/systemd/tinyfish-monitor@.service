@@ -1,0 +1,28 @@
+[Unit]
+Description=TinyFish Monitor: %i
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+EnvironmentFile=-%h/.config/shadowops/tinyfish/env
+Environment=HOME=%h
+Environment=USER=%u
+WorkingDirectory=%h/Projects/shadowops-mission-control-v2
+ExecStart=%h/Projects/shadowops-mission-control-v2/tools/tinyfish/scripts/tinyfish_monitor_run.sh %i
+TimeoutStartSec=300
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tinyfish-monitor-%i
+
+# Security
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/state/shadowops/tinyfish %h/.cache/shadowops/tinyfish
+
+[Install]
+WantedBy=default.target

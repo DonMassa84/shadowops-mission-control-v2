@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TinyFish Monitor Definition",
+  "type": "object",
+  "required": ["id", "type", "config", "schedule_cron", "enabled"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z_][A-Z0-9_]*$",
+      "description": "Unique monitor identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["FETCH", "SEARCH"],
+      "description": "Monitor type: FETCH for specific URL, SEARCH for topic monitoring"
+    },
+    "config": {
+      "type": "object",
+      "required": ["url"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to monitor (for FETCH type)"
+        },
+        "query": {
+          "type": "string",
+          "description": "Search query (for SEARCH type)"
+        },
+        "recency_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5256000,
+          "description": "Search freshness window in minutes"
+        },
+        "result_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 10
+        },
+        "format": {
+          "type": "string",
+          "enum": ["markdown", "html", "json"],
+          "default": "markdown"
+        },
+        "links": {
+          "type": "boolean",
+          "default": false
+        },
+        "image_links": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_selectors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "CSS selectors to scope extraction"
+        },
+        "exclude_selectors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "CSS selectors to exclude from extraction"
+        }
+      }
+    },
+    "schedule_cron": {
+      "type": "string",
+      "description": "Five-field cron expression (UTC). Prefix with CRON_TZ=<zone> for timezone."
+    },
+    "webhook_url": {
+      "type": ["string", "null"],
+      "format": "uri",
+      "description": "Optional webhook for notifications"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "Plain-language description of what change matters"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "state": {
+      "type": "object",
+      "description": "Runtime state (managed by system, not committed)",
+      "properties": {
+        "last_seen": { "type": "string", "format": "date-time" },
+        "content_hash": { "type": "string" },
+        "last_status": { "type": "string" },
+        "last_success": { "type": "string", "format": "date-time" },
+        "last_change": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

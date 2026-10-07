@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TinyFish ShadowOps Event",
+  "type": "object",
+  "required": ["source", "workflow", "timestamp", "severity", "status", "title", "summary", "target", "action_required"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "const": "tinyfish"
+    },
+    "workflow": {
+      "type": "string",
+      "description": "Workflow ID that generated this event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+      "description": "Event severity"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["SUCCESS", "NO_CHANGE", "PARTIAL", "BLOCKED", "FAILED", "REQUIRES_APPROVAL"],
+      "description": "Execution status"
+    },
+    "title": {
+      "type": "string",
+      "description": "Brief event title"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable summary"
+    },
+    "target": {
+      "type": "string",
+      "description": "Target URL, query, or resource"
+    },
+    "evidence": {
+      "type": ["object", "null"],
+      "description": "Extracted data, screenshots, or evidence",
+      "properties": {
+        "url": { "type": "string" },
+        "extracted_data": { "type": "object" },
+        "screenshot_path": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "change_detected": { "type": "boolean" }
+      }
+    },
+    "action_required": {
+      "type": "boolean",
+      "description": "Whether human action is required"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "duration_ms": { "type": "integer" },
+        "retry_count": { "type": "integer" },
+        "error": { "type": "string" },
+        "next_action": { "type": "string" }
+      }
+    }
+  }
+}

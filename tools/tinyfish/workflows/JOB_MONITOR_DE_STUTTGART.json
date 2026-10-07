@@ -1,0 +1,29 @@
+{
+  "id": "JOB_MONITOR_DE_STUTTGART",
+  "type": "MONITOR",
+  "target": "IT jobs in Stuttgart area",
+  "schedule": "0 */4 * * *",
+  "profile": null,
+  "risk": "LOW",
+  "approval_required": false,
+  "output": "rag",
+  "enabled": true,
+  "config": {
+    "search_query": "software engineer OR developer OR python OR javascript OR devops Stuttgart OR remote",
+    "recency_hours": 4,
+    "result_limit": 20,
+    "deduplication": true,
+    "filters": {
+      "location": ["Stuttgart", "Remote", "Hybrid"],
+      "keywords": ["Python", "JavaScript", "TypeScript", "DevOps", "Cloud", "Kubernetes", "AWS", "GCP", "Azure"],
+      "exclude_keywords": ["Senior Principal", "Staff Engineer", "Architect", "Lead", "Manager", "Director", "VP", "Head of"]
+    }
+  },
+  "metadata": {
+    "description": "Monitor German job boards for IT positions in Stuttgart area with focus on Python/JS/DevOps",
+    "tags": ["jobs", "career", "stuttgart", "it", "monitoring"],
+    "owner": "shadowops",
+    "created_at": "2026-10-07T10:00:00Z",
+    "updated_at": "2026-10-07T10:00:00Z"
+  }
+}

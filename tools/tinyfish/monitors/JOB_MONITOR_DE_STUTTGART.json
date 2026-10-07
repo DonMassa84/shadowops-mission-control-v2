@@ -1,0 +1,18 @@
+{
+  "id": "JOB_MONITOR_DE_STUTTGART",
+  "type": "SEARCH",
+  "config": {
+    "query": "software engineer OR developer OR python OR javascript OR devops Stuttgart OR remote Deutschland",
+    "recency_minutes": 240,
+    "result_limit": 20,
+    "format": "json"
+  },
+  "schedule_cron": "0 */4 * * *",
+  "purpose": "New IT job postings in Stuttgart area (Python, JavaScript, DevOps, Cloud)",
+  "enabled": true,
+  "state": {
+    "content_hash": "736ec1f66aadb2e2c2cc969845cf1f7b9d42b41dffe28eb78d83c0ca4879038c",
+    "last_seen": "2026-10-07T19:49:08Z",
+    "last_success": "2026-10-07T19:49:08Z"
+  }
+}

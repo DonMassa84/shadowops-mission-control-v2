@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "tinyfish": {
+    "api_base_url": "https://api.search.tinyfish.ai",
+    "cli_path": "tinyfish",
+    "timeout_seconds": 120,
+    "max_retries": 2,
+    "retry_delay_seconds": 5
+  },
+  "runtime": {
+    "state_dir": "~/.local/state/shadowops/tinyfish",
+    "cache_dir": "~/.cache/shadowops/tinyfish",
+    "config_dir": "~/.config/shadowops/tinyfish",
+    "logs_dir": "~/.local/state/shadowops/tinyfish/logs"
+  },
+  "security": {
+    "secrets_in_repo": false,
+    "tokens_in_logs": false,
+    "raw_personal_data_in_repo": false,
+    "unsafe_auto_commit_actions": false,
+    "unbounded_retry": false,
+    "destructive_automation": false,
+    "require_approval_for": [
+      "purchase",
+      "payment",
+      "contract",
+      "cancellation",
+      "account_deletion",
+      "job_application_submit",
+      "legal_declaration",
+      "sensitive_data_publish"
+    ]
+  },
+  "resource_control": {
+    "max_concurrent_browser_runs": 2,
+    "default_monitor_interval_minutes": 60,
+    "min_monitor_interval_minutes": 15,
+    "batch_fetch_max_urls": 10,
+    "deduplication_enabled": true
+  },
+  "observability": {
+    "log_format": "json",
+    "log_level": "info",
+    "structured_logs": true,
+    "evidence_retention_days": 30
+  },
+  "integration": {
+    "shadowops_event_format": true,
+    "systemd_integration": true,
+    "github_integration": true,
+    "workflow_engine_integration": true
+  }
+}

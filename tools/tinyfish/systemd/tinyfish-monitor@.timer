@@ -1,0 +1,11 @@
+[Unit]
+Description=TinyFish Monitor Timer: %i
+Requires=tinyfish-monitor@%i.service
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

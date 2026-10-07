@@ -1,0 +1,18 @@
+{
+  "id": "GITHUB_WORKFLOW_MONITOR",
+  "type": "SEARCH",
+  "config": {
+    "query": "repo:DonMassa84/shadowops-mission-control-v2 workflow failure OR repo:DonMassa84/shadowops-mission-control-v2 security alert OR repo:DonMassa84/shadowops-mission-control-v2 release",
+    "recency_minutes": 60,
+    "result_limit": 10,
+    "format": "json"
+  },
+  "schedule_cron": "*/15 * * * *",
+  "purpose": "GitHub workflow failures, security alerts, and new releases for shadowops-mission-control-v2",
+  "enabled": true,
+  "state": {
+    "content_hash": "0edb8ec5b30f25a7fbaf312ae8744409e04ffcf7bcefd052ffe4ed5a98f9fcdf",
+    "last_seen": "2026-10-07T19:49:47Z",
+    "last_success": "2026-10-07T19:49:47Z"
+  }
+}
