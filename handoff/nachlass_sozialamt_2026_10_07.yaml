@@ -1,0 +1,22 @@
+schema_version: 1
+handoff_id: nachlass_sozialamt_2026_10_07
+target: i7_kiosk
+priority: P0
+status: WAITING
+display:
+  title: "Nachlass-Abholung / Sozialamt"
+  current: "Gegenstände abholbereit; Abholzusage und Transportkostenprüfung offen"
+  next_action: "Auf belastbare Abholzusage oder Behördenantwort reagieren"
+  privacy: "sanitized"
+facts:
+  pickup_ready: true
+  providers_contacted: 7
+  pickup_confirmed: false
+  transport_cost_review: pending
+rules:
+  - "Keine sensiblen Rohdaten auf dem Kiosk anzeigen"
+  - "Keine kostenpflichtige Transportbeauftragung ohne vorherige Klärung/Freigabe"
+  - "Erledigt nur mit belastbarem Nachweis"
+source:
+  private_case_repo: "DonMassa84/shadowmaker-archiv"
+  private_case_path: "vorgaenge/2026-10-bestattung-kaleriia-porokhnia/STATUS.md"
