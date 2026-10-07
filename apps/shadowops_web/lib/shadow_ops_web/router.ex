@@ -37,6 +37,7 @@ defmodule ShadowOpsWeb.Router do
 
     live("/", DashboardLive, :index)
     live("/attention", AttentionLive, :index)
+    live("/personal", PersonalLive, :index)
     live("/integrations", IntegrationsLive, :index)
     live("/layers", LayersLive, :index)
     live("/layers/:id", LayerDetailLive, :show)
@@ -45,6 +46,7 @@ defmodule ShadowOpsWeb.Router do
     live("/workflows", WorkflowsLive, :index)
     live("/workflows/:id", WorkflowDetailLive, :show)
     live("/runs", RunsLive, :index)
+    live("/autonomous-workflows", AutonomousWorkflowsLive, :index)
     live("/runs/:id", RunsLive, :show)
     live("/jobs", JobsLive, :index)
     live("/nodes", NodesLive, :index)

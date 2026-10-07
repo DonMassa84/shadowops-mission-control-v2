@@ -65,6 +65,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     [
       {"Overview", "/"},
       {"Attention", "/attention"},
+      {"Personal", "/personal"},
       {"Integrations", "/integrations"}
     ]
   end
@@ -77,6 +78,7 @@ defmodule ShadowOpsWeb.MissionControlComponents do
       {"Services", "/services"},
       {"Workflows", "/workflows"},
       {"Runs", "/runs"},
+      {"Autonomous Workflows", "/autonomous-workflows"},
       {"Jobs", "/jobs"},
       {"Backups", "/backups"}
     ]
@@ -328,14 +330,74 @@ defmodule ShadowOpsWeb.MissionControlComponents do
     """
   end
 
+  # ===== PERSONAL DASHBOARD COMPONENTS =====
+
+  attr(:index, :integer, required: true)
+  attr(:task, :map, required: true)
+  attr(:on_toggle, :any, required: false)
+
+  def priority_card(assigns) do
+    assigns = assign(assigns, :done_class, if(assigns.task.done, do: "line-through", else: ""))
+    ~H"""
+    <article class="priority-card" data-task-id={@task.id}>
+      <span class="priority-index"><%= @index %></span>
+      <div class="priority-title">
+        <input type="checkbox" checked={@task.done} phx-click={@on_toggle} phx-value-task_id={@task.id} />
+        <span class={@done_class}><%= @task.title %></span>
+      </div>
+      <div class="priority-meta">
+        <span class="mc-badge"><%= @task.project %></span>
+        <span class={"urgency-" <> @task.urgency}>◆ <%= @task.urgency %></span>
+      </div>
+    </article>
+    """
+  end
+
+  attr(:project, :map, required: true)
+
+  def project_health_card(assigns) do
+    assigns = assign(assigns, :status_class, "status-" <> String.downcase(assigns.project.status))
+    assigns = assign(assigns, :progress_style, "width: #{assigns.project.progress}%; background: #{assigns.project.color};")
+    ~H"""
+    <article class="project-health-card">
+      <div class="health-header">
+        <strong class="health-name"><%= assigns.project.name %></strong>
+        <span class={"health-status " <> @status_class}><%= assigns.project.status %></span>
+      </div>
+      <div class="health-progress">
+        <div class="health-progress-bar" style={@progress_style}></div>
+      </div>
+      <div class="health-meta">
+        <span><strong>Next:</strong> <%= assigns.project.next_milestone %></span>
+        <span><strong>Deadline:</strong> <%= assigns.project.deadline %></span>
+      </div>
+    </article>
+    """
+  end
+
+  attr(:alert, :map, required: true)
+
+  def alert_card(assigns) do
+    assigns = assign(assigns, :severity_class, assigns.alert.severity || "low")
+    ~H"""
+    <article class={"alert-card severity-" <> @severity_class}>
+      <div class="alert-title"><%= assigns.alert.title %></div>
+      <div class="alert-message"><%= assigns.alert.message %></div>
+      <a class="mc-button small alert-action" href={assigns.alert.url} target="_blank"><%= assigns.alert.action %></a>
+    </article>
+    """
+  end
+
   defp nav_icon("Overview"), do: "⌂"
   defp nav_icon("Attention"), do: "⚠"
+  defp nav_icon("Personal"), do: "◈"
   defp nav_icon("Integrations"), do: "◎"
   defp nav_icon("Infrastructure"), do: "▦"
   defp nav_icon("Compute"), do: "▣"
   defp nav_icon("Nodes"), do: "▣"
   defp nav_icon("Services"), do: "◆"
   defp nav_icon("Workflows"), do: "⌘"
+  defp nav_icon("Autonomous Workflows"), do: "⚙"
   defp nav_icon("Runs"), do: "▷"
   defp nav_icon("Jobs"), do: "◫"
   defp nav_icon("Backups"), do: "▱"
