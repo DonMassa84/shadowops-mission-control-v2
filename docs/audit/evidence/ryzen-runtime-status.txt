@@ -1,0 +1,33 @@
+# Evidence: Ryzen runtime status (read-only)
+# Collected: 2026-10-08 ~07:25 CEST
+# Collector: INSTANCE 2 (safe independent auditor)
+# Command class: READ_ONLY
+
+HOSTNAME=shadowmaker-System-Product-Name
+UPTIME=8:03 (since 2026-10-07 ~23:22 CEST)
+LOAD_AVG_1MIN=4.05
+LOAD_AVG_5MIN=3.64
+LOAD_AVG_15MIN=5.37
+
+MEMORY_TOTAL=31Gi
+MEMORY_USED=11Gi
+MEMORY_FREE=336Mi
+MEMORY_CACHED=19Gi
+SWAP_TOTAL=0B            # FINDING: no swap configured (unchanged)
+
+DISK_ROOT=/dev/nvme0n1p1 492G total, 219G used, 248G free (47%)
+DISK_HOME=/dev/nvme0n1p2 1.5T total, 1.2T used, 372G free (76%)
+
+SYSTEMD_FAILED_UNITS=0
+SYSTEMD_USER_IS_SYSTEM_RUNNING=degraded (exit 1)
+SYSTEMD_USER_FAILED_UNITS=1
+SYSTEMD_USER_FAILED_UNIT_NAMES=tinyfish-monitor-GITHUB_WORKFLOW_MONITOR.service
+
+# D-state processes at audit time
+D_STATE_PROCESS_1=PID 281 [usb-storage] (kernel, persistent, informational)
+D_STATE_PROCESS_2=PID 3684472 find / ... (transient filesystem scan, wait_on_buffer, ~22% CPU)
+# NOTE: the historic systemd --user D-state hang (PID 2953) is NOT present.
+# systemctl --user responds normally => no user-bus hang regression.
+
+TAILSCALE_LOCAL=100.86.67.56
+TAILSCALE_PEER_SHADOWSERVER=100.98.17.110

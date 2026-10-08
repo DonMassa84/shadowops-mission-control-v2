@@ -1,0 +1,180 @@
+{
+  "component": "shadowmaker-recovery-audit",
+  "role": "independent-auditor",
+  "safe_mode": true,
+  "auditor": "INSTANCE-2",
+  "audit_timestamp": "2026-10-08T07:40:00+02:00",
+  "audit_window": "2026-10-08T07:25+02:00/2026-10-08T07:40+02:00",
+  "reference_state": "briefing reference (29 models, 27 generation PASS, 2 embedding, default ollama/qwen2.5-coder:14b, OpenCode 1.18.35, OLLAMA_API=PASS)",
+
+  "ryzen": {
+    "status": "PARTIAL",
+    "hostname": "shadowmaker-System-Product-Name",
+    "uptime": "8h03m",
+    "load_avg_1m": 4.05,
+    "ollama": "PASS",
+    "opencode": "PASS",
+    "opencode_version": "1.18.35",
+    "systemd_system": "PASS",
+    "systemd_user": "PARTIAL",
+    "systemd_user_state": "degraded",
+    "failed_system_units": 0,
+    "failed_user_units": 1,
+    "failed_user_unit_names": ["tinyfish-monitor-GITHUB_WORKFLOW_MONITOR.service"],
+    "d_state_systemic": false,
+    "swap": "0B"
+  },
+
+  "models": {
+    "installed": 29,
+    "validated_generation": 27,
+    "failed_generation": 0,
+    "embedding_only": 2,
+    "embedding_models": ["qwen3-embedding:4b", "nomic-embed-text:latest"],
+    "default": "ollama/qwen2.5-coder:14b",
+    "default_loaded": true,
+    "default_loaded_target": "100% GPU",
+    "count_matches_reference": true
+  },
+
+  "automation": {
+    "model_sync": "PASS",
+    "model_sync_service_last_run": "2026-10-08T07:22:52+02:00 exit 0",
+    "timer": "PASS",
+    "timer_next_trigger": "2026-10-08T11:27+02:00",
+    "controller": "present",
+    "validator": "present",
+    "api_health_gate": true,
+    "inventory_hash": true,
+    "full_revalidation_on_change_only": true,
+    "i7_provider_isolation": true,
+    "auto_model_downloads_in_checked_scripts": false,
+    "auto_model_deletes_in_checked_scripts": false,
+    "verdict": "PARTIAL",
+    "verdict_reason": "checked automation passes all criteria; PARTIAL only because an unattributed automatic model download was observed and model_cleanup.sh KEEP_MODELS references an uninstalled model and omits the configured default"
+  },
+
+  "ollama": {
+    "audit": "PASS",
+    "api_tags": "PASS",
+    "v1_models": "PASS",
+    "service_active_since": "2026-10-08T03:59:29+02:00",
+    "restart_loop_current": false,
+    "restart_loop_observed_20261008": "03:59:03-03:59:29 CEST (5 cycles, then stable)",
+    "nrestarts_cumulative": 1624
+  },
+
+  "opencode": {
+    "audit": "PASS",
+    "version": "1.18.35",
+    "version_reference": "1.18.35",
+    "config_json_valid": true,
+    "default_model": "ollama/qwen2.5-coder:14b",
+    "i7_provider_isolated_from_11434": true,
+    "i7_provider_reachable_from_ryzen": false,
+    "crashes_since_20261008_0000": 0
+  },
+
+  "systemd": {
+    "system_audit": "PASS",
+    "user_audit": "PARTIAL",
+    "user_state": "degraded",
+    "failed_user_units": 1,
+    "historic_user_bus_dstate_hang": "FIXED"
+  },
+
+  "tinyfish": {
+    "audit": "FAILED",
+    "service_state": "failed",
+    "service_enabled": false,
+    "timer_enabled": true,
+    "note": "timer still triggers the failing service (observed 07:30:50), therefore not CLEANLY_DISABLED"
+  },
+
+  "i7": {
+    "connectivity": "PASS",
+    "tailscale_ping": "PASS",
+    "ssh": "PASS",
+    "failed_system_units": 0,
+    "ollama_service": "inactive",
+    "ollama_manifests": 29,
+    "local_11437_proxy": "PASS",
+    "audit": "PARTIAL"
+  },
+
+  "github": {
+    "ssh": "PASS",
+    "cli": "PASS",
+    "cli_account": "DonMassa84",
+    "login_action_required": false
+  },
+
+  "worktree_isolation": "PASS",
+  "secret_audit": "PASS",
+
+  "critical_remaining": 0,
+  "high_remaining": 0,
+  "regressions": [],
+  "open_findings": [
+    {
+      "id": "F-20261008-01",
+      "severity": "MEDIUM",
+      "area": "ollama",
+      "title": "Unattributed automatic model download observed",
+      "detail": "partial blob sha256-a8cc1361f314... (5.6G) written 05:59:35-07:18:13 CEST, download failed (connection reset). Not produced by shadow-opencode-model-sync, autoconfigure-all-opencode-llms.sh or discover-free-models.sh. Source unassigned.",
+      "owner": "INSTANCE-1 / INSTANCE-3 (to be attributed)"
+    },
+    {
+      "id": "F-20261008-02",
+      "severity": "MEDIUM",
+      "area": "opencode-provider",
+      "title": "shadow-ollama-i7 endpoint not reachable from Ryzen",
+      "detail": "provider configured as http://127.0.0.1:11437/v1 (isolation correct) but no listener on 11437 on Ryzen; i7 binds 11437 to localhost only.",
+      "owner": "INSTANCE-1"
+    },
+    {
+      "id": "F-20261008-03",
+      "severity": "MEDIUM",
+      "area": "i7",
+      "title": "ollama.service inactive on i7",
+      "detail": "29 manifests present, local 11437 proxy OK, service inactive. Confirm intended vs regression during i7 LLM runtime stack work.",
+      "owner": "INSTANCE-3"
+    },
+    {
+      "id": "F-20261008-04",
+      "severity": "MEDIUM",
+      "area": "systemd/timer",
+      "title": "model-cleanup.sh KEEP_MODELS inconsistent",
+      "detail": "KEEP_MODELS=(llama3:latest mistral:latest); mistral:latest not installed and configured default qwen2.5-coder:14b is not kept, so the daily cleanup would stop the default model (stop only, no delete).",
+      "owner": "INSTANCE-1"
+    },
+    {
+      "id": "F-20261008-05",
+      "severity": "LOW",
+      "area": "systemd/timer",
+      "title": "TinyFish obsolete unit not cleanly disabled",
+      "detail": "service disabled+failed but timer still enabled and re-triggers failure, keeping user units degraded.",
+      "owner": "INSTANCE-1 (accepted remaining action: cleanly disable timer)"
+    },
+    {
+      "id": "F-20261008-06",
+      "severity": "LOW",
+      "area": "storage",
+      "title": "No swap on Ryzen",
+      "detail": "swap 0B with 11Gi used and 336Mi free (cache 19Gi). Unchanged from reference.",
+      "owner": "INSTANCE-1"
+    },
+    {
+      "id": "F-20261008-07",
+      "severity": "LOW",
+      "area": "git",
+      "title": "Uncommitted productive changes in shadowops-runtime-deploy",
+      "detail": "7 modified + 2 untracked under tools/shadowmaker-data-indexer/ on branch feat/i7-llm-runtime-stack-20261007. Not caused by this audit.",
+      "owner": "INSTANCE-3"
+    }
+  ],
+
+  "main_recovery_accepted": true,
+  "main_recovery_reason": "OLLAMA_AUDIT=PASS, OPENCODE_AUDIT=PASS, WORKTREE_ISOLATION=PASS, NEW_REGRESSIONS=NONE, CRITICAL_REMAINING=0; remaining items are documented accepted actions and cross-instance findings.",
+  "safe_mode_violations": 0
+}

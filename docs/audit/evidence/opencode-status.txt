@@ -1,0 +1,34 @@
+# Evidence: OpenCode status (read-only)
+# Collected: 2026-10-08 ~07:26 CEST
+# Command class: READ_ONLY (command -v, --version, jq reads)
+
+OPENCODE_BINARY=/home/shadowmaker/.local/bin/opencode
+OPENCODE_VERSION=1.18.35
+OPENCODE_VERSION_REFERENCE=1.18.35
+OPENCODE_VERSION_MATCH=YES
+
+CONFIG_PATH=/home/shadowmaker/.config/opencode/opencode.json
+CONFIG_JSON_VALID=YES (jq empty exit 0)
+DEFAULT_MODEL=ollama/qwen2.5-coder:14b
+DEFAULT_MODEL_REFERENCE=ollama/qwen2.5-coder:14b
+DEFAULT_MODEL_MATCH=YES
+
+PROVIDERS (name => baseURL):
+ryzen-nemotron => http://127.0.0.1:11434/v1
+ryzen-qwen => http://127.0.0.1:11434/v1
+shadow-ollama-gpu => http://127.0.0.1:11434/v1
+ollama => http://127.0.0.1:11434/v1
+shadow-ollama-i7 => http://127.0.0.1:11437/v1
+openai => https://api.openai.com/v1
+mistral => (empty)
+perplexity => https://api.perplexity.ai/router/v1
+
+I7_PROVIDER_ISOLATION=YES (shadow-ollama-i7 points to 11437, NOT 11434)
+I7_PROVIDER_ENDPOINT_REACHABLE_FROM_RYZEN=NO (GET 127.0.0.1:11437/v1/models fails; no local listener)
+
+CRASH_CHECK:
+SIGILL_SIGSEGV_SINCE_2026-10-08_00:00=0
+CRASH_CORE_DUMP_SINCE_2026-10-08_00:00=0
+# prior CRITICAL (OpenCode SIGILL/SIGSEGV, journal 2026-10-07 22:35 - 2026-10-08 00:03) -> FIXED
+
+RUNNING_OPENCODE_PROCESSES=3 (wrapper openclaw-opencode-coder, model ollama/openclaw-coder)

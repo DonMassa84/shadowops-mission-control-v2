@@ -1,0 +1,70 @@
+# Evidence: Ollama runtime summary (read-only)
+# Collected: 2026-10-08 ~07:25 CEST
+# Command class: READ_ONLY (curl/ollama list/ollama ps/systemctl status)
+
+LISTEN_11434=127.0.0.1:11434 LISTEN (pid 2106194, ollama)
+API_TAGS_HTTP=PASS (GET http://127.0.0.1:11434/api/tags -> 200)
+V1_MODELS_HTTP=PASS (GET http://127.0.0.1:11434/v1/models -> 200)
+
+SERVICE=ollama.service active (running)
+SERVICE_ACTIVE_SINCE=2026-10-08 03:59:29 CEST
+SERVICE_NRESTARTS_CUMULATIVE=1624
+RESTART_LOOP_OBSERVED=2026-10-08 03:59:03 - 03:59:29 CEST (5 start/fail cycles, "address already in use"), then stable
+RESTARTS_SINCE_LAST_SUCCESS=0 (no failed start since 03:59:29 up to audit time 07:38)
+
+INSTALLED_MODEL_COUNT=29
+REFERENCE_MODEL_COUNT=29
+COUNT_MATCH=YES
+
+DEFAULT_MODEL=qwen2.5-coder:14b
+DEFAULT_MODEL_LOADED=100% GPU, 9.5 GB, context 4096 (ollama ps)
+
+EMBEDDING_MODELS=qwen3-embedding:4b, nomic-embed-text:latest
+EMBEDDING_COUNT=2
+GENERATION_MODEL_COUNT=27
+FAILED_GENERATION_REFERENCE=0 (reference state; not re-inferred - no explicit audit order)
+
+MODEL_NAMES:
+shadowops-coder:16k
+qwen3-embedding:4b
+qwen2.5-coder:14b
+qwen3:8b
+openclaw-coder:latest
+nomic-embed-text:latest
+llama3.2:latest
+orca-2-7b:latest
+deepseek-r1-qwen-14b:latest
+deepseek-r1-qwen-1.5b:latest
+nemotron-3-nano:latest
+llama-3.2-1b:latest
+deepseek-r1-qwen-7b:latest
+deepseek-r1-llama-8b:latest
+mpt-7b-chat:latest
+nous-hermes-2-mistral:latest
+qwen2.5-coder-7b:latest
+orca-mini-3b:latest
+orca-2-13b:latest
+llama-3.1-8b-128k:latest
+ghost-7b:latest
+llama-3-8b:latest
+qwen2-1.5b:latest
+nemo:latest
+moondream:1.8b
+qwen2.5:3b
+phi3:mini
+llama3.2:1b
+llama3.2:3b
+
+# OPEN FINDING (cross-instance, not attributed to checked automation)
+AUTOMATED_DOWNLOAD_OBSERVED=YES
+DOWNLOAD_WINDOW=2026-10-08 05:59:35 - 07:18:13 CEST
+DOWNLOAD_BLOB=sha256-a8cc1361f3145dc01f6d77c6c82c9116b9ffe3c97b34716fe20418455876c40e-partial
+DOWNLOAD_PARTIAL_SIZE_ON_DISK=5.6G (apparent file size ~9.3G, incomplete)
+DOWNLOAD_RESULT=FAILED (repeated "connection reset by peer", "max retries exceeded")
+DOWNLOAD_SOURCE=UNASSIGNED (no `ollama pull` found in shadow-opencode-model-sync, autoconfigure-all-opencode-llms.sh, discover-free-models.sh)
+DOWNLOAD_SIDE_EFFECT=partial blob present, model NOT in `ollama list`, count unchanged (29)
+
+RELATED_LISTENERS:
+11436=LISTEN socat -> TCP4:10.36.26.21:11434 (android-ollama-bridge.service)
+11437_on_ryzen=NOT LISTENING
+ollama-tunnel.service=active (ssh -R 11435:127.0.0.1:11434 shadowserver-i7)

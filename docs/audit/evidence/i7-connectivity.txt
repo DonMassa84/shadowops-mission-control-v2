@@ -1,0 +1,25 @@
+# Evidence: i7 connectivity and read-only audit
+# Collected: 2026-10-08 ~07:27 CEST
+# Command class: READ_ONLY (tailscale ping, ssh read-only commands)
+
+TAILSCALE_PING=pong from shadowserver (100.98.17.110) via 10.42.0.44:41641 in 0s
+TAILSCALE_AUDIT=PASS
+
+SSH_ALIAS=shadowserver-i7
+SSH_CONNECT=OK (ConnectTimeout=8)
+I7_HOSTNAME=shadowserver
+I7_UPTIME=9:04
+I7_LOAD_AVG=0.24 / 0.08 / 0.02
+I7_FAILED_SYSTEM_UNITS=0
+
+I7_OLLAMA_SERVICE=inactive
+I7_OLLAMA_LIST_COUNT=29 (manifests present; CLI list works without running daemon)
+I7_OLLAMA_LOCAL_11437=OK (GET 127.0.0.1:11437/v1/models succeeds on i7; socat pid 1233)
+I7_LISTENERS=100.98.17.110:11434, 0.0.0.0:11435, 127.0.0.1:11434 (ssh forward), 127.0.0.1:11437 (socat)
+
+RYZEN_TO_I7_11437=UNREACHABLE (127.0.0.1:11437 not listening on Ryzen; i7 binds 11437 to localhost only)
+RYZEN_TO_I7_11435_VIA_IP=UNREACHABLE from Ryzen (10.42.0.44:11435 no response)
+
+I7_AUDIT=PARTIAL (connectivity PASS, i7 ollama daemon inactive)
+FINDING_FOR_INSTANCE3=I7 ollama.service inactive while 29 model manifests and local 11437 proxy exist; confirm intended vs regression during i7 LLM runtime stack work (branch feat/i7-llm-runtime-stack-20261007).
+FINDING_FOR_INSTANCE1=No local forward on Ryzen for the configured OpenCode provider shadow-ollama-i7 (127.0.0.1:11437) - endpoint not reachable from Ryzen.

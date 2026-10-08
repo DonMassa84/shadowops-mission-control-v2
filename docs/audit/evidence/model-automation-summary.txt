@@ -1,0 +1,57 @@
+# Evidence: Model automation summary (read-only)
+# Collected: 2026-10-08 ~07:27 CEST
+# Command class: READ_ONLY (file reads, grep, systemctl status)
+
+CONTROLLER=/home/shadowmaker/.local/bin/shadow-opencode-model-sync (mode -rwx------, exists)
+VALIDATOR=/home/shadowmaker/.local/libexec/shadowmaker/autoconfigure-all-opencode-llms.sh (exists, -rwx------)
+STATE_DIR=/home/shadowmaker/.local/state/shadowmaker-opencode-models/
+
+status.env:
+  STATUS=PASS
+  TIME=2026-10-08T07:23:06+02:00
+  MODE=HEALTHCHECK_ONLY
+  INSTALLED_MODELS=29
+  DEFAULT_MODEL=ollama/qwen2.5-coder:14b
+  OLLAMA_API=PASS
+  OPENCODE_CONFIG=PASS
+  I7_PROVIDER=http://127.0.0.1:11437/v1
+
+sync.log (tail, 2026-10-08T07:23:06+02:00):
+  OLD_HASH=060e39b0fee0710b03bbc152a97dd8cc78c46caaa500e01a4337617d32d31605
+  NEW_HASH=060e39b0fee0710b03bbc152a97dd8cc78c46caaa500e01a4337617d32d31605
+  LOCAL_PROVIDER=http://127.0.0.1:11434/v1
+  I7_PROVIDER=http://127.0.0.1:11437/v1
+  MODEL_INVENTORY_CHANGED=NO
+  ACTION=HEALTHCHECK_ONLY
+  DEFAULT_MODEL=ollama/qwen2.5-coder:14b
+  STATUS=PASS
+
+systemd:
+  shadow-opencode-model-sync.service=loaded, disabled (started on demand by timer), last run 07:22:52 exit 0/SUCCESS
+  shadow-opencode-model-sync.timer=loaded, enabled, active (waiting), next 2026-10-08 11:27 CEST
+
+CRITERIA CHECKS:
+  TIMER_EXISTS=YES
+  CONTROLLER_EXISTS=YES
+  VALIDATOR_EXISTS=YES
+  API_HEALTH_GATE=YES (OLLAMA_API=PASS recorded; script health-checks Ollama before PASS)
+  INVENTORY_HASH=YES (sha256 inventory hash OLD_HASH/NEW_HASH in $STATE/ollama-models.sha256)
+  FULL_REVALIDATION_ONLY_ON_CHANGE=YES (code: if NEW_HASH != OLD_HASH -> full validation; else HEALTHCHECK_ONLY)
+  I7_PROVIDER_GUARD=YES (code: fail "I7_PROVIDER_REDIRECTED_TO_RYZEN" if i7 URL points at 11434)
+  AUTO_MODEL_DOWNLOADS_IN_CHECKED_SCRIPTS=NONE (grep 'ollama pull|/api/pull' => no hits in shadow-opencode-model-sync and autoconfigure-all-opencode-llms.sh)
+  AUTO_MODEL_DELETES_IN_CHECKED_SCRIPTS=NONE (grep 'ollama rm|model rm|--delete' => no hits)
+
+RELATED (not part of model-sync, reviewed read-only):
+  model-cleanup.service -> %h/.local/bin/model_cleanup.sh
+    behaviour: `ollama stop` on idle models (VRAM free) - NO `ollama rm` (does not delete models)
+    FINDING: KEEP_MODELS=("llama3:latest" "mistral:latest") - mistral:latest is NOT installed and the
+             list does not contain the configured default qwen2.5-coder:14b, so the daily cleanup would
+             stop the configured default model.
+  shadowmaker-model-discovery.service -> discover-free-models.sh
+    behaviour: generates free_models.json / stats (91 models listed at 06:00) - NO `ollama pull`
+
+OPEN FINDING (cross-instance):
+  Unattributed Ollama model download observed 05:59:35-07:18:13 (partial blob 5.6G, failed).
+  Not produced by any of the checked automation scripts. Source UNASSIGNED.
+
+MODEL_AUTOMATION_AUDIT=PARTIAL

@@ -1,0 +1,19 @@
+# Evidence: GitHub auth (read-only, no login actions, no token values)
+# Collected: 2026-10-08 ~07:27 CEST
+# Command class: READ_ONLY (gh auth status, ssh -T)
+
+GITHUB_CLI_AUTH_RESULT=Logged in to github.com account DonMassa84 (via GITHUB_TOKEN)
+GITHUB_CLI_SECOND_ACCOUNT=DonMassa84 (keyring, inactive)
+TOKEN_SCOPES=gist, read:org, repo
+GIT_OPERATIONS_PROTOCOL=ssh
+# Token values intentionally not recorded in this evidence file.
+
+GIT_SSH_AUTH_RESULT=Hi DonMassa84! You've successfully authenticated, but GitHub does not provide shell access.
+GIT_SSH_EXIT=0
+
+GITHUB_CLI_AUTH=PASS
+GIT_SSH_AUTH=PASS
+
+REMOTE_BRANCH_PROBE=git ls-remote --heads origin audit/recovery* -> empty (branch absent before this audit)
+NO_LOGIN_ACTION_PERFORMED=YES
+BROWSER_LOGIN_REMAINING=allowed user action (not required for CLI/SSH which both pass)

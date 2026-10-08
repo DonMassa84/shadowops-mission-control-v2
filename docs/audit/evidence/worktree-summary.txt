@@ -1,0 +1,37 @@
+# Evidence: worktree isolation summary (read-only)
+# Collected: 2026-10-08 ~07:26 / 07:35 CEST
+# Command class: READ_ONLY (git status / rev-parse / worktree list)
+
+AUDIT_WORKTREE=/home/shadowmaker/Projects/shadowops-audit
+AUDIT_Toplevel=/home/shadowmaker/Projects/shadowops-audit
+AUDIT_REMOTE=origin https://github.com/DonMassa84/shadowops-mission-control-v2.git (fetch+push)
+AUDIT_BRANCH_AT_START=main (unborn - repository had NO commits at audit start)
+AUDIT_BRANCH_EXISTS_ON_REMOTE=NO (audit/recovery-20261007 not in `git ls-remote --heads origin`)
+AUDIT_CONTENT_AT_START=RECOVERY_AUDIT.md (untracked, 460 lines), no other files
+WORKTREE_LIST=only /home/shadowmaker/Projects/shadowops-audit (no linked worktrees registered)
+
+OTHER INSTANCE WORKTREYS (read-only inspection):
+  /home/shadowmaker/Projects/shadowops
+    toplevel=/home/schattenmacher/shadowops  branch=main  status=CLEAN (no output from git status --short)
+  /home/shadowmaker/Projects/shadowops-i7-worker
+    NOT FOUND (path does not exist)
+  /home/shadowmaker/Projects/shadowops-runtime-deploy
+    toplevel=/home/shadowmaker/Projects/shadowops-runtime-deploy
+    branch=feat/i7-llm-runtime-stack-20261007
+    status=7 modified + 2 untracked, all under tools/shadowmaker-data-indexer/ :
+       M tools/shadowmaker-data-indexer/.gitignore
+       M tools/shadowmaker-data-indexer/README.md
+       M tools/shadowmaker-data-indexer/config/policy.json
+       M tools/shadowmaker-data-indexer/docs/MANIFEST_SCHEMA.md
+       M tools/shadowmaker-data-indexer/docs/PIPELINE.md
+       M tools/shadowmaker-data-indexer/scripts/index_data.py
+       ?? tools/shadowmaker-data-indexer/docs/LOCAL_DATA_INDEXER_IMPLEMENTATION.md
+       ?? tools/shadowmaker-data-indexer/systemd/
+
+CROSS-INSTANCE WRITE FROM INSTANCE2=NONE
+  - INSTANCE2 wrote only under /home/shadowmaker/Projects/shadowops-audit
+  - no git add/commit/checkout issued in any other worktree
+  - no SSH command with write effect issued (only hostname/uptime/systemctl/cat/curl reads)
+  - uncommitted changes in shadowops-runtime-deploy are Instance 3 work-in-progress, untouched by this audit
+
+WORKTREE_ISOLATION=PASS

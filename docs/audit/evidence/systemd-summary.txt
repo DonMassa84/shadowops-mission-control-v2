@@ -1,0 +1,36 @@
+# Evidence: systemd summary (read-only)
+# Collected: 2026-10-08 ~07:25-07:33 CEST
+# Command class: READ_ONLY (systemctl status/list/cat, journalctl reads)
+
+== SYSTEM SCOPE ==
+SYSTEM_FAILED_UNITS=0
+SYSTEM_FAILED_UNIT_NAMES=(none)
+
+== USER SCOPE ==
+USER_IS_SYSTEM_RUNNING=degraded (exit 1)
+USER_FAILED_UNITS=1
+USER_FAILED_UNIT_NAMES=tinyfish-monitor-GITHUB_WORKFLOW_MONITOR.service
+USER_BUS_FUNCTIONAL=YES (systemctl --user returns promptly; historic D-state hang PID 2953 gone)
+
+== HISTORIC CRITICALS - RECHECK ==
+shadowops-agent-supervisor.service=active (reference state: FAILED -> now FIXED)
+shadowops-recovery.service=inactive (not failed; no failing unit)
+tinyfish-monitor-GITHUB_WORKFLOW_MONITOR.service=failed (UNCHANGED)
+
+== KEY UNITS (state at audit time) ==
+ollama.service=active (running) since 2026-10-08 03:59:29 CEST
+ollama-tunnel.service=active (running) since 2026-10-07 23:22:34 CEST (ssh -R 11435 -> shadowserver-i7)
+android-ollama-bridge.service=active (socat 11436 -> 10.36.26.21:11434)
+shadow-opencode-model-sync.timer=active (waiting), next trigger 2026-10-08 11:27 CEST
+shadow-opencode-model-sync.service=inactive (dead), last run 07:22:52 exit 0/SUCCESS
+model-cleanup.timer=active (waiting), next trigger 2026-10-09 00:21 CEST
+shadowmaker-model-discovery.timer=last run 2026-10-08 06:00:25 (Finished, 91 free models listed - discovery only, no pull)
+opencode-automation.timer=last run 2026-10-08 02:06:33
+tinyfish-monitor-GITHUB_WORKFLOW_MONITOR.timer=ENABLED (still firing the failing service)
+tinyfish-monitor-JOB_MONITOR_DE_STUTTGART.timer=ENABLED (service currently inactive, not failed)
+
+== D-STATE ==
+D_STATE_PRESENT_AT_AUDIT=YES for transient processes only:
+  - PID 281 [usb-storage] kernel (persistent, informational)
+  - PID 3684472 find / (transient I/O wait, wait_on_buffer)
+D_STATE_PRESENT_SYSTEMIC=NO (no systemd --user / PID 2953 style hang)

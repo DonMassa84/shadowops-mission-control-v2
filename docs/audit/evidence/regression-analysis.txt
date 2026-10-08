@@ -1,0 +1,74 @@
+# Evidence: Regression analysis (read-only)
+# Collected: 2026-10-08 ~07:35 CEST
+# Command class: READ_ONLY
+
+CHECK -> RESULT -> CLASSIFICATION
+
+1. Ollama restart loop
+   -> no failed start since 2026-10-08 03:59:29 (stable 3h39m at audit time);
+      historical loop observed 03:59:03-03:59:29 (5 cycles), NRestarts cumulative 1624
+   -> OK (current state), HISTORICAL_NOTE
+
+2. API port conflict
+   -> 11434 owned by single ollama pid 2106194; API /api/tags + /v1/models 200
+   -> OK
+
+3. OpenCode crash (SIGILL/SIGSEGV)
+   -> 0 matches in user journal since 2026-10-08 00:00; 0 in system journal since 2026-10-07 08:00
+   -> FIXED (prior CRITICAL)
+
+4. Invalid default model
+   -> opencode default = ollama/qwen2.5-coder:14b; model present and loaded 100% GPU
+   -> OK
+
+5. New failed systemd units
+   -> system: 0 failed; user: 1 failed (tinyfish-monitor-GITHUB_WORKFLOW_MONITOR)
+      -> UNCHANGED (known, present in previous audit as well)
+
+6. systemd user bus hang
+   -> systemctl --user responds (is-system-running=degraded, list-units returns)
+   -> FIXED (historic D-state PID 2953 gone)
+
+7. D-state regression
+   -> only transient [usb-storage] and `find /` wait_on_buffer; no service-level D hang
+   -> OK
+
+8. TinyFish failure
+   -> service failed + disabled, BUT its .timer remains ENABLED and re-triggers the failure
+      (observed start attempt 07:30:50), keeping the user unit tree in `degraded`
+   -> UNCHANGED / NOT CLEANLY DISABLED
+
+9. Tailscale failure
+   -> pong from shadowserver in 0s; both nodes visible in tailscale status
+   -> OK
+
+10. i7 connection loss
+    -> SSH OK, 0 failed units on i7, 29 ollama manifests
+    -> OK (connectivity), but see finding: i7 ollama.service inactive
+
+11. Wrong provider routing
+    -> shadow-ollama-i7 => 127.0.0.1:11437/v1 (isolation correct, not 11434)
+    -> OK (isolation), OPEN: endpoint not reachable from Ryzen (no local 11437 listener)
+
+12. Git worktree conflict
+    -> only one registered worktree (audit); shadowops clean; runtime-deploy has Instance 3
+       work-in-progress; no branch overlap with audit/recovery-20261007
+    -> OK
+
+13. Secret leakage
+    -> no secret values in audit artifacts; no token values printed
+    -> OK
+
+14. Uncommitted productive changes
+    -> shadowops: clean
+       shadowops-runtime-deploy: 7 modified + 2 untracked (Instance 3, branch feat/i7-llm-runtime-stack-20261007)
+    -> OPEN (attributed to Instance 3, not caused by this audit)
+
+ADDITIONAL OBSERVATION (not in reference checklist):
+15. Automatic Ollama model download observed 05:59:35-07:18:13 (partial blob 5.6G, failed, source unassigned)
+    -> OPEN FINDING (violates the "no automatic model downloads" expectation unless attributed to
+       deliberate Instance 1/3 work; not produced by the checked model automation)
+
+NEW_REGRESSIONS=NONE (within the defined regression categories 1-14)
+CRITICAL_REMAINING=0
+HIGH_REMAINING=0
