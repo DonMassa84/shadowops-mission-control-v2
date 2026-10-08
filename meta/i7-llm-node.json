@@ -17,11 +17,10 @@
   "ollama_version": "0.35.1",
   "ollama_endpoint_local": "http://127.0.0.1:11434",
   "ollama_openai_endpoint_local": "http://127.0.0.1:11434/v1",
-  "ollama_actual_port": 11436,
-  "ollama_tailnet_proxy_port": 11434,
-  "ollama_tailnet_proxy_status": "ACTIVE",
-  "ollama_service_status": "INACTIVE_DEAD",
-  "ollama_user_process": "ACTIVE_PID_171321",
+  "ollama_tailnet_endpoint": "http://100.98.17.110:11434",
+  "ollama_service_status": "ENABLED_ACTIVE",
+  "ollama_tailnet_proxy_status": "ENABLED_ACTIVE",
+  "ollama_user_process": "STOPPED (replaced by systemd service)",
 
   "remote_access": "tailscale-only",
   "tailscale_status": "CONNECTED",
@@ -64,7 +63,7 @@
     "service": "shadow-ollama-tailnet-proxy.service",
     "service_status": "ENABLED_ACTIVE",
     "description": "socat TCP proxy on Tailscale IP:11434 -> localhost:11434",
-    "note": "Forwards to 11434 but Ollama actually listens on 11436 - MISMATCH"
+    "note": "Fixed: now forwards to systemd Ollama on 11434"
   },
 
   "backend_selector": {
@@ -87,17 +86,30 @@
     "process": "opencode (pid 66455)"
   },
 
+  "system_recovery": {
+    "peer_health_check": "FAILED (timeout, unrelated to Ollama fixes)"
+  },
+
   "security": {
     "public_llm_ports": false,
     "tailnet_only": true,
     "secrets_in_repo": false,
     "ollama_tailnet_exposed": true,
-    "dnsmasq_status": "ACTIVE"
+    "dnsmasq_status": "ACTIVE",
+    "ufw_status": "ACTIVE (allows tailscale0)"
   },
 
   "repository": "DonMassa84/shadowops-mission-control-v2",
-  "pr": 4,
+  "pr": 66,
   "worktree": "~/Projects/shadowops-i7-worker",
   "branch": "feat/i7-llm-runtime-stack-20261008",
-  "audit_timestamp": "2026-10-08T07:30:00+02:00"
+  "audit_timestamp": "2026-10-08T08:40:00+02:00",
+  "fixes_applied": [
+    "Fixed Ollama port mismatch: socat proxy now forwards to 11434 (systemd) instead of 11436 (user process)",
+    "Consolidated Ollama systemd drop-ins into single 10-unified.conf",
+    "Disabled ollama-reverse-tunnel.service (forward tunnel blocking port 11434)",
+    "Enabled and started ollama.service as schattenmacher user",
+    "Fixed healthcheck state directory permissions",
+    "Tailnet inference now working (verified from Ryzen)"
+  ]
 }

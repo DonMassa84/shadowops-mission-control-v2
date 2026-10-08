@@ -1,32 +1,5 @@
-NAME                            ID              SIZE      MODIFIED          
-shadowops-coder:16k             e9b77e3058e0    4.4 GB    About an hour ago    
-qwen3-embedding:4b              df5bd2e3c74c    2.5 GB    2 hours ago          
-qwen2.5-coder:14b               9ec8897f747e    9.0 GB    2 hours ago          
-qwen3:8b                        500a1f067a9f    5.2 GB    3 hours ago          
-openclaw-coder:latest           2f41681a5784    9.0 GB    8 hours ago          
-nomic-embed-text:latest         0a109f422b47    274 MB    5 days ago           
-llama3.2:latest                 a80c4f17acd5    2.0 GB    10 days ago          
-orca-2-7b:latest                1ff391b39b31    3.8 GB    10 days ago          
-deepseek-r1-qwen-14b:latest     203e94ae99c6    8.5 GB    10 days ago          
-deepseek-r1-qwen-1.5b:latest    552663187405    1.1 GB    10 days ago          
-nemotron-3-nano:latest          83f54012db9d    2.8 GB    10 days ago          
-llama-3.2-1b:latest             d013e9116d3e    773 MB    10 days ago          
-deepseek-r1-qwen-7b:latest      b273515babc1    4.4 GB    10 days ago          
-deepseek-r1-llama-8b:latest     86c45ab4c817    4.7 GB    10 days ago          
-mpt-7b-chat:latest              d2f8b08fbf4e    3.8 GB    10 days ago          
-nous-hermes-2-mistral:latest    241c82edfc97    4.1 GB    10 days ago          
-qwen2.5-coder-7b:latest         ba6488c4a8f8    4.4 GB    10 days ago          
-orca-mini-3b:latest             30faa868009d    2.0 GB    10 days ago          
-orca-2-13b:latest               4129a1795ddd    7.4 GB    10 days ago          
-llama-3.1-8b-128k:latest        8894fe25097b    4.7 GB    10 days ago          
-ghost-7b:latest                 52cb2b1d41bc    4.1 GB    10 days ago          
-llama-3-8b:latest               74ff9649eaf3    4.7 GB    10 days ago          
-qwen2-1.5b:latest               95870b77ed65    937 MB    10 days ago          
-nemo:latest                     72e0adc4e167    2.8 GB    2 months ago         
-phi3:mini                       4f2222927938    2.2 GB    2 months ago         
-qwen2.5:3b                      357c53fb659c    1.9 GB    2 months ago         
-llama3.2:1b                     baf6a787fdff    1.3 GB    2 months ago         
-moondream:1.8b                  55fc3abd3867    1.7 GB    2 months ago         
-llama3.2:3b                     a80c4f17acd5    2.0 GB    2 months ago         
-NAME                 ID              SIZE      PROCESSOR    CONTEXT    UNTIL              
-qwen2.5-coder:14b    9ec8897f747e    9.5 GB    100% GPU     4096       4 minutes from now    
+NAME                       ID              SIZE      MODIFIED     
+qwen3:4b                   359d7dd4bcda    2.5 GB    5 hours ago     
+nomic-embed-text:latest    0a109f422b47    274 MB    5 days ago      
+qwen2.5:3b                 357c53fb659c    1.9 GB    2 months ago    
+NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL 

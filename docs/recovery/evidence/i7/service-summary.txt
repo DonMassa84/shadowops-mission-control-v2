@@ -1,6 +1,7 @@
 dnsmasq.service                         enabled enabled
 ollama-i7-local.service                 enabled enabled
 ollama-proxy.service                    enabled enabled
+ollama.service                          enabled enabled
 shadow-llamacpp-tailnet-proxy.service   enabled enabled
 shadow-llamacpp.service                 enabled enabled
 shadow-localai.service                  enabled enabled
@@ -15,14 +16,19 @@ shadowmaker-nightly-improvement.timer   enabled enabled
 shadowserver-backup.timer               enabled enabled
 shadowserver-daily-report.timer         enabled enabled
 shadowserver-healthcheck.timer          enabled enabled
-  UNIT LOAD ACTIVE SUB DESCRIPTION
+  UNIT                         LOAD   ACTIVE SUB    DESCRIPTION
+● system-recovery-peer.service loaded failed failed System Recovery Mesh - Remote Peer Health Check
 
-0 loaded units listed.
-Thu 2026-10-08 07:44:28 CEST 1min 22s Thu 2026-10-08 07:29:28 CEST    13min ago shadow-compute-health.timer           shadow-compute-health.service
-Thu 2026-10-08 07:44:28 CEST 1min 23s Thu 2026-10-08 07:39:28 CEST 3min 36s ago shadow-llm-health.timer               shadow-llm-health.service
-Thu 2026-10-08 07:56:28 CEST    13min Thu 2026-10-08 07:26:28 CEST    16min ago shadowserver-healthcheck.timer        shadowserver-healthcheck.service
-Thu 2026-10-08 08:00:00 CEST    16min Thu 2026-10-08 07:30:11 CEST    12min ago shadow-observatory.timer              shadow-observatory.service
-Thu 2026-10-08 08:00:00 CEST    16min -                                       - shadowserver-daily-report.timer       shadowserver-daily-report.service
-Fri 2026-10-09 00:00:12 CEST      16h Thu 2026-10-08 00:19:13 CEST       7h ago shadow-detect.timer                   shadow-detect.service
-Fri 2026-10-09 02:35:39 CEST      18h Thu 2026-10-08 02:37:30 CEST  5h 5min ago shadowmaker-nightly-improvement.timer shadowmaker-nightly-improvement.service
-Fri 2026-10-09 03:22:37 CEST      19h Thu 2026-10-08 03:27:11 CEST 4h 15min ago shadowserver-backup.timer             shadowserver-backup.service
+Legend: LOAD   → Reflects whether the unit definition was properly loaded.
+        ACTIVE → The high-level unit activation state, i.e. generalization of SUB.
+        SUB    → The low-level unit activation state, values depend on unit type.
+
+1 loaded units listed.
+Thu 2026-10-08 08:44:31 CEST 3min 20s Thu 2026-10-08 08:29:31 CEST    11min ago shadow-compute-health.timer           shadow-compute-health.service
+Thu 2026-10-08 08:44:32 CEST 3min 21s Thu 2026-10-08 08:39:32 CEST 1min 38s ago shadow-llm-health.timer               shadow-llm-health.service
+Thu 2026-10-08 08:56:30 CEST    15min Thu 2026-10-08 08:26:30 CEST    14min ago shadowserver-healthcheck.timer        shadowserver-healthcheck.service
+Thu 2026-10-08 09:00:00 CEST    18min Thu 2026-10-08 08:30:16 CEST    10min ago shadow-observatory.timer              shadow-observatory.service
+Fri 2026-10-09 00:02:26 CEST      15h Thu 2026-10-08 00:19:13 CEST       8h ago shadow-detect.timer                   shadow-detect.service
+Fri 2026-10-09 02:37:06 CEST      17h Thu 2026-10-08 02:37:30 CEST       6h ago shadowmaker-nightly-improvement.timer shadowmaker-nightly-improvement.service
+Fri 2026-10-09 03:21:34 CEST      18h Thu 2026-10-08 03:27:11 CEST 5h 13min ago shadowserver-backup.timer             shadowserver-backup.service
+Fri 2026-10-09 08:00:00 CEST      23h Thu 2026-10-08 08:00:01 CEST    41min ago shadowserver-daily-report.timer       shadowserver-daily-report.service

@@ -1,8 +1,8 @@
 shadowserver
- 07:42:12 up  9:19,  2 users,  load average: 0,06, 0,13, 0,09
+ 08:41:10 up 10:18,  2 users,  load average: 0,01, 0,10, 0,10
 Linux shadowserver 6.8.0-142-generic #142-Ubuntu SMP PREEMPT_DYNAMIC Wed Sep  2 14:24:27 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
                total        used        free      shared  buff/cache   available
-Mem:            31Gi       2,4Gi        20Gi        72Mi       8,5Gi        28Gi
+Mem:            31Gi       2,3Gi        20Gi        73Mi       8,5Gi        28Gi
 Swap:          4,0Gi          0B       4,0Gi
 Filesystem                            Size  Used Avail Use% Mounted on
 tmpfs                                 3,2G   47M  3,1G   2% /run
@@ -10,8 +10,8 @@ tmpfs                                 3,2G   47M  3,1G   2% /run
 tmpfs                                  16G     0   16G   0% /dev/shm
 tmpfs                                 5,0M   12K  5,0M   1% /run/lock
 tmpfs                                  16G     0   16G   0% /run/qemu
-tmpfs                                  16G  104K   16G   1% /tmp
-tmpfs                                 100M   15M   86M  15% /var/log
+tmpfs                                  16G  148K   16G   1% /tmp
+tmpfs                                 100M   16M   85M  16% /var/log
 /dev/sdb1                            1022M  7,4M 1015M   1% /boot/efi
 /dev/sda1                             117G   93G   19G  84% /mnt/data
 tmpfs                                 3,2G  216K  3,2G   1% /run/user/1000
@@ -30,7 +30,7 @@ Thread(s) per core:                      2
 Core(s) per socket:                      4
 Socket(s):                               1
 Stepping:                                9
-CPU(s) scaling MHz:                      74%
+CPU(s) scaling MHz:                      57%
 CPU max MHz:                             3900,0000
 CPU min MHz:                             1600,0000
 BogoMIPS:                                6784,43

@@ -1,5 +1,6 @@
 ollama-i7-local.service                 enabled enabled
 ollama-proxy.service                    enabled enabled
+ollama.service                          enabled enabled
 shadow-llamacpp-tailnet-proxy.service   enabled enabled
 shadow-llamacpp.service                 enabled enabled
 shadow-localai.service                  enabled enabled

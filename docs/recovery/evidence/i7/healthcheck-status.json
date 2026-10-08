@@ -1,6 +1,6 @@
 {
   "node": "shadowserver",
-  "timestamp": "2026-10-08T07:39:29+02:00",
+  "timestamp": "2026-10-08T08:39:33+02:00",
   "tailscale": {
     "ok": true,
     "ip": "100.98.17.110"
@@ -27,5 +27,5 @@
   "preferred_backend": "ollama",
   "ollama_models": [],
   "failed_units": [],
-  "root_free_bytes": 57068310528
+  "root_free_bytes": 57068580864
 }
