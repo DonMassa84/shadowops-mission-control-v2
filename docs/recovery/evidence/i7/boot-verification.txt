@@ -1,0 +1,16 @@
+ollama-i7-local.service                 enabled enabled
+ollama-proxy.service                    enabled enabled
+shadow-llamacpp-tailnet-proxy.service   enabled enabled
+shadow-llamacpp.service                 enabled enabled
+shadow-localai.service                  enabled enabled
+shadow-ollama-tailnet-proxy.service     enabled enabled
+shadow-vm-autostart.service             enabled enabled
+shadowops-i7-learning-display.service   enabled enabled
+shadow-compute-health.timer             enabled enabled
+shadow-detect.timer                     enabled enabled
+shadow-llm-health.timer                 enabled enabled
+shadow-observatory.timer                enabled enabled
+shadowmaker-nightly-improvement.timer   enabled enabled
+shadowserver-backup.timer               enabled enabled
+shadowserver-daily-report.timer         enabled enabled
+shadowserver-healthcheck.timer          enabled enabled

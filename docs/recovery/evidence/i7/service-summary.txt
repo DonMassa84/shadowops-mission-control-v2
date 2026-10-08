@@ -1,0 +1,28 @@
+dnsmasq.service                         enabled enabled
+ollama-i7-local.service                 enabled enabled
+ollama-proxy.service                    enabled enabled
+shadow-llamacpp-tailnet-proxy.service   enabled enabled
+shadow-llamacpp.service                 enabled enabled
+shadow-localai.service                  enabled enabled
+shadow-ollama-tailnet-proxy.service     enabled enabled
+shadow-vm-autostart.service             enabled enabled
+shadowops-i7-learning-display.service   enabled enabled
+shadow-compute-health.timer             enabled enabled
+shadow-detect.timer                     enabled enabled
+shadow-llm-health.timer                 enabled enabled
+shadow-observatory.timer                enabled enabled
+shadowmaker-nightly-improvement.timer   enabled enabled
+shadowserver-backup.timer               enabled enabled
+shadowserver-daily-report.timer         enabled enabled
+shadowserver-healthcheck.timer          enabled enabled
+  UNIT LOAD ACTIVE SUB DESCRIPTION
+
+0 loaded units listed.
+Thu 2026-10-08 07:44:28 CEST 1min 22s Thu 2026-10-08 07:29:28 CEST    13min ago shadow-compute-health.timer           shadow-compute-health.service
+Thu 2026-10-08 07:44:28 CEST 1min 23s Thu 2026-10-08 07:39:28 CEST 3min 36s ago shadow-llm-health.timer               shadow-llm-health.service
+Thu 2026-10-08 07:56:28 CEST    13min Thu 2026-10-08 07:26:28 CEST    16min ago shadowserver-healthcheck.timer        shadowserver-healthcheck.service
+Thu 2026-10-08 08:00:00 CEST    16min Thu 2026-10-08 07:30:11 CEST    12min ago shadow-observatory.timer              shadow-observatory.service
+Thu 2026-10-08 08:00:00 CEST    16min -                                       - shadowserver-daily-report.timer       shadowserver-daily-report.service
+Fri 2026-10-09 00:00:12 CEST      16h Thu 2026-10-08 00:19:13 CEST       7h ago shadow-detect.timer                   shadow-detect.service
+Fri 2026-10-09 02:35:39 CEST      18h Thu 2026-10-08 02:37:30 CEST  5h 5min ago shadowmaker-nightly-improvement.timer shadowmaker-nightly-improvement.service
+Fri 2026-10-09 03:22:37 CEST      19h Thu 2026-10-08 03:27:11 CEST 4h 15min ago shadowserver-backup.timer             shadowserver-backup.service

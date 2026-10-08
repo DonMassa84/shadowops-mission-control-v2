@@ -1,0 +1,31 @@
+{
+  "node": "shadowserver",
+  "timestamp": "2026-10-08T07:39:29+02:00",
+  "tailscale": {
+    "ok": true,
+    "ip": "100.98.17.110"
+  },
+  "gpu": {
+    "ok": true,
+    "name": "NVIDIA GeForce GTX 1050 Ti",
+    "memory_mib": "4096"
+  },
+  "runtimes": {
+    "ollama": {
+      "ok": true,
+      "base_url": "http://127.0.0.1:11434/v1"
+    },
+    "llamacpp": {
+      "ok": false,
+      "base_url": "http://127.0.0.1:8081/v1"
+    },
+    "localai": {
+      "ok": false,
+      "base_url": "http://127.0.0.1:8080/v1"
+    }
+  },
+  "preferred_backend": "ollama",
+  "ollama_models": [],
+  "failed_units": [],
+  "root_free_bytes": 57068310528
+}
