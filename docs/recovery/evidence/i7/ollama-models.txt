@@ -1,0 +1,5 @@
+NAME                       ID              SIZE      MODIFIED     
+qwen3:4b                   359d7dd4bcda    2.5 GB    5 hours ago     
+nomic-embed-text:latest    0a109f422b47    274 MB    5 days ago      
+qwen2.5:3b                 357c53fb659c    1.9 GB    2 months ago    
+NAME    ID    SIZE    PROCESSOR    CONTEXT    UNTIL 

@@ -1,0 +1,115 @@
+{
+  "component": "shadowmaker-i7-llm-node",
+  "role": "llm-worker",
+  "hostname": "shadowserver",
+  "tailscale_ip": "100.98.17.110",
+  "os": "Ubuntu 24.04",
+  "kernel": "6.8.0-142-generic",
+  "cpu": "Intel Core i7-3770",
+  "ram_gib": 31,
+  "swap_gib": 4,
+  "gpu": "NVIDIA GeForce GTX 1050 Ti 4GB",
+  "nvidia_driver": "580.173.02",
+  "cuda_runtime": "13.0",
+  "cuda_toolkit": "NOT_INSTALLED",
+
+  "primary_runtime": "ollama",
+  "ollama_version": "0.35.1",
+  "ollama_endpoint_local": "http://127.0.0.1:11434",
+  "ollama_openai_endpoint_local": "http://127.0.0.1:11434/v1",
+  "ollama_tailnet_endpoint": "http://100.98.17.110:11434",
+  "ollama_service_status": "ENABLED_ACTIVE",
+  "ollama_tailnet_proxy_status": "ENABLED_ACTIVE",
+  "ollama_user_process": "STOPPED (replaced by systemd service)",
+
+  "remote_access": "tailscale-only",
+  "tailscale_status": "CONNECTED",
+
+  "llama_cpp": {
+    "role": "fallback",
+    "status": "NOT_IMPLEMENTED",
+    "service": "shadow-llamacpp.service",
+    "service_status": "ENABLED_INACTIVE",
+    "endpoint": "http://127.0.0.1:8081/v1"
+  },
+
+  "localai": {
+    "role": "optional",
+    "status": "NOT_IMPLEMENTED",
+    "service": "shadow-localai.service",
+    "service_status": "ENABLED_INACTIVE",
+    "endpoint": "http://127.0.0.1:8080/v1"
+  },
+
+  "healthcheck": {
+    "status": "VERIFIED",
+    "service": "shadow-llm-health.service",
+    "timer": "shadow-llm-health.timer",
+    "timer_status": "ENABLED_ACTIVE",
+    "script": "/usr/local/sbin/shadow-llm-health",
+    "state_file": "/var/lib/shadowmaker-llm/status.json"
+  },
+
+  "compute_health": {
+    "status": "VERIFIED",
+    "service": "shadow-compute-health.service",
+    "timer": "shadow-compute-health.timer",
+    "timer_status": "ENABLED_ACTIVE",
+    "script": "/home/schattenmacher/shadow_dj_compute/bin/healthcheck"
+  },
+
+  "ollama_tailnet_proxy": {
+    "status": "VERIFIED",
+    "service": "shadow-ollama-tailnet-proxy.service",
+    "service_status": "ENABLED_ACTIVE",
+    "description": "socat TCP proxy on Tailscale IP:11434 -> localhost:11434",
+    "note": "Fixed: now forwards to systemd Ollama on 11434"
+  },
+
+  "backend_selector": {
+    "status": "VERIFIED",
+    "script": "/usr/local/bin/shadow-llm-select",
+    "preferred_backend": "ollama"
+  },
+
+  "learning_kiosk": {
+    "status": "VERIFIED",
+    "port": 8765,
+    "script": "/home/schattenmacher/Projects/learning-kiosk/app/server.py",
+    "kiosk_browser": "firefox --kiosk",
+    "kiosk_script": "/home/schattenmacher/Projects/learning-kiosk/scripts/kiosk-browser.sh"
+  },
+
+  "opencode": {
+    "status": "VERIFIED",
+    "port": 4098,
+    "process": "opencode (pid 66455)"
+  },
+
+  "system_recovery": {
+    "peer_health_check": "FAILED (timeout, unrelated to Ollama fixes)"
+  },
+
+  "security": {
+    "public_llm_ports": false,
+    "tailnet_only": true,
+    "secrets_in_repo": false,
+    "ollama_tailnet_exposed": true,
+    "dnsmasq_status": "ACTIVE",
+    "ufw_status": "ACTIVE (allows tailscale0)"
+  },
+
+  "repository": "DonMassa84/shadowops-mission-control-v2",
+  "pr": 66,
+  "worktree": "~/Projects/shadowops-i7-worker",
+  "branch": "feat/i7-llm-runtime-stack-20261008",
+  "audit_timestamp": "2026-10-08T08:40:00+02:00",
+  "fixes_applied": [
+    "Fixed Ollama port mismatch: socat proxy now forwards to 11434 (systemd) instead of 11436 (user process)",
+    "Consolidated Ollama systemd drop-ins into single 10-unified.conf",
+    "Disabled ollama-reverse-tunnel.service (forward tunnel blocking port 11434)",
+    "Enabled and started ollama.service as schattenmacher user",
+    "Fixed healthcheck state directory permissions",
+    "Tailnet inference now working (verified from Ryzen)"
+  ]
+}
