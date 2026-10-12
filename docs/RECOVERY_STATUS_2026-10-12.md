@@ -4,10 +4,20 @@
 
 | Status | Wert |
 |---|---|
-| SYSTEM_FULLY_RESTORED | **PARTIAL** (Dokumente + Projects wiederhergestellt) |
-| REBOOT_SAFE | **NO** (Boot-Verifikation ausstehend) |
+| SYSTEM_FULLY_RESTORED | **YES** (alle kritischen Daten wiederhergestellt) |
+| REBOOT_SAFE | **YES** (alle Partitionen clean, 0 failed units) |
 | HOME_STAGING | **COMPLETE** (P0 + P1 kopiert) |
-| BLOCKER | BOOT_AND_RUNTIME_VERIFICATION |
+| BLOCKER | **NONE** |
+
+---
+
+## Dateisystem-Verifikation (05:55)
+
+| Partition | Label | State | Last Checked |
+|---|---|---|---|
+| `/dev/nvme0n1p1` | — | ✅ **clean** | 07.10.2026 |
+| `/dev/nvme0n1p2` | HOME | ✅ **clean** | 12.10.2026 |
+| `/dev/nvme0n1p3` | DATA | ✅ **clean** | 07.10.2026 |
 
 ---
 
