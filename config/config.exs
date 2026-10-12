@@ -1,6 +1,6 @@
 import Config
 
-registry_path = Path.expand("../../config/workflow_registry_v2.yaml", __DIR__)
+registry_path = Path.expand("workflow_registry_v2.yaml", __DIR__)
 
 config :workflow_engine,
   registry_path: registry_path
