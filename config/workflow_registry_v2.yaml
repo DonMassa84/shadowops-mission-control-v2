@@ -1,49 +1,47 @@
 schema_version: 2
 registry_name: shadowops-workflows
 workflows:
-  - id: "agent_state_sync"
-    type: "AGENT_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "system"
-    runtime: "/usr/bin/flock"
-    definition: "{ path=/usr/bin/flock ; argv[]=/usr/bin/flock -n /home/schattenmacher/.local/state/agent-state-hub/sync.lock /home/schattenmacher/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync ; ignore_errors=no ; }"
-  - id: "career_funnel_ihk"
-    type: "BUSINESS_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "career"
-    runtime: "/home/schattenmacher/.local/bin/career-funnel"
-    definition: "{ path=/home/schattenmacher/.local/bin/career-funnel ; argv[]=/home/schattenmacher/.local/bin/career-funnel ihk-check ${IHK_PROJECT_DIR} ; ignore_errors=no ; }"
-  - id: "daily_digest"
-    type: "REPORTING_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "reporting"
-    runtime: "/home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh"
-    definition: "{ path=/home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh ; argv[]=/home/schattenmacher/DokumentenSystem/07_AUTOMATION/daily_digest.sh ; ignore_errors=no ; }"
-  - id: "shadow_system_overnight_audit"
-    type: "SECURITY_WORKFLOW"
-    status: "VERIFIED_EXECUTABLE"
-    domain: "security"
-    runtime: "/home/schattenmacher/03_scripts/system_overnight_audit.sh"
-    definition: "{ path=/home/schattenmacher/03_scripts/system_overnight_audit.sh ; argv[]=/home/schattenmacher/03_scripts/system_overnight_audit.sh ; ignore_errors=no ; }"
-  - id: "sg_scan"
-    type: "REGISTRY_WORKFLOW"
-    status: "REGISTRY_ONLY"
-    domain: "governance"
-    runtime: ""
-    definition: ""
-
+  agent_state_sync:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    runtime: /usr/bin/flock
+    definition: '{ path=/usr/bin/flock ; argv[]=/usr/bin/flock -n /home/shadowmaker/.local/state/agent-state-hub/sync.lock
+      /home/shadowmaker/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync ; ignore_errors=no
+      ; }'
+  career_funnel_ihk:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: career
+    runtime: /home/shadowmaker/.local/bin/career-funnel
+    definition: '{ path=/home/shadowmaker/.local/bin/career-funnel ; argv[]=/home/shadowmaker/.local/bin/career-funnel
+      ihk-check ${IHK_PROJECT_DIR} ; ignore_errors=no ; }'
+  daily_digest:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: reporting
+    runtime: /home/shadowmaker/DokumentenSystem/07_AUTOMATION/daily_digest.sh
+    definition: '{ path=/home/shadowmaker/DokumentenSystem/07_AUTOMATION/daily_digest.sh
+      ; argv[]=/home/shadowmaker/DokumentenSystem/07_AUTOMATION/daily_digest.sh ;
+      ignore_errors=no ; }'
+  shadow_system_overnight_audit:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: security
+    runtime: /home/shadowmaker/03_scripts/system_overnight_audit.sh
+    definition: '{ path=/home/shadowmaker/03_scripts/system_overnight_audit.sh ; argv[]=/home/shadowmaker/03_scripts/system_overnight_audit.sh
+      ; ignore_errors=no ; }'
 workflow_runs:
-  - id: "run_20260820_01"
-    workflow: "agent_state_sync"
-    type: "instance"
-    status: "completed"
-    input: "{}"
-    output: "{}"
-    completed_at: "2026-08-20T01:00:00Z"
-
+  run_20260820_01:
+    workflow: agent_state_sync
+    type: instance
+    status: completed
+    input: '{}'
+    output: '{}'
+    completed_at: '2026-08-20T01:00:00Z'
 external_runtime_sets:
-  "systemd_runtime_set":
-    source: "systemd"
+  systemd_runtime_set:
+    source: systemd
     workflow_count: 5
     risk_distribution:
       L0: 10
@@ -51,14 +49,14 @@ external_runtime_sets:
       L2: 15
       L3: 5
     blockers:
-      total: 5
+      total: 6
       critical: 2
       high: 2
       medium: 1
       low: 1
     whatsapp_agent_pack: false
-  "tcc_runtime_set":
-    source: "tcc"
+  tcc_runtime_set:
+    source: tcc
     workflow_count: 16
     risk_distribution:
       L0: 5
@@ -72,8 +70,8 @@ external_runtime_sets:
       medium: 0
       low: 0
     whatsapp_agent_pack: true
-  "opencode_runtime_set":
-    source: "opencode"
+  opencode_runtime_set:
+    source: opencode
     workflow_count: 3
     risk_distribution:
       L0: 1
@@ -87,8 +85,8 @@ external_runtime_sets:
       medium: 0
       low: 0
     whatsapp_agent_pack: false
-  "telegram_runtime_set":
-    source: "telegram"
+  telegram_runtime_set:
+    source: telegram
     workflow_count: 8
     risk_distribution:
       L0: 3
