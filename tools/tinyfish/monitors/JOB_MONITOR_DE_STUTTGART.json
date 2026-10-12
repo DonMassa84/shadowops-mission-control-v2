@@ -1,0 +1,11 @@
+{
+  "name": "JOB_MONITOR_DE_STUTTGART",
+  "type": "search",
+  "config": {
+    "query": "Stellenangebot Stuttgart",
+    "recency_minutes": 1440,
+    "result_limit": 10
+  },
+  "schedule_cron": "0 8 * * 1-5",
+  "purpose": "Monitor job postings in Stuttgart area"
+}

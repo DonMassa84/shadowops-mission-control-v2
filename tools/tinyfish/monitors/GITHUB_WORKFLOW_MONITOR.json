@@ -1,0 +1,10 @@
+{
+  "name": "GITHUB_WORKFLOW_MONITOR",
+  "type": "fetch",
+  "config": {
+    "url": "https://github.com/DonMassa84/shadowops-mission-control-v2/actions",
+    "format": "json"
+  },
+  "schedule_cron": "*/15 * * * *",
+  "purpose": "Monitor GitHub Actions workflow runs for shadowops-mission-control-v2"
+}
