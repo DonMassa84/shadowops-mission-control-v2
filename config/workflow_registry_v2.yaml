@@ -1,83 +1,1245 @@
 schema_version: 2
 registry_name: shadowops-workflows
+generated_at: '2026-10-12T03:12:28Z'
+generator: shadowmaker-workflow-scan
+total_workflows: 109
+
 workflows:
-  agent_state_sync:
+  active-repo:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-active-repo
+    size_bytes: 537
+    sha256_16: 68684a6038a75bbb
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-active-repo ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-active-repo ; ignore_errors=no ; }'
+
+  active-workflows-status:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: workflow-registry
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-active-workflows-status
+    size_bytes: 2103
+    sha256_16: 66f7dfb437e871c9
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-active-workflows-status ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-active-workflows-status ; ignore_errors=no ; }'
+
+  agent:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: agent
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-agent
+    size_bytes: 4834
+    sha256_16: 89d6777f2184a3a7
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-agent ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-agent ; ignore_errors=no ; }'
+
+  agent-bot:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: agent
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-agent-bot
+    size_bytes: 3404
+    sha256_16: 0e8c8ee897aee85e
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-agent-bot ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-agent-bot ; ignore_errors=no ; }'
+
+  agent-cli:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: agent
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-agent-cli
+    size_bytes: 2589
+    sha256_16: 15eb802f4b7b2977
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-agent-cli ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-agent-cli ; ignore_errors=no ; }'
+
+  agent-context-refresh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: agent
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-agent-context-refresh
+    size_bytes: 11809
+    sha256_16: c6506587da6843d1
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-agent-context-refresh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-agent-context-refresh ; ignore_errors=no ; }'
+
+  agent-rag:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: agent
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-agent-rag
+    size_bytes: 3876
+    sha256_16: 721c70e93a2712e9
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-agent-rag ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-agent-rag ; ignore_errors=no ; }'
+
+  ai-model-router:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-ai-model-router
+    size_bytes: 1757
+    sha256_16: 520c0ff560a4da50
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-ai-model-router ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-ai-model-router ; ignore_errors=no ; }'
+
+  ai-provider-smoke-test:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-ai-provider-smoke-test
+    size_bytes: 3028
+    sha256_16: 452a92885d016120
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-ai-provider-smoke-test ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-ai-provider-smoke-test ; ignore_errors=no ; }'
+
+  android-analysis-inbox-auto.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-analysis-inbox-auto.sh
+    size_bytes: 1370
+    sha256_16: ebe8912fb9d9e9fb
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-analysis-inbox-auto.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-analysis-inbox-auto.sh ; ignore_errors=no ; }'
+
+  android-data-analysis.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-data-analysis.py
+    size_bytes: 6690
+    sha256_16: d923dbcfbdf509bd
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-data-analysis.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-data-analysis.py ; ignore_errors=no ; }'
+
+  android-data-analysis.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-data-analysis.sh
+    size_bytes: 120
+    sha256_16: 4588a80e7f2dd08e
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-data-analysis.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-data-analysis.sh ; ignore_errors=no ; }'
+
+  android-data-file-discovery.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-data-file-discovery.sh
+    size_bytes: 4047
+    sha256_16: ab0c712da51aa6f4
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-data-file-discovery.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-data-file-discovery.sh ; ignore_errors=no ; }'
+
+  android-docs-archive-analyze.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: documents
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-docs-archive-analyze.sh
+    size_bytes: 3683
+    sha256_16: 64e5f0cf5826c51a
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-docs-archive-analyze.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-docs-archive-analyze.sh ; ignore_errors=no ; }'
+
+  android-inference-test.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-inference-test.sh
+    size_bytes: 3494
+    sha256_16: 5193771d2f2998cd
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-inference-test.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-inference-test.sh ; ignore_errors=no ; }'
+
+  android-module-connect.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-module-connect.sh
+    size_bytes: 2429
+    sha256_16: c1dab2e5d8840fff
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-module-connect.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-module-connect.sh ; ignore_errors=no ; }'
+
+  android-module-status.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-android-module-status.sh
+    size_bytes: 3072
+    sha256_16: 34d142aca4ee3333
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-android-module-status.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-android-module-status.sh ; ignore_errors=no ; }'
+
+  answer-engine:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-answer-engine
+    size_bytes: 7366
+    sha256_16: a06a58008e4a24ee
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-answer-engine ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-answer-engine ; ignore_errors=no ; }'
+
+  answer-postfilter:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-answer-postfilter
+    size_bytes: 1334
+    sha256_16: b9a651c8b2b5c3fa
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-answer-postfilter ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-answer-postfilter ; ignore_errors=no ; }'
+
+  auto-answer:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-auto-answer
+    size_bytes: 1904
+    sha256_16: c60bbd3b24b68eda
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-auto-answer ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-auto-answer ; ignore_errors=no ; }'
+
+  automation-n8n-flowise-status.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: reporting
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-automation-n8n-flowise-status.sh
+    size_bytes: 6458
+    sha256_16: f242d308272c1642
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-automation-n8n-flowise-status.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-automation-n8n-flowise-status.sh ; ignore_errors=no ; }'
+
+  brave-audio:
     type: system
     status: VERIFIED_EXECUTABLE
     domain: system
-    runtime: /usr/bin/flock
-    definition: '{ path=/usr/bin/flock ; argv[]=/usr/bin/flock -n /home/shadowmaker/.local/state/agent-state-hub/sync.lock
-      /home/shadowmaker/DokumentenSystem/08_KONFIGRATION/bin/agent-state-sync ; ignore_errors=no
-      ; }'
-  career_funnel_ihk:
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-brave-audio
+    size_bytes: 767
+    sha256_16: 56bc86b790916254
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-brave-audio ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-brave-audio ; ignore_errors=no ; }'
+
+  canary-25:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: testing
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-canary-25
+    size_bytes: 8868
+    sha256_16: 10f7663be665d5e5
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-canary-25 ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-canary-25 ; ignore_errors=no ; }'
+
+  career-it-all-drives-analyze.sh:
     type: business
     status: VERIFIED_EXECUTABLE
     domain: career
-    runtime: /home/shadowmaker/.local/bin/career-funnel
-    definition: '{ path=/home/shadowmaker/.local/bin/career-funnel ; argv[]=/home/shadowmaker/.local/bin/career-funnel
-      ihk-check ${IHK_PROJECT_DIR} ; ignore_errors=no ; }'
-  daily_digest:
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-career-it-all-drives-analyze.sh
+    size_bytes: 19559
+    sha256_16: 7fd7bd56ff25393b
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-career-it-all-drives-analyze.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-career-it-all-drives-analyze.sh ; ignore_errors=no ; }'
+
+  career-it-android-review.sh:
     type: business
     status: VERIFIED_EXECUTABLE
+    domain: career
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-career-it-android-review.sh
+    size_bytes: 4926
+    sha256_16: 131d0162ab944cbd
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-career-it-android-review.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-career-it-android-review.sh ; ignore_errors=no ; }'
+
+  cerebras:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-cerebras
+    size_bytes: 11607
+    sha256_16: da978d2dd67be160
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-cerebras ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-cerebras ; ignore_errors=no ; }'
+
+  cerebras-health:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-cerebras-health
+    size_bytes: 2239
+    sha256_16: a542abf5e6233ff7
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-cerebras-health ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-cerebras-health ; ignore_errors=no ; }'
+
+  cleanup.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L2
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-cleanup.sh
+    size_bytes: 1193
+    sha256_16: 339678f4b55c5c00
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-cleanup.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-cleanup.sh ; ignore_errors=no ; }'
+
+  code-review:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-code-review
+    size_bytes: 3081
+    sha256_16: 64c6522ec4030eae
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-code-review ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-code-review ; ignore_errors=no ; }'
+
+  code-review-v2:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-code-review-v2
+    size_bytes: 7641
+    sha256_16: 3acd31745f5d41e0
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-code-review-v2 ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-code-review-v2 ; ignore_errors=no ; }'
+
+  code-review-v3:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-code-review-v3
+    size_bytes: 7717
+    sha256_16: 7416385f7df31dc7
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-code-review-v3 ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-code-review-v3 ; ignore_errors=no ; }'
+
+  code-review-v4:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-code-review-v4
+    size_bytes: 8177
+    sha256_16: 0275366d521f71d0
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-code-review-v4 ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-code-review-v4 ; ignore_errors=no ; }'
+
+  config-backup.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-config-backup.sh
+    size_bytes: 1638
+    sha256_16: d4ab0fb157b0b17b
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-config-backup.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-config-backup.sh ; ignore_errors=no ; }'
+
+  daily-delight-android.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-daily-delight-android.sh
+    size_bytes: 6145
+    sha256_16: b96e7104f20fa53c
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-daily-delight-android.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-daily-delight-android.sh ; ignore_errors=no ; }'
+
+  dependabot-autocheck.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-dependabot-autocheck.sh
+    size_bytes: 2298
+    sha256_16: c134e98eaea3dc49
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-dependabot-autocheck.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-dependabot-autocheck.sh ; ignore_errors=no ; }'
+
+  discord-agent-control-status.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-discord-agent-control-status.sh
+    size_bytes: 1737
+    sha256_16: 25cd63f27c7d4cc3
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-discord-agent-control-status.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-discord-agent-control-status.sh ; ignore_errors=no ; }'
+
+  discord-channel-router.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-discord-channel-router.sh
+    size_bytes: 16572
+    sha256_16: 3d7ad7440fbead48
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-discord-channel-router.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-discord-channel-router.sh ; ignore_errors=no ; }'
+
+  discord-doctor:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-discord-doctor
+    size_bytes: 4827
+    sha256_16: ed2dbaec9c275c17
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-discord-doctor ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-discord-doctor ; ignore_errors=no ; }'
+
+  discord-legacy-workflows-run.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-discord-legacy-workflows-run.sh
+    size_bytes: 6226
+    sha256_16: 6752eb6caf80a9d4
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-discord-legacy-workflows-run.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-discord-legacy-workflows-run.sh ; ignore_errors=no ; }'
+
+  discord-priority-bridge.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-discord-priority-bridge.py
+    size_bytes: 8432
+    sha256_16: 076815201be8b952
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-discord-priority-bridge.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-discord-priority-bridge.py ; ignore_errors=no ; }'
+
+  discord-system-status.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-discord-system-status.sh
+    size_bytes: 121
+    sha256_16: 0558e3371152fc09
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-discord-system-status.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-discord-system-status.sh ; ignore_errors=no ; }'
+
+  documente-safety-audit-runner.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: documents
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-documente-safety-audit-runner.sh
+    size_bytes: 476
+    sha256_16: 2f2f953424e64df0
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-documente-safety-audit-runner.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-documente-safety-audit-runner.sh ; ignore_errors=no ; }'
+
+  documente-safety-audit.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: documents
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-documente-safety-audit.sh
+    size_bytes: 6905
+    sha256_16: 0ddec44a14960127
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-documente-safety-audit.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-documente-safety-audit.sh ; ignore_errors=no ; }'
+
+  env-load:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-env-load
+    size_bytes: 323
+    sha256_16: a0740711d927e19f
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-env-load ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-env-load ; ignore_errors=no ; }'
+
+  finance-control-chronology-post.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: finance
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-finance-control-chronology-post.sh
+    size_bytes: 14983
+    sha256_16: fd03f292447e3b70
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-finance-control-chronology-post.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-finance-control-chronology-post.sh ; ignore_errors=no ; }'
+
+  finance-control-runner.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: finance
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-finance-control-runner.sh
+    size_bytes: 372
+    sha256_16: d6d72870d74de217
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-finance-control-runner.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-finance-control-runner.sh ; ignore_errors=no ; }'
+
+  finance-control-status.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: finance
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-finance-control-status.sh
+    size_bytes: 4752
+    sha256_16: 80a7ce6a81b98f58
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-finance-control-status.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-finance-control-status.sh ; ignore_errors=no ; }'
+
+  finance-pdf-channel-sync.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: finance
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-finance-pdf-channel-sync.sh
+    size_bytes: 6446
+    sha256_16: 7d4314a6731d2f04
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-finance-pdf-channel-sync.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-finance-pdf-channel-sync.sh ; ignore_errors=no ; }'
+
+  freeze-report:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-freeze-report
+    size_bytes: 110
+    sha256_16: 1dba80a143704db9
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-freeze-report ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-freeze-report ; ignore_errors=no ; }'
+
+  global-env-status:
+    type: system
+    status: VERIFIED_EXECUTABLE
     domain: reporting
-    runtime: /home/shadowmaker/DokumentenSystem/07_AUTOMATION/daily_digest.sh
-    definition: '{ path=/home/shadowmaker/DokumentenSystem/07_AUTOMATION/daily_digest.sh
-      ; argv[]=/home/shadowmaker/DokumentenSystem/07_AUTOMATION/daily_digest.sh ;
-      ignore_errors=no ; }'
-  shadow_system_overnight_audit:
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-global-env-status
+    size_bytes: 1390
+    sha256_16: 08b3796a03ed11ea
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-global-env-status ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-global-env-status ; ignore_errors=no ; }'
+
+  gmail-auth:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-gmail-auth
+    size_bytes: 1708
+    sha256_16: 98a02446f790af38
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-gmail-auth ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-gmail-auth ; ignore_errors=no ; }'
+
+  gmail-health:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-gmail-health
+    size_bytes: 3920
+    sha256_16: 45f4811d74e6e5c1
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-gmail-health ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-gmail-health ; ignore_errors=no ; }'
+
+  gmail-readonly:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-gmail-readonly
+    size_bytes: 4023
+    sha256_16: ea23612075c0ecc1
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-gmail-readonly ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-gmail-readonly ; ignore_errors=no ; }'
+
+  hf-smoke-test:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: testing
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-hf-smoke-test
+    size_bytes: 3068
+    sha256_16: 46296aa1d4fe7b11
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-hf-smoke-test ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-hf-smoke-test ; ignore_errors=no ; }'
+
+  housing-jobcenter-android-review.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: career
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-housing-jobcenter-android-review.sh
+    size_bytes: 5460
+    sha256_16: eed85affdf436902
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-housing-jobcenter-android-review.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-housing-jobcenter-android-review.sh ; ignore_errors=no ; }'
+
+  ihk-mfp-android-drill.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: career
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-ihk-mfp-android-drill.sh
+    size_bytes: 6701
+    sha256_16: 3e18db9e22ebe59e
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-ihk-mfp-android-drill.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-ihk-mfp-android-drill.sh ; ignore_errors=no ; }'
+
+  import-discord-token-dir.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-import-discord-token-dir.py
+    size_bytes: 3714
+    sha256_16: c1bac67a28b7469a
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-import-discord-token-dir.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-import-discord-token-dir.py ; ignore_errors=no ; }'
+
+  import-telegram-token-dir.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-import-telegram-token-dir.py
+    size_bytes: 3142
+    sha256_16: 7a6d19b6f09e3ed7
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-import-telegram-token-dir.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-import-telegram-token-dir.py ; ignore_errors=no ; }'
+
+  it-supervisor:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-it-supervisor
+    size_bytes: 5228
+    sha256_16: 5b74dec82f703e39
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-it-supervisor ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-it-supervisor ; ignore_errors=no ; }'
+
+  kontoauszuege-analyze-all.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: finance
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-kontoauszuege-analyze-all.sh
+    size_bytes: 19112
+    sha256_16: fc974e8372324212
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-kontoauszuege-analyze-all.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-kontoauszuege-analyze-all.sh ; ignore_errors=no ; }'
+
+  local-only-guard:
     type: system
     status: VERIFIED_EXECUTABLE
     domain: security
-    runtime: /home/shadowmaker/03_scripts/system_overnight_audit.sh
-    definition: '{ path=/home/shadowmaker/03_scripts/system_overnight_audit.sh ; argv[]=/home/shadowmaker/03_scripts/system_overnight_audit.sh
-      ; ignore_errors=no ; }'
-workflow_runs:
-  run_20260820_01:
-    workflow: agent_state_sync
-    type: instance
-    status: completed
-    input: '{}'
-    output: '{}'
-    completed_at: '2026-08-20T01:00:00Z'
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-local-only-guard
+    size_bytes: 66
+    sha256_16: 9dcd6feb170c976d
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-local-only-guard ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-local-only-guard ; ignore_errors=no ; }'
+
+  local-search:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-local-search
+    size_bytes: 3806
+    sha256_16: 5006aed7f6436d32
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-local-search ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-local-search ; ignore_errors=no ; }'
+
+  log-run:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-log-run
+    size_bytes: 5840
+    sha256_16: 7377815859860a1c
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-log-run ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-log-run ; ignore_errors=no ; }'
+
+  mail-priority-content-update:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-mail-priority-content-update
+    size_bytes: 5768
+    sha256_16: 4cf646923d479c6b
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-mail-priority-content-update ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-mail-priority-content-update ; ignore_errors=no ; }'
+
+  mail-telegram-workflow-runner.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-mail-telegram-workflow-runner.sh
+    size_bytes: 1082
+    sha256_16: 6d516b8c0b5fbe6d
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-mail-telegram-workflow-runner.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-mail-telegram-workflow-runner.sh ; ignore_errors=no ; }'
+
+  mail-telegram-workflow.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-mail-telegram-workflow.py
+    size_bytes: 18581
+    sha256_16: e782df1fc24f9244
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-mail-telegram-workflow.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-mail-telegram-workflow.py ; ignore_errors=no ; }'
+
+  memory-wiki-android-review.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-memory-wiki-android-review.sh
+    size_bytes: 4290
+    sha256_16: 5041c4301332b41b
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-memory-wiki-android-review.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-memory-wiki-android-review.sh ; ignore_errors=no ; }'
+
+  model-role-router.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-model-role-router.sh
+    size_bytes: 1121
+    sha256_16: da981cf43dc4e303
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-model-role-router.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-model-role-router.sh ; ignore_errors=no ; }'
+
+  model-role-status.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-model-role-status.sh
+    size_bytes: 3554
+    sha256_16: 7aec6752d512de09
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-model-role-status.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-model-role-status.sh ; ignore_errors=no ; }'
+
+  obsidian-capture:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: knowledge
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-obsidian-capture
+    size_bytes: 11416
+    sha256_16: 44a6bf26359c1646
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-obsidian-capture ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-obsidian-capture ; ignore_errors=no ; }'
+
+  oip-run:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-oip-run
+    size_bytes: 1252
+    sha256_16: 5fc07c09769e5b3a
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-oip-run ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-oip-run ; ignore_errors=no ; }'
+
+  openclaw-model-testmatrix.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-openclaw-model-testmatrix.sh
+    size_bytes: 2158
+    sha256_16: b2a544513cfd3d77
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-openclaw-model-testmatrix.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-openclaw-model-testmatrix.sh ; ignore_errors=no ; }'
+
+  openclaw-projects-android-review.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-openclaw-projects-android-review.sh
+    size_bytes: 4679
+    sha256_16: d3bb95373ce34888
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-openclaw-projects-android-review.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-openclaw-projects-android-review.sh ; ignore_errors=no ; }'
+
+  openclaw-status-android-analyze.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: android
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-openclaw-status-android-analyze.sh
+    size_bytes: 3674
+    sha256_16: b559d5cd62e047a6
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-openclaw-status-android-analyze.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-openclaw-status-android-analyze.sh ; ignore_errors=no ; }'
+
+  pdf-governance-workflow:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: documents
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-pdf-governance-workflow
+    size_bytes: 6940
+    sha256_16: 8ad3c25949444bdd
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-pdf-governance-workflow ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-pdf-governance-workflow ; ignore_errors=no ; }'
+
+  pdf-governance-workflow.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: documents
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-pdf-governance-workflow.py
+    size_bytes: 27376
+    sha256_16: 82e57d540e931a70
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-pdf-governance-workflow.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-pdf-governance-workflow.py ; ignore_errors=no ; }'
+
+  pdf-intake:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: documents
+    risk_level: L2
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-pdf-intake
+    size_bytes: 8083
+    sha256_16: f3b6aa03deaa5518
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-pdf-intake ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-pdf-intake ; ignore_errors=no ; }'
+
+  repo-governance-workflow:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-repo-governance-workflow
+    size_bytes: 3577
+    sha256_16: 73f235b9b8f8df43
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-repo-governance-workflow ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-repo-governance-workflow ; ignore_errors=no ; }'
+
+  repo-governance-workflow.py:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-repo-governance-workflow.py
+    size_bytes: 20957
+    sha256_16: 9da0912000a58354
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-repo-governance-workflow.py ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-repo-governance-workflow.py ; ignore_errors=no ; }'
+
+  report-explain:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-report-explain
+    size_bytes: 13739
+    sha256_16: 41c9313c2530d795
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-report-explain ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-report-explain ; ignore_errors=no ; }'
+
+  report-explain-v2:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-report-explain-v2
+    size_bytes: 13024
+    sha256_16: 92e30996520f00f1
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-report-explain-v2 ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-report-explain-v2 ; ignore_errors=no ; }'
+
+  reproducible-github-push:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L2
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-reproducible-github-push
+    size_bytes: 2376
+    sha256_16: 60b9bb7c60234843
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-reproducible-github-push ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-reproducible-github-push ; ignore_errors=no ; }'
+
+  rhetoric-run:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L2
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-rhetoric-run
+    size_bytes: 1593
+    sha256_16: 8661eaa90bc9cda0
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-rhetoric-run ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-rhetoric-run ; ignore_errors=no ; }'
+
+  safe-push-now:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L2
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-safe-push-now
+    size_bytes: 5820
+    sha256_16: 506d076f16d67f4c
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-safe-push-now ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-safe-push-now ; ignore_errors=no ; }'
+
+  secret-redact-fast:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: security
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-secret-redact-fast
+    size_bytes: 3894
+    sha256_16: 7c4e23ae996bb965
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-secret-redact-fast ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-secret-redact-fast ; ignore_errors=no ; }'
+
+  secret-redact-now:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: security
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-secret-redact-now
+    size_bytes: 4021
+    sha256_16: 23fb4ba1a8ef3673
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-secret-redact-now ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-secret-redact-now ; ignore_errors=no ; }'
+
+  send-email:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: ai
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-send-email
+    size_bytes: 1686
+    sha256_16: 1e7f02df8e6fb59a
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-send-email ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-send-email ; ignore_errors=no ; }'
+
+  sound-analog-fix.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-sound-analog-fix.sh
+    size_bytes: 1909
+    sha256_16: 34e8c7acfa5fd846
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-sound-analog-fix.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-sound-analog-fix.sh ; ignore_errors=no ; }'
+
+  storage-reclaim:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: agent
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-storage-reclaim
+    size_bytes: 10603
+    sha256_16: 28135f6079b04f43
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-storage-reclaim ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-storage-reclaim ; ignore_errors=no ; }'
+
+  telegram-app-preview:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-app-preview
+    size_bytes: 4406
+    sha256_16: 893dc4a0bf555e64
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-app-preview ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-app-preview ; ignore_errors=no ; }'
+
+  telegram-bot-topology-test:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-bot-topology-test
+    size_bytes: 1491
+    sha256_16: 58b552ee2d0ad370
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-bot-topology-test ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-bot-topology-test ; ignore_errors=no ; }'
+
+  telegram-control-bot:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-control-bot
+    size_bytes: 8067
+    sha256_16: 66c9a60578a254d9
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-control-bot ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-control-bot ; ignore_errors=no ; }'
+
+  telegram-control-bot-runner:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-control-bot-runner
+    size_bytes: 641
+    sha256_16: 3af680d2505d904f
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-control-bot-runner ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-control-bot-runner ; ignore_errors=no ; }'
+
+  telegram-env-autoheal.sh:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-env-autoheal.sh
+    size_bytes: 7442
+    sha256_16: e6214841c5fa7462
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-env-autoheal.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-env-autoheal.sh ; ignore_errors=no ; }'
+
+  telegram-role-healthcheck:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-role-healthcheck
+    size_bytes: 1582
+    sha256_16: 2f61e6101578c452
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-role-healthcheck ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-role-healthcheck ; ignore_errors=no ; }'
+
+  telegram-send-role:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-send-role
+    size_bytes: 1456
+    sha256_16: 321a757d7bfd052e
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-send-role ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-send-role ; ignore_errors=no ; }'
+
+  telegram-skill-bot:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L1
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-skill-bot
+    size_bytes: 50852
+    sha256_16: b635f65eb4b59118
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-skill-bot ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-skill-bot ; ignore_errors=no ; }'
+
+  telegram-skill-bot-selfscan:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: communication
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-telegram-skill-bot-selfscan
+    size_bytes: 867
+    sha256_16: 1c16585cdc73dcc4
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-telegram-skill-bot-selfscan ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-telegram-skill-bot-selfscan ; ignore_errors=no ; }'
+
+  thunderbird-ingest:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: messaging
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-thunderbird-ingest
+    size_bytes: 10732
+    sha256_16: f12150b915bb0be5
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-thunderbird-ingest ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-thunderbird-ingest ; ignore_errors=no ; }'
+
+  thunderbird-search:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: messaging
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-thunderbird-search
+    size_bytes: 2877
+    sha256_16: eeeaaf6916ee6838
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-thunderbird-search ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-thunderbird-search ; ignore_errors=no ; }'
+
+  thunderbird-search-deep:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: messaging
+    risk_level: L0
+    runtime: /usr/bin/python3
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-thunderbird-search-deep
+    size_bytes: 11280
+    sha256_16: cf65b7433f8fc05e
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-thunderbird-search-deep ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-thunderbird-search-deep ; ignore_errors=no ; }'
+
+  timeshift-now:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: system
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-timeshift-now
+    size_bytes: 180
+    sha256_16: efd38e5b474a308b
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-timeshift-now ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-timeshift-now ; ignore_errors=no ; }'
+
+  token-scan-safe.sh:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: security
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-token-scan-safe.sh
+    size_bytes: 3779
+    sha256_16: 81d1dcbcd2a716f1
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-token-scan-safe.sh ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-token-scan-safe.sh ; ignore_errors=no ; }'
+
+  video-slides-health:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: testing
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-video-slides-health
+    size_bytes: 1325
+    sha256_16: a6d3465dc54eb435
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-video-slides-health ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-video-slides-health ; ignore_errors=no ; }'
+
+  workflow:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: workflow-registry
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-workflow
+    size_bytes: 11829
+    sha256_16: 2525c64a1c219937
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-workflow ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-workflow ; ignore_errors=no ; }'
+
+  workflow-auto-register:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: workflow-registry
+    risk_level: L3
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-workflow-auto-register
+    size_bytes: 29065
+    sha256_16: 1432dddf632fea48
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-workflow-auto-register ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-workflow-auto-register ; ignore_errors=no ; }'
+
+  workflow-index-update:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: workflow-registry
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-workflow-index-update
+    size_bytes: 1530
+    sha256_16: 7449de579d6f757d
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-workflow-index-update ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-workflow-index-update ; ignore_errors=no ; }'
+
+  workflow-report:
+    type: business
+    status: VERIFIED_EXECUTABLE
+    domain: code-quality
+    risk_level: L0
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-workflow-report
+    size_bytes: 1371
+    sha256_16: 8e5d6ce4eb3ead46
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-workflow-report ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-workflow-report ; ignore_errors=no ; }'
+
+  workflow-self-test:
+    type: system
+    status: VERIFIED_EXECUTABLE
+    domain: workflow-registry
+    risk_level: L1
+    runtime: /bin/bash
+    source_path: /home/shadowmaker/.local/bin/shadowmaker-workflow-self-test
+    size_bytes: 10011
+    sha256_16: 12136967a669050d
+    definition: '{ path=/home/shadowmaker/.local/bin/shadowmaker-workflow-self-test ; argv[]=/home/shadowmaker/.local/bin/shadowmaker-workflow-self-test ; ignore_errors=no ; }'
+
+registry_summary:
+  total: 109
+  by_type:
+    business: 67
+    system: 42
+  by_domain:
+    agent: 6
+    ai: 15
+    android: 11
+    career: 4
+    code-quality: 13
+    communication: 19
+    documents: 6
+    finance: 5
+    knowledge: 1
+    messaging: 3
+    reporting: 2
+    security: 4
+    system: 12
+    testing: 3
+    workflow-registry: 5
+  by_risk:
+    L0: 62
+    L1: 31
+    L2: 5
+    L3: 11
+
 external_runtime_sets:
-  systemd_runtime_set:
-    source: systemd
-    workflow_count: 5
+  local_bin_runtime_set:
+    source: local-bin
+    workflow_count: 109
     risk_distribution:
-      L0: 10
-      L1: 20
-      L2: 15
-      L3: 5
-    blockers:
-      total: 6
-      critical: 2
-      high: 2
-      medium: 1
-      low: 1
-    whatsapp_agent_pack: false
-  tcc_runtime_set:
-    source: tcc
-    workflow_count: 16
-    risk_distribution:
-      L0: 5
-      L1: 8
-      L2: 3
-      L3: 0
-    blockers:
-      total: 2
-      critical: 1
-      high: 1
-      medium: 0
-      low: 0
-    whatsapp_agent_pack: true
-  opencode_runtime_set:
-    source: opencode
-    workflow_count: 3
-    risk_distribution:
-      L0: 1
-      L1: 1
-      L2: 1
-      L3: 0
+      L0: 62
+      L1: 31
+      L2: 5
+      L3: 11
     blockers:
       total: 0
       critical: 0
@@ -85,18 +1247,5 @@ external_runtime_sets:
       medium: 0
       low: 0
     whatsapp_agent_pack: false
-  telegram_runtime_set:
-    source: telegram
-    workflow_count: 8
-    risk_distribution:
-      L0: 3
-      L1: 4
-      L2: 1
-      L3: 0
-    blockers:
-      total: 1
-      critical: 0
-      high: 1
-      medium: 0
-      low: 0
-    whatsapp_agent_pack: false
+
+workflow_runs: {}
