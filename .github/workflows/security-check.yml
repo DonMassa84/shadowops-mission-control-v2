@@ -25,7 +25,7 @@ jobs:
       - name: ⚠️ pull_request_target Check
         run: |
           echo "🔍 Suche nach pull_request_target..."
-          WORKFLOWS=$(find .github/workflows -name '*.yml' -o -name '*.yaml' 2>/dev/null)
+          WORKFLOWS=$(find .github/workflows -name '*.yml' -o -name '*.yaml' 2>/dev/null | grep -v 'security-check.yml')
           FOUND=0
           for f in $WORKFLOWS; do
             if grep -q "pull_request_target" "$f" 2>/dev/null; then
@@ -37,10 +37,10 @@ jobs:
             echo "✅ KEIN pull_request_target in any Workflow gefunden (sicher)"
           fi
           
-      - name: ⚠️ write-all / permissions: write Check
+      - name: "⚠️ write-all / permissions: write Check"
         run: |
           echo "🔍 Suche nach write-all/permissions: write..."
-          WORKFLOWS=$(find .github/workflows -name '*.yml' -o -name '*.yaml' 2>/dev/null)
+          WORKFLOWS=$(find .github/workflows -name '*.yml' -o -name '*.yaml' 2>/dev/null | grep -v 'security-check.yml')
           FOUND=0
           for f in $WORKFLOWS; do
             if grep -qE "write-all|permissions: *write" "$f" 2>/dev/null; then
@@ -70,6 +70,19 @@ jobs:
           done
           echo "✅ Secret-Namen-Check abgeschlossen"
           
+
+      - name: 🔎 Wertbasierter Secret-Scan (Warnung)
+        run: |
+          echo "🔍 Suche nach eingecheckten Zugangsdaten (KEY=VALUE)..."
+          HITS=$(git grep -nEI '(API[_-]?KEY|ACCESS[_-]?TOKEN|AUTH[_-]?TOKEN|BOT[_-]?TOKEN|SECRET|PASSWORD|PASSWD|LICENSE[_-]?KEY|ENCRYPTION[_-]?KEY|PRIVATE[_-]?KEY|CREDENTIALS?)[[:space:]]*=[[:space:]]*[^[:space:]"'"'"']{12,}' -- . ':!*.example' ':!*.sample' ':!*.template' 2>/dev/null | grep -vE '(sk-\.\.\.|your[_-]|changeme|example|PLACEHOLDER|xxxxx|<[A-Z_]+>)' | head -20 || true)
+          if [ -n "$HITS" ]; then
+            echo "⚠️ Mögliche Zugangsdaten in getrackten Dateien (Werte maskiert):"
+            printf '%s\n' "$HITS" | sed -E 's/=[[:space:]]*[^[:space:]]{6,}/=<MASKIERT>/g'
+            echo "ℹ️ Werte maskiert. Erforderlich: Rotation der Zugangsdaten + Bereinigung der Historie."
+          else
+            echo "✅ Keine Muster für eingecheckte Zugangsdaten gefunden"
+          fi
+
       - name: 📊 Zusammenfassungs-Report
         run: |
           echo "========================================="
