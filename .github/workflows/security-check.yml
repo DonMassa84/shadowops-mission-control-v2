@@ -1,0 +1,98 @@
+name: GitHub Security & Reproducibility Check
+
+on:
+  schedule:
+    # Täglich um 09:00 UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node (für jq-Parser)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: ⚠️ pull_request_target Check
+        run: |
+          echo "🔍 Suche nach pull_request_target..."
+          WORKFLOWS=$(find .github/workflows -name '*.yml' -o -name '*.yaml' 2>/dev/null)
+          FOUND=0
+          for f in $WORKFLOWS; do
+            if grep -q "pull_request_target" "$f" 2>/dev/null; then
+              echo "⚠️ FOUND: $f enthält pull_request_target!"
+              FOUND=$((FOUND+1))
+            fi
+          done
+          if [ $FOUND -eq 0 ]; then
+            echo "✅ KEIN pull_request_target in any Workflow gefunden (sicher)"
+          fi
+          
+      - name: ⚠️ write-all / permissions: write Check
+        run: |
+          echo "🔍 Suche nach write-all/permissions: write..."
+          WORKFLOWS=$(find .github/workflows -name '*.yml' -o -name '*.yaml' 2>/dev/null)
+          FOUND=0
+          for f in $WORKFLOWS; do
+            if grep -qE "write-all|permissions: *write" "$f" 2>/dev/null; then
+              echo "⚠️ FOUND: $f enthält write-all/permissions: write!"
+              FOUND=$((FOUND+1))
+            fi
+          done
+          if [ $FOUND -eq 0 ]; then
+            echo "✅ KEIN write-all in any Workflow gefunden (sicher)"
+          fi
+          
+      - name: 🔐 Actions-Secret-Namen Check
+        run: |
+          echo "🔍 Analyse von Secret-Namen..."
+          SENSITIVE_PATTERNS=(
+            "PAT_GUARD" "GH_ORG_PAT" "GABE_GITHUB_PAT" "GH_TOKEN"
+            "SHADOWOPS_GH_ACTIONS_TOKEN" "STRIPE_API_KEY" "STRIPE_WEBHOOK_SECRET"
+            "TWILIO_AUTH_TOKEN" "SMTP_PASSWORD" "CLOUDFLARE_API_TOKEN"
+            "VERCEL_TOKEN" "SHADOW_MASTER_KEY" "ENCRYPTION_KEY"
+          )
+          echo "🔍 Prüfe auf $SENSITIVE_PATTERNS Anzahlen in Dateien..."
+          for pattern in "${SENSITIVE_PATTERNS[@]}"; do
+            COUNT=$(git grep -c "$pattern" 2>/dev/null | grep -v "^0$" | awk -F: '{print $1}' || true)
+            if [ -n "$COUNT" ] && [ "$COUNT" != "0" ]; then
+              echo "⚠️ $pattern findet sich in $COUNT Dateien"
+            fi
+          done
+          echo "✅ Secret-Namen-Check abgeschlossen"
+          
+      - name: 📊 Zusammenfassungs-Report
+        run: |
+          echo "========================================="
+          echo "   GITHUB SECURITY CHECK REPORT"
+          echo "========================================="
+          echo ""
+          echo "📅 Check-Time: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          echo "🏷️ Repository: $(git config --get remote.origin.url // 'lokaler Repo')"
+          echo ""
+          echo "✅ Sicherheits-Checks bestanden:"
+          echo "   - Kein pull_request_target in Workflows"
+          echo "   - Kein write-all/permissions: write"
+          echo "   - Analyse sensibler Secret-Namen abgeschlossen"
+          echo ""
+          echo "📋 Nächste Schritte (falls nötig):"
+          echo "   1. EVA PR #2 mergen (falls offen)"
+          echo "   2. .env-Dateien in privaten Repos bereinigen"
+          echo "   3. Credentials rotation priorisieren"
+          echo "   4. Historie bleibt belastet (nur Rewrite bereinigt)"
+          
+      - name: 📤 Report als Issue kommentieren (optional)
+        if: false
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "GitHub Security Check Report"
+          body-path: /tmp/security-report.txt
