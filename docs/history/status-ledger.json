@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "project": "shadowops-mission-control-v2",
+  "generated_at": "2026-08-26",
+  "operating_rule": "FINISH BEFORE EXPAND",
+  "evidence_classes": [
+    "REPO_VERIFIED",
+    "CI_VERIFIED",
+    "LOCAL_VERIFIED",
+    "LOCAL_REPORTED",
+    "NOT_CONFIGURED",
+    "UNVERIFIED"
+  ],
+  "snapshots": [
+    {
+      "date": "2026-08-19",
+      "title": "Gate A hardened baseline",
+      "status": "PARTIAL",
+      "evidence_class": "LOCAL_REPORTED"
+    },
+    {
+      "date": "2026-08-23",
+      "title": "Runtime/control-plane evidence expansion",
+      "status": "PARTIAL",
+      "evidence_class": "LOCAL_REPORTED"
+    },
+    {
+      "date": "2026-08-24",
+      "title": "Data Fabric V5 validated without real source ingest",
+      "status": "DATA_FABRIC_VALIDATED_WITHOUT_REAL_SOURCE_INGEST",
+      "evidence_class": "LOCAL_REPORTED"
+    },
+    {
+      "date": "2026-08-25",
+      "title": "Privacy-safe health intake branch",
+      "status": "OPEN_VALIDATION_REQUIRED",
+      "evidence_class": "REPO_VERIFIED",
+      "pr": 1
+    },
+    {
+      "date": "2026-08-25",
+      "title": "Production hardening baseline",
+      "status": "OPEN_DRAFT_PRODUCTION_HANDOFF_CANDIDATE",
+      "evidence_class": "REPO_VERIFIED",
+      "pr": 2,
+      "head": "2ccf940c6633285d65235b330da81f258a2853ca"
+    },
+    {
+      "date": "2026-08-25",
+      "title": "ChatGPT OpenCode GitHub MCP",
+      "status": "MERGED",
+      "evidence_class": "REPO_VERIFIED",
+      "pr": 3
+    },
+    {
+      "date": "2026-08-25",
+      "title": "Read-only ShadowOps runtime MCP gateway",
+      "status": "OPEN",
+      "evidence_class": "REPO_VERIFIED",
+      "pr": 4
+    },
+    {
+      "date": "2026-08-26",
+      "title": "Fail-closed ChatGPT source evidence pipeline",
+      "status": "IMPLEMENTED_MERGE_BLOCKED_BY_REMAINING_GATES",
+      "evidence_class": "REPO_VERIFIED",
+      "pr": 7,
+      "head": "9d409a1a5cbe836b3e92265e6937825fbcd9efe9",
+      "issues": [5, 6]
+    },
+    {
+      "date": "2026-08-26",
+      "title": "No local ChatGPT export",
+      "status": "EXPECTED_FAIL_CLOSED",
+      "evidence_class": "LOCAL_REPORTED",
+      "source_state": "NOT_CONFIGURED"
+    },
+    {
+      "date": "2026-08-26",
+      "title": "Local runtime/source drift detected",
+      "status": "BLOCKED_RUNTIME_ALIGNMENT",
+      "evidence_class": "LOCAL_REPORTED",
+      "runtime_port": 4013,
+      "health_http": 200,
+      "ready_http": 200,
+      "projects_http": 500,
+      "chatgpt_project_http": 404
+    },
+    {
+      "date": "2026-08-26",
+      "title": "Persistent OpenCode ChatGPT GitHub handoff",
+      "status": "ACTIVE",
+      "evidence_class": "REPO_VERIFIED",
+      "issue": 8
+    }
+  ]
+}
