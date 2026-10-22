@@ -63,6 +63,8 @@ Ausgabe (auch für eine zukünftige nur lokale UI geeignet):
 - `project_execution_allowed=false` und `agent_execution_allowed=false`
 - Kein tatsächlicher Agenten-/Host-Status, keine Job-Ausführung
 
+**Aktualität:** Der Adapter akzeptiert ausschließlich eine mit UTC-Offset versehene `generated_utc`-Zeit. Berichte, die älter als 48 Stunden oder mehr als 10 Minuten in der Zukunft liegen, werden **fail-closed** abgewiesen. Es wird kein Zeitstempel oder Rohbericht an die öffentliche Oberfläche ausgegeben.
+
 Falls die private Quelle manipuliert ist, der Vertrag verletzt wird oder
 ein lokaler Einlesefehler auftritt, bricht das Programm **fail-closed**
 ohne private Details auszugeben ab.
