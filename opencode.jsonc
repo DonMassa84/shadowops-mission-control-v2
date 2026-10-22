@@ -1,7 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    "docs/CHATGPT_OPENCODE_GITHUB_MCP.md"
+    "docs/CHATGPT_OPENCODE_GITHUB_MCP.md",
+    "docs/SHADOWOPS_RUNTIME_MCP.md"
   ],
   "mcp": {
     "servers": {
@@ -14,6 +15,11 @@
           "X-MCP-Toolsets": "repos,pull_requests,issues,actions",
           "X-MCP-Readonly": "true"
         }
+      },
+      "shadowops-runtime": {
+        "type": "local",
+        "command": ["bash", "scripts/run-shadowops-mcp.sh"],
+        "cwd": "."
       }
     }
   }

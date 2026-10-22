@@ -1,0 +1,36 @@
+name: ShadowOps Runtime MCP
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "ops/mcp/**"
+      - "scripts/run-shadowops-mcp.sh"
+      - "opencode.jsonc"
+      - ".github/workflows/mcp-runtime.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "ops/mcp/**"
+      - "scripts/run-shadowops-mcp.sh"
+      - "opencode.jsonc"
+      - ".github/workflows/mcp-runtime.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: MCP read-only contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install MCP gateway dependencies
+        run: python -m pip install 'mcp>=2,<3' 'httpx>=0.28,<1'
+      - name: Compile gateway
+        run: python -m py_compile ops/mcp/shadowops_runtime_mcp.py
+      - name: Run gateway unit tests
+        run: python -m unittest discover -s ops/mcp -p 'test_*.py' -v
