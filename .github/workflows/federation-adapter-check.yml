@@ -1,0 +1,26 @@
+name: Federation adapter — offline contract checks
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/inspect_shadowops_federation.py'
+      - 'tests/test_federation_adapter.py'
+      - 'docs/SHADOWOPS_FEDERATION_HANDOFF.md'
+      - '.github/workflows/federation-adapter-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Static compile check
+        run: python3 -m py_compile scripts/inspect_shadowops_federation.py tests/test_federation_adapter.py
+      - name: Local-only adapter tests, with synthetic fixtures
+        run: python3 -m unittest discover -s tests -p 'test_federation_adapter.py' -v
