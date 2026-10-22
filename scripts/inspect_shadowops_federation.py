@@ -7,6 +7,7 @@ No network, subprocess, filesystem writes, PR actions or local-agent execution.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import sys
@@ -15,9 +16,24 @@ ROUTES = {"human_review", "github_review", "web_qa", "opencode_or_codex_offline"
 PRIORITIES = {"P0", "P1", "P2", "P3"}
 
 
-def safe_summary(payload: object) -> dict:
+def safe_summary(payload: object, now: datetime | None = None) -> dict:
     if not isinstance(payload, dict) or payload.get("schema_version") != 1:
         raise ValueError("Unsupported private artifact schema")
+    stamp = payload.get("generated_utc")
+    if not isinstance(stamp, str):
+        raise ValueError("Missing snapshot evidence timestamp")
+    try:
+        generated = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    except ValueError:
+        raise ValueError("Invalid snapshot evidence timestamp") from None
+    if generated.tzinfo is None:
+        raise ValueError("Unzoned snapshot evidence timestamp")
+    current = now if now is not None else datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        raise ValueError("Unzoned current time")
+    age = current.astimezone(timezone.utc) - generated.astimezone(timezone.utc)
+    if age > timedelta(hours=48) or age < -timedelta(minutes=10):
+        raise ValueError("Stale or future-dated private snapshot")
     policy = payload.get("policy")
     if not isinstance(policy, dict) or policy.get("mode") != "READ_ONLY":
         raise ValueError("Missing read-only policy")
