@@ -3,6 +3,7 @@
 import contextlib
 import io
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import sys
 import tempfile
@@ -15,6 +16,7 @@ from inspect_shadowops_federation import safe_summary, main
 def fixture():
     return {
         "schema_version": 1,
+        "generated_utc": datetime.now(timezone.utc).isoformat(),
         "policy": {"mode": "READ_ONLY", "local_agent_execution": False,
                    "auto_merge": False, "auto_deploy": False,
                    "auto_email": False, "project_execution_allowed": False},
@@ -76,6 +78,22 @@ class LocalAdapterTests(unittest.TestCase):
         data["repositories"] = "all"
         with self.assertRaises(ValueError):
             safe_summary(data)
+
+    def test_freshness_fails_closed_for_stale_or_future_artifacts(self):
+        sample_time = datetime(2026, 10, 22, 20, tzinfo=timezone.utc)
+        data = fixture()
+        data["generated_utc"] = sample_time.isoformat()
+        self.assertEqual(safe_summary(data, now=sample_time)["proposals_p0"], 1)
+        for value in (
+            None,
+            "2026-10-22T20:00:00",
+            (sample_time - timedelta(days=3)).isoformat(),
+            (sample_time + timedelta(hours=2)).isoformat(),
+            "bad-timestamp",
+        ):
+            data["generated_utc"] = value
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                safe_summary(data, now=sample_time)
 
     def test_cli_reads_external_file_without_writing(self):
         with tempfile.TemporaryDirectory() as folder:
